@@ -1,0 +1,74 @@
+<idea-plugin>
+    <id>com.justai.jaicf.plugin</id>
+    <name>JAICF</name>
+    <vendor>JustAI</vendor>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.justai.jaicf.plugin.Startup"/>
+
+        <projectService serviceImplementation="com.justai.jaicf.plugin.ScenarioService"/>
+
+        <projectService serviceImplementation="com.justai.jaicf.plugin.AppendService"/>
+
+        <completion.contributor language="kotlin"
+                                id="StatePathCompletionContributor"
+                                implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionContributor"
+                                order="first, before KotlinCompletionContributor"/>
+
+        <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
+                      order="first"/>
+
+        <completion.confidence language="kotlin"
+                               implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionConfidenceProvider"
+                               order="first"/>
+
+        <psi.referenceContributor order="first" language="kotlin"
+                                  implementation="com.justai.jaicf.plugin.providers.StatePathReferenceContributor"/>
+
+        <psi.referenceContributor order="first" language="kotlin"
+                                  implementation="com.justai.jaicf.plugin.providers.StateIdentifierReferenceContributor"/>
+
+        <localInspection displayName="Duplicate states inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.DuplicateStateInspection"/>
+
+        <localInspection displayName="Forbidden state name inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.StateNameInspection"/>
+
+        <localInspection displayName="Non overridden reaction usage inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.NotOverriddenReactionUsageInspection"/>
+
+        <localInspection displayName="Non overridden buttons reaction usage inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.UsesReactionUsageInspection"/>
+
+        <localInspection displayName="State path inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.StatePathInspection"/>
+
+        <codeInsight.lineMarkerProvider language="kotlin"
+                                        implementationClass="com.justai.jaicf.plugin.providers.StatePathLineMarkerProvider"/>
+
+        <codeInsight.lineMarkerProvider language="kotlin"
+                                        implementationClass="com.justai.jaicf.plugin.providers.StateIdentifierLineMarkerProvider"/>
+
+        <defaultLiveTemplates file="/liveTemplates/state.xml"/>
+
+        <liveTemplateContext implementation="com.justai.jaicf.plugin.contexts.StateContext"/>
+    </extensions>
+</idea-plugin>

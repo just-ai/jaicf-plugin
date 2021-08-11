@@ -1,0 +1,1 @@
+# JAICF Plugin Changelog

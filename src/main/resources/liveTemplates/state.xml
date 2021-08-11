@@ -1,0 +1,10 @@
+<templateSet group="State">
+    <template name="state"
+              value="state(&quot;$NAME$&quot;) {&#10;    activators {&#10;        $END$&#10;    }&#10;    &#10;    action {&#10;    &#10;    }&#10;}"
+              description="Insert state block with nested blocks" toReformat="false" toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+        <context>
+            <option name="STATE" value="true"/>
+        </context>
+    </template>
+</templateSet>
