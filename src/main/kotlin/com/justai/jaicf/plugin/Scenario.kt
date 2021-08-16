@@ -131,7 +131,8 @@ sealed class StateIdentifier {
     }
 
     data class NoIdentifier(
-        val parentCallExpression: KtCallExpression
+        val parentCallExpression: KtCallExpression,
+        val errorMessage: String = ""
     ) : StateIdentifier() {
         override fun resolveText(): String? = null
     }

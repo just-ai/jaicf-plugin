@@ -147,7 +147,6 @@ fun KtDotQualifiedExpression.getRootDotReceiver(): KtNameReferenceExpression? =
 
 fun KtDotQualifiedExpression.getDotReceiver(): PsiElement = children[0]
 
-// TODO учитывать что в 1.4 котлине можно именовать аргументы в начале, а потом юзать не именованные
 fun KtValueArgument.parameter(): KtParameter? {
     val callElement = callElement() ?: return null
     val params = callElement.declaration?.valueParameters ?: return null
@@ -155,7 +154,6 @@ fun KtValueArgument.parameter(): KtParameter? {
     if (this is KtLambdaArgument)
         return params.last()
 
-    // TODO vararg, мб в след версиях работает по другому
     return try {
         definedIdentifier?.let { params.first { param -> param.name == it } }
             ?: params[min(callElement.valueArguments.indexOf(this), params.size - 1)]
@@ -166,7 +164,6 @@ fun KtValueArgument.parameter(): KtParameter? {
 
         null
     }
-
 }
 
 val KtValueArgument.definedIdentifier: String?

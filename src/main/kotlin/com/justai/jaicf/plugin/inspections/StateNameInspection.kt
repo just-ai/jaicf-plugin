@@ -24,6 +24,11 @@ class StateNameInspection : LocalInspectionTool() {
         override fun visitState(visitedState: State) {
             val stateName = visitedState.identifier.resolveText()
 
+            if (visitedState.identifier is StateIdentifier.NoIdentifier) {
+                registerGenericError(visitedState.callExpression, visitedState.identifier.errorMessage)
+                return
+            }
+
             if (stateName == null) {
                 registerWarning(
                     visitedState.identifierReference ?: visitedState.callExpression,

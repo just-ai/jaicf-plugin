@@ -1,7 +1,5 @@
 package com.justai.jaicf.plugin
 
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -9,16 +7,29 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
-import org.jetbrains.kotlin.idea.search.fileScope
-import org.jetbrains.kotlin.idea.search.projectScope
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
-import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-import com.justai.jaicf.plugin.Scenario.Condition.*
+import com.justai.jaicf.plugin.Scenario.Condition.ACTUAL
+import com.justai.jaicf.plugin.Scenario.Condition.CORRUPTED
+import com.justai.jaicf.plugin.Scenario.Condition.MODIFIED
+import com.justai.jaicf.plugin.Scenario.Condition.REMOVED
 import com.justai.jaicf.plugin.StateIdentifier.ExpressionIdentifier
 import com.justai.jaicf.plugin.StateIdentifier.NoIdentifier
 import com.justai.jaicf.plugin.StateIdentifier.PredefinedIdentifier
+import org.jetbrains.kotlin.idea.search.fileScope
+import org.jetbrains.kotlin.idea.search.projectScope
+import org.jetbrains.kotlin.nj2k.postProcessing.resolve
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassBody
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class ScenarioService(project: Project) {
 
@@ -136,8 +147,6 @@ private class ScenarioBuilder(val project: Project) {
         .map { it.element.parent }
         .filterIsInstance<KtCallExpression>()
 
-
-    // Метод находящий тело сценария по ссылке на проперти или на object
     fun getScenarioBody(expr: KtReferenceExpression): KtExpression? {
         if (expr.isRemoved)
             return null
@@ -168,7 +177,6 @@ private class ScenarioBuilder(val project: Project) {
         }
     }
 
-    // Метод отдающий ссылку на пропертю или object к которой присваивается тело сценария
     fun getScenarioReference(element: PsiElement): KtExpression? {
         val scenario = element.getFramingState()?.scenario ?: return null
         val scenarioDeclaration = scenario.declarationElement as? KtCallExpression ?: return null
@@ -245,7 +253,7 @@ private object StateBuilder {
     private fun buildStates(
         state: State,
         statements: List<KtCallExpression>,
-        scenario: Scenario
+        scenario: Scenario,
     ) = statements
         .filter { it.isState || it.isFallback || it.isAnnotatedWithStateDeclaration }
         .map { buildState(it, state, scenario) }
@@ -255,16 +263,20 @@ private object StateBuilder {
 private fun KtCallExpression.identifierOfStateExpression(): StateIdentifier {
     return when {
         isAnnotatedWithStateDeclaration -> {
-            val argumentExpression = argumentExpressionsByAnnotation(STATE_NAME_ANNOTATION_NAME).firstOrNull()
-            if (argumentExpression != null) {
-                return ExpressionIdentifier(argumentExpression, argumentExpression.parent)
+            val stateNameExpression = argumentExpressionsByAnnotation(STATE_NAME_ANNOTATION_NAME).firstOrNull()
+            if (stateNameExpression != null) {
+                return ExpressionIdentifier(stateNameExpression, stateNameExpression.parent)
             }
 
-            val stateAnnotation = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).lastOrNull()
-                ?: return NoIdentifier(this)
+            val stateAnnotation = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).last()
 
-            return stateAnnotation.argumentConstantValue(STATE_NAME_ANNOTATION_ARGUMENT_NAME)
-                ?.let { PredefinedIdentifier(it, this) } ?: return NoIdentifier(this)
+            val stateName = stateAnnotation.argumentExpression(STATE_NAME_ANNOTATION_ARGUMENT_NAME)?.stringValueOrNull
+
+            return stateName?.let { PredefinedIdentifier(it, this) }
+                ?: return NoIdentifier(
+                    this,
+                    "The state name is not defined. Use @$STATE_NAME_ANNOTATION_NAME or specify $STATE_NAME_ANNOTATION_ARGUMENT_NAME of @$STATE_DECLARATION_ANNOTATION_NAME."
+                )
         }
 
         isScenario -> PredefinedIdentifier("", this)
@@ -275,10 +287,12 @@ private fun KtCallExpression.identifierOfStateExpression(): StateIdentifier {
             ?: PredefinedIdentifier("fallback", this)
 
         isState -> argumentExpression(STATE_NAME_ARGUMENT_NAME)?.let { ExpressionIdentifier(it, it.parent) }
-            ?: NoIdentifier(this)
+            ?: NoIdentifier(this,
+                "JAICF Plugin is not able to resolve state name. Specify $STATE_NAME_ARGUMENT_NAME parameter.")
 
         isAppendWithContext -> argumentExpression(APPEND_CONTEXT_ARGUMENT_NAME)
-            ?.let { ExpressionIdentifier(it, it.parent) } ?: NoIdentifier(this)
+            ?.let { ExpressionIdentifier(it, it.parent) } ?: NoIdentifier(this,
+            "JAICF Plugin is not able to resolve state name. Specify $APPEND_CONTEXT_ARGUMENT_NAME parameter.")
 
         else -> throw IllegalArgumentException("${this.text} is not a state declaration")
     }
