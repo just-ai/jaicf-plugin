@@ -15,11 +15,9 @@ import com.justai.jaicf.plugin.TransitionResult.StateFound
 import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.services.ScenarioService
-import org.jetbrains.kotlin.idea.search.allScope
+import com.justai.jaicf.plugin.services.SearchService
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 private val logger = Logger.getInstance("StateNavigation")
 
@@ -109,80 +107,6 @@ fun TransitionResult.statesOrSuggestions() = when (this) {
     else -> emptyList()
 }
 
-fun findStateUsages(state: State): List<KtExpression> {
-    var methods: List<PsiNameIdentifierOwner> = PathValueSearcher.getMethodsDeclarations(state.callExpression.project)
-
-    if (methods.isEmpty())
-        methods = getAllJumpMethodsDeclarations(state.callExpression.project)
-
-    if (methods.isEmpty())
-        return emptyList()
-
-    val allPathExpressions = methods
-        .flatMap { ReferencesSearch.search(it, state.callExpression.project.projectScope()).findAll() }
-        .map { it.element }
-        .flatMap { it.getPathExpressionsOfBoundedBlock() }
-
-    if (allPathExpressions.isEmpty())
-        Logger.getInstance("findStateUsages").warn("No path expression was found in project")
-
-    return allPathExpressions
-        .filter { transitToState(it).firstStateOrSuggestion() == state }
-}
-
-private fun getAllJumpMethodsDeclarations(project: Project): List<PsiMethod> {
-    check(!DumbService.getInstance(project).isDumb) { "IDEA in dumb mode" }
-
-    val reactionsClass = findClass(REACTIONS_PACKAGE, REACTIONS_CLASS_NAME, project) ?: return emptyList()
-    val jumpMethods = reactionsClass.allMethods.filter {
-        it.name == REACTIONS_GO_METHOD_NAME || it.name == REACTIONS_CHANGE_STATE_METHOD_NAME
-    }
-
-    if (jumpMethods.isEmpty()) {
-        logger.warn("No jump method declaration was found")
-        return emptyList()
-    }
-
-    return jumpMethods
-}
-
-object PathValueSearcher {
-
-    private val annotationsMap: MutableMap<Project, ProjectSearcher> = mutableMapOf()
-
-    fun getMethodsDeclarations(project: Project) =
-        annotationsMap.computeIfAbsent(project) { ProjectSearcher(project) }
-            .getAllAnnotatedMethodsDeclarations()
-
-    private class ProjectSearcher(private val project: Project) {
-
-        private val annotationClass = findClass(PLUGIN_PACKAGE, PATH_ARGUMENT_ANNOTATION_NAME, project)
-
-        private val jaicfMethods = annotationClass?.let { annotation ->
-            ReferencesSearch.search(annotation, project.allScope()).toList()
-                .mapNotNull { it.element.getParentOfType<KtFunction>(true) }
-                .distinct()
-        } ?: emptyList()
-
-        fun getAllAnnotatedMethodsDeclarations(): List<KtFunction> {
-            if (annotationClass == null)
-                return emptyList()
-
-            val annotatedMethodsOfProject = ReferencesSearch.search(annotationClass, project.projectScope())
-                .toList()
-                .mapNotNull { it.element.getParentOfType<KtFunction>(true) }
-                .distinct()
-
-            val annotatedMethods = annotatedMethodsOfProject + jaicfMethods
-
-            if (annotatedMethods.isEmpty()) {
-                logger.info("No annotated method by @$PATH_ARGUMENT_ANNOTATION_NAME was found")
-            }
-
-            return annotatedMethods
-        }
-    }
-}
 
 
 internal fun String.withoutLeadSlashes() =

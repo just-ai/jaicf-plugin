@@ -13,6 +13,10 @@
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.AppendService"/>
 
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.SearchService"/>
+
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.UsagesSearchService"/>
+
         <completion.contributor language="kotlin"
                                 id="StatePathCompletionContributor"
                                 implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionContributor"

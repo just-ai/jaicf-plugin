@@ -13,12 +13,12 @@ import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.STATE_NAME_ARGUMENT_NAME
-import com.justai.jaicf.plugin.findStateUsages
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
+import com.justai.jaicf.plugin.services.UsagesSearchService
 import com.justai.jaicf.plugin.services.isStateDeclaration
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -44,7 +44,8 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
         return arrayOf(
             MultiPsiReference(element, element.rangeToEndOf(argument)) {
-                argument.getFramingState()?.let { findStateUsages(it) } ?: emptyList()
+                argument.getFramingState()?.let { UsagesSearchService.get(element.project).findStateUsages(it) }
+                    ?: emptyList()
             }
         )
     }

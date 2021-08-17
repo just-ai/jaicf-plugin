@@ -2,16 +2,13 @@ package com.justai.jaicf.plugin
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-class LazySafeValue<T>(initValue: T) {
+class LazySafeValue<T>(initValue: T, @Volatile private var lazyUpdater: ((T) -> T)? = null) {
 
     val value: T
         get() = lazyUpdater?.let { safeValue.tryToUpdate(it) }?.also { lazyUpdater = null }
             ?: safeValue.value
 
     private val safeValue = SafeValue(initValue)
-
-    @Volatile
-    private var lazyUpdater: ((T) -> T)? = null
 
     fun update(updater: (T) -> T) = safeValue.tryToUpdate(updater)
 

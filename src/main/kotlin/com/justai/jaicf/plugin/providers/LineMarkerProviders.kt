@@ -15,13 +15,13 @@ import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.absolutePath
 import com.justai.jaicf.plugin.asLeaf
 import com.justai.jaicf.plugin.findChildOfType
-import com.justai.jaicf.plugin.findStateUsages
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.getPathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.identifierReference
 import com.justai.jaicf.plugin.isValid
 import com.justai.jaicf.plugin.services.ScenarioService
+import com.justai.jaicf.plugin.services.UsagesSearchService
 import com.justai.jaicf.plugin.services.isStateDeclaration
 import com.justai.jaicf.plugin.statesOrSuggestions
 import com.justai.jaicf.plugin.transitToState
@@ -108,7 +108,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
                         return@createValue emptyList()
                     }
 
-                    findStateUsages(framingState)
+                    UsagesSearchService.get(stateExpression.project).findStateUsages(framingState)
                         .mapNotNull { it.asLeaf }
                         .mapNotNull {
                             val fromState = it.getFramingState() ?: return@mapNotNull null
