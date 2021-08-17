@@ -5,7 +5,7 @@ import com.justai.jaicf.plugin.Lexeme.Slash
 import com.justai.jaicf.plugin.Lexeme.Transition.Root
 
 data class StatePath(
-    val lexemes: List<Lexeme> = emptyList()
+    val lexemes: List<Lexeme> = emptyList(),
 ) {
 
     val transitions: List<Lexeme.Transition>
@@ -54,9 +54,9 @@ sealed class Lexeme(val identifier: String) {
             isBegin && path.startsWith(Slash.identifier) -> Root
             path.startsWith(Slash.identifier) -> Slash
             path.startsWith(Transition.Revert.identifier + Slash.identifier) ||
-                path == Transition.Revert.identifier -> Transition.Revert
+                    path == Transition.Revert.identifier -> Transition.Revert
             path.startsWith(Transition.Current.identifier + Slash.identifier) ||
-                path == Transition.Current.identifier -> Transition.Current
+                    path == Transition.Current.identifier -> Transition.Current
             else -> Transition.GoState(path.substringBefore(Slash.identifier))
         }
     }

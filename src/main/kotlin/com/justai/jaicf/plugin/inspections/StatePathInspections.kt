@@ -2,14 +2,11 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.trace
-import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.kotlin.psi.KtExpression
 import com.justai.jaicf.plugin.TransitionResult
 import com.justai.jaicf.plugin.absolutePath
 import com.justai.jaicf.plugin.identifierReference
 import com.justai.jaicf.plugin.transitToState
+import org.jetbrains.kotlin.psi.KtExpression
 
 class StatePathInspection : LocalInspectionTool() {
 

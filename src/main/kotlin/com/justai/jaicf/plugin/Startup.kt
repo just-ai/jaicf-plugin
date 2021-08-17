@@ -7,6 +7,8 @@ import com.intellij.openapi.startup.StartupActivity
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
+import com.justai.jaicf.plugin.services.AppendService
+import com.justai.jaicf.plugin.services.ScenarioService
 import org.jetbrains.kotlin.psi.KtFile
 
 class Startup : StartupActivity {
@@ -23,7 +25,7 @@ class Startup : StartupActivity {
 
 private class ScenarioInvalidator(
     private val scenarioService: ScenarioService,
-    private val appendService: AppendService
+    private val appendService: AppendService,
 ) : PsiTreeChangeAdapter() {
     override fun childrenChanged(event: PsiTreeChangeEvent) {
         (event.file as? KtFile)?.let { scenarioService.markFileAsModified(it) }

@@ -9,7 +9,6 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.firstStateOrSuggestion
@@ -21,6 +20,7 @@ import com.justai.jaicf.plugin.rangeToEndOf
 import com.justai.jaicf.plugin.stringValueOrNull
 import com.justai.jaicf.plugin.transit
 import com.justai.jaicf.plugin.transitionsWithRanges
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 class StatePathReferenceContributor : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
@@ -57,7 +57,7 @@ class StatePathReferenceProvider : PsiReferenceProvider() {
 class StatePsiReference(
     element: PsiElement,
     path: StatePath,
-    textRange: TextRange = element.textRange
+    textRange: TextRange = element.textRange,
 ) : PsiReferenceBase<PsiElement?>(element, textRange) {
 
     private val transitionResult by lazy { element.getFramingState()?.transit(path) }

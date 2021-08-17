@@ -2,15 +2,17 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.trace
 import com.intellij.psi.PsiElementVisitor
-import com.justai.jaicf.plugin.*
 import com.justai.jaicf.plugin.Lexeme.Slash
 import com.justai.jaicf.plugin.Lexeme.Transition
 import com.justai.jaicf.plugin.Lexeme.Transition.Current
 import com.justai.jaicf.plugin.Lexeme.Transition.Revert
-import com.justai.jaicf.plugin.StateIdentifier.ExpressionIdentifier
+import com.justai.jaicf.plugin.State
+import com.justai.jaicf.plugin.StateIdentifier
+import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.identifierReference
+import com.justai.jaicf.plugin.isRootState
+import com.justai.jaicf.plugin.isTopState
 
 class StateNameInspection : LocalInspectionTool() {
 

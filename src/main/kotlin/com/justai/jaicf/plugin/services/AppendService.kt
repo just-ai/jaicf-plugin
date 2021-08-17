@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin
+package com.justai.jaicf.plugin.services
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
@@ -7,12 +7,24 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
+import com.justai.jaicf.plugin.APPEND_METHOD_NAME
+import com.justai.jaicf.plugin.Append
+import com.justai.jaicf.plugin.LazySafeValue
+import com.justai.jaicf.plugin.SCENARIO_EXTENSIONS_CLASS_NAME
+import com.justai.jaicf.plugin.SCENARIO_PACKAGE
+import com.justai.jaicf.plugin.Scenario
+import com.justai.jaicf.plugin.TopLevelAppend
+import com.justai.jaicf.plugin.findClass
+import com.justai.jaicf.plugin.getRootDotReceiver
+import com.justai.jaicf.plugin.isActual
+import com.justai.jaicf.plugin.isRemoved
+import com.justai.jaicf.plugin.isValid
+import com.justai.jaicf.plugin.resolve
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
-import kotlin.math.log
 
 class AppendService(private val project: Project) {
 
@@ -85,7 +97,7 @@ class AppendService(private val project: Project) {
 
     private fun buildNewAppends(
         file: KtFile,
-        existedAppends: List<TopLevelAppend>
+        existedAppends: List<TopLevelAppend>,
     ) = builder.getTopLevelAppendsUsages(file.fileScope())
         .minus(existedAppends.map { it.callExpression })
         .mapNotNull { builder.buildAppend(it) }

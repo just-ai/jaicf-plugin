@@ -12,16 +12,16 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.psi.KtValueArgument
 import com.justai.jaicf.plugin.STATE_NAME_ARGUMENT_NAME
-import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.findStateUsages
+import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.identifier
-import com.justai.jaicf.plugin.isStateDeclaration
 import com.justai.jaicf.plugin.rangeToEndOf
+import com.justai.jaicf.plugin.services.isStateDeclaration
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtValueArgument
 
 class StateIdentifierReferenceContributor : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
@@ -53,7 +53,7 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 class MultiPsiReference(
     element: PsiElement,
     textRange: TextRange = element.textRange,
-    referencesProvider: () -> List<PsiElement>
+    referencesProvider: () -> List<PsiElement>,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
     private val references by lazy { referencesProvider() }

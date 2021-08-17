@@ -11,20 +11,33 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import java.util.Collections.emptyList
+import com.justai.jaicf.plugin.State
+import com.justai.jaicf.plugin.absolutePath
+import com.justai.jaicf.plugin.asLeaf
+import com.justai.jaicf.plugin.findChildOfType
+import com.justai.jaicf.plugin.findStateUsages
+import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
+import com.justai.jaicf.plugin.getFramingState
+import com.justai.jaicf.plugin.getPathExpressionsOfBoundedBlock
+import com.justai.jaicf.plugin.identifierReference
+import com.justai.jaicf.plugin.isValid
+import com.justai.jaicf.plugin.services.ScenarioService
+import com.justai.jaicf.plugin.services.isStateDeclaration
+import com.justai.jaicf.plugin.statesOrSuggestions
+import com.justai.jaicf.plugin.transitToState
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
-import com.justai.jaicf.plugin.*
+import java.util.Collections.emptyList
 
 class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     override fun collectNavigationMarkers(
         element: PsiElement,
-        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
         if (!isLeafIdentifier(element)) {
             return
@@ -62,7 +75,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     override fun collectNavigationMarkers(
         element: PsiElement,
-        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
         if (!isLeafIdentifier(element)) {
             return
@@ -82,7 +95,8 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setTargets(
                 NotNullLazyValue.createValue {
                     val framingState = stateExpression.getFramingState()
-                        ?: markerHolderLeaf.getBoundedCallExpressionOrNull(KtValueArgument::class.java)?.getFramingState()
+                        ?: markerHolderLeaf.getBoundedCallExpressionOrNull(KtValueArgument::class.java)
+                            ?.getFramingState()
 
                     if (framingState == null) {
                         logger.warn("Framing state of stateExpression is null. ${stateExpression.text}")
@@ -134,7 +148,7 @@ private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
 private class JumpExprPsiElement(
     val jumpElement: LeafPsiElement,
-    val fromState: State
+    val fromState: State,
 ) : PsiElement by jumpElement
 
 private object Icons {

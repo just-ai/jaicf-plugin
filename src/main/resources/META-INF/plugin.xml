@@ -9,9 +9,9 @@
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.justai.jaicf.plugin.Startup"/>
 
-        <projectService serviceImplementation="com.justai.jaicf.plugin.ScenarioService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.ScenarioService"/>
 
-        <projectService serviceImplementation="com.justai.jaicf.plugin.AppendService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.AppendService"/>
 
         <completion.contributor language="kotlin"
                                 id="StatePathCompletionContributor"

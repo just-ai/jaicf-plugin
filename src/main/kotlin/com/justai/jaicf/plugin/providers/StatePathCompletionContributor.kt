@@ -18,11 +18,21 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
+import com.justai.jaicf.plugin.Lexeme
+import com.justai.jaicf.plugin.State
+import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.allStates
+import com.justai.jaicf.plugin.getBoundedPathExpression
+import com.justai.jaicf.plugin.getFramingState
+import com.justai.jaicf.plugin.isValid
+import com.justai.jaicf.plugin.parent
+import com.justai.jaicf.plugin.statesOrSuggestions
+import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.transit
+import com.justai.jaicf.plugin.withoutLeadSlashes
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import com.justai.jaicf.plugin.*
-import com.justai.jaicf.plugin.withoutLeadSlashes
 
 class StatePathCompletionContributor : CompletionContributor() {
     init {
@@ -35,7 +45,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
     public override fun addCompletions(
         parameters: CompletionParameters,
         context: ProcessingContext,
-        resultSet: CompletionResultSet
+        resultSet: CompletionResultSet,
     ) {
         val pathExpression = parameters.position.getBoundedPathExpression() ?: return
         val pathBeforeCaret = pathExpression.stringValueOrNull?.substringBeforeCaret() ?: return
@@ -83,16 +93,16 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     private fun lastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
         !(
-            path.lexemes.isNotEmpty() &&
-                path.lexemes.last() is Lexeme.Transition &&
-                path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
-            )
+                path.lexemes.isNotEmpty() &&
+                        path.lexemes.last() is Lexeme.Transition &&
+                        path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
+                )
 
     private fun String.substringBeforeCaret() = substringBefore("IntellijIdeaRulezzz")
 
     private fun CompletionResultSet.withPrefixMatcherIfComplexExpression(
         pathExpression: KtExpression,
-        path: StatePath
+        path: StatePath,
     ): CompletionResultSet {
         return if (pathExpression.isComplexStringTemplate)
             if (path.lexemes.last() == Lexeme.Slash)

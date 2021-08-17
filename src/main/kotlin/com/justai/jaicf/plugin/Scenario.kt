@@ -3,6 +3,8 @@ package com.justai.jaicf.plugin
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
+import com.justai.jaicf.plugin.services.AppendService
+import com.justai.jaicf.plugin.services.ScenarioService
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -118,7 +120,7 @@ sealed class StateIdentifier {
 
     data class PredefinedIdentifier(
         val stateName: String,
-        val container: PsiElement
+        val container: PsiElement,
     ) : StateIdentifier() {
         override fun resolveText() = stateName
     }
@@ -132,7 +134,7 @@ sealed class StateIdentifier {
 
     data class NoIdentifier(
         val parentCallExpression: KtCallExpression,
-        val errorMessage: String = ""
+        val errorMessage: String = "",
     ) : StateIdentifier() {
         override fun resolveText(): String? = null
     }

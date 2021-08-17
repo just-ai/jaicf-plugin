@@ -3,7 +3,12 @@ package com.justai.jaicf.plugin.inspections
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiElementVisitor
+import com.justai.jaicf.plugin.USES_REACTION_ANNOTATION_NAME
+import com.justai.jaicf.plugin.USES_REACTION_METHOD_ARGUMENT_NAME
+import com.justai.jaicf.plugin.argumentConstantValue
+import com.justai.jaicf.plugin.declaration
+import com.justai.jaicf.plugin.getMethodAnnotations
+import com.justai.jaicf.plugin.reactionsClassFqName
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
@@ -18,12 +23,6 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
-import com.justai.jaicf.plugin.USES_REACTION_ANNOTATION_NAME
-import com.justai.jaicf.plugin.USES_REACTION_METHOD_ARGUMENT_NAME
-import com.justai.jaicf.plugin.argumentConstantValue
-import com.justai.jaicf.plugin.declaration
-import com.justai.jaicf.plugin.getMethodAnnotations
-import com.justai.jaicf.plugin.reactionsClassFqName
 
 class UsesReactionUsageInspection : LocalInspectionTool() {
 

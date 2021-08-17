@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.contexts
 import com.intellij.codeInsight.template.TemplateContextType
 import com.intellij.psi.PsiFile
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
-import com.justai.jaicf.plugin.isStateDeclaration
+import com.justai.jaicf.plugin.services.isStateDeclaration
 
 class StateContext : TemplateContextType("STATE", "State") {
     override fun isInContext(file: PsiFile, offset: Int) =
