@@ -111,8 +111,8 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
                     UsagesSearchService.get(stateExpression.project).findStateUsages(framingState)
                         .mapNotNull { it.asLeaf }
                         .mapNotNull {
-                            val fromState = it.getFramingState() ?: return@mapNotNull null
-                            JumpExprPsiElement(it, fromState)
+                            it.getFramingState() ?: return@mapNotNull null
+                            it
                         }
                 }
             )
@@ -130,7 +130,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
     override fun getElementText(element: PsiElement?): String {
-        return (element as JumpExprPsiElement).fromState.absolutePath()?.toString()
+        return element?.getFramingState()?.absolutePath()?.toString()
             ?: super.getElementText(element)
     }
 
@@ -145,11 +145,6 @@ private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
         return "defined in ${reference.name}"
     }
 }
-
-private class JumpExprPsiElement(
-    val jumpElement: LeafPsiElement,
-    val fromState: State,
-) : PsiElement by jumpElement
 
 private object Icons {
     var RECEIVER: Icon = AllIcons.Gutter.WriteAccess
