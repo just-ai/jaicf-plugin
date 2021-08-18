@@ -11,7 +11,7 @@ data class StatePath(
     val transitions: List<Lexeme.Transition>
         get() = lexemes.mapNotNull { it as? Lexeme.Transition }
 
-    override fun toString() = lexemes.joinToString(separator = "", transform = Lexeme::identifier)
+    override fun toString() = lexemes.joinToString(separator = "") { it.identifier }
 
     companion object {
         fun parse(path: String) = StatePath(recursiveParse(path, true))
