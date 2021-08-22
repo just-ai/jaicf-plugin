@@ -21,8 +21,11 @@ import org.jetbrains.kotlin.psi.KtExpression
 
 private val logger = Logger.getInstance("StateNavigation")
 
-fun PsiElement.getFramingState() =
-    ServiceManager.getService(project, ScenarioService::class.java).getState(this)?.let {
+fun PsiElement.getFramingState(): State? {
+    if (isRemoved)
+        return null
+
+    return ServiceManager.getService(project, ScenarioService::class.java).getState(this)?.let {
         return@let if (it.isValid) {
             it
         } else {
@@ -30,6 +33,7 @@ fun PsiElement.getFramingState() =
             null
         }
     }
+}
 
 fun State.absolutePath(): StatePath? {
     if (parent == null) {

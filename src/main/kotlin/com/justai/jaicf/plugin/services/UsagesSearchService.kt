@@ -15,6 +15,7 @@ import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.findClass
 import com.justai.jaicf.plugin.firstStateOrSuggestion
 import com.justai.jaicf.plugin.getPathExpressionsOfBoundedBlock
+import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.transitToState
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtExpression
@@ -59,6 +60,7 @@ class UsagesSearchService(val project: Project) {
             .ifEmpty { return emptyList() }
 
         return methods
+            .filter { it.isExist }
             .flatMap { ReferencesSearch.search(it, project.projectScope()).findAll() }
             .map { it.element }
             .flatMap { it.getPathExpressionsOfBoundedBlock() }
