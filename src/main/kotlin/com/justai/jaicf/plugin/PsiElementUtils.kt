@@ -163,19 +163,18 @@ fun KtValueArgument.parameter(): KtParameter? {
     val callElement = callElement() ?: return null
     val params = callElement.declaration?.valueParameters ?: return null
 
+    if (params.isEmpty())
+        return null
+
     if (this is KtLambdaArgument)
         return params.last()
 
-    return try {
-        definedIdentifier?.let { params.first { param -> param.name == it } }
-            ?: params[min(callElement.valueArguments.indexOf(this), params.size - 1)]
-    } catch (e: NoSuchElementException) {
-        logger.warn(e)
-        logger.warn("parent.parent = ${parent.parent}")
-        logger.warn("parent.parent.parent = ${parent.parent.parent}")
+    val identifier = definedIdentifier
+    if (identifier != null)
+        return params.firstOrNull { it.name == identifier }
 
-        null
-    }
+    val indexOfArgument = callElement.valueArguments.indexOf(this)
+    return params[min(indexOfArgument, params.lastIndex)]
 }
 
 val KtValueArgument.definedIdentifier: String?
