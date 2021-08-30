@@ -22,7 +22,7 @@ import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.allStates
-import com.justai.jaicf.plugin.getBoundedPathExpression
+import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.isValid
 import com.justai.jaicf.plugin.parent
@@ -47,7 +47,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         context: ProcessingContext,
         resultSet: CompletionResultSet,
     ) {
-        val pathExpression = parameters.position.getBoundedPathExpression() ?: return
+        val pathExpression = parameters.position.boundedPathExpression ?: return
         val pathBeforeCaret = pathExpression.stringValueOrNull?.substringBeforeCaret() ?: return
         val statePath = StatePath.parse(pathBeforeCaret)
         val statesSuggestions: List<State> = getStatesSuggestions(pathExpression, statePath) ?: return
@@ -131,7 +131,7 @@ class StatePathAutoPopupHandler : TypedHandlerDelegate() {
 
         val element = file.findElementAt(editor.caretModel.offset) ?: return Result.CONTINUE
 
-        if (element.getBoundedPathExpression() != null) {
+        if (element.boundedPathExpression != null) {
             AutoPopupController.getInstance(project).autoPopupMemberLookup(editor, null)
             return Result.STOP
         }
@@ -151,7 +151,7 @@ class StatePathCompletionConfidenceProvider : CompletionConfidence() {
                 return ThreeState.UNSURE
             }
 
-            return if (contextElement.getBoundedPathExpression() != null)
+            return if (contextElement.boundedPathExpression != null)
                 ThreeState.NO
             else
                 ThreeState.UNSURE

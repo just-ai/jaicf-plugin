@@ -61,7 +61,7 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private fun buildLineMarker(state: State, markerHolderLeaf: LeafPsiElement) =
         NavigationGutterIconBuilder.create(Icons.RECEIVER)
             .setAlignment(Alignment.LEFT)
-            .setTargets(listOf(state.identifierReference))
+            .setTargets(listOf(state.callExpression))
             .setTooltipText("Navigate to state declaration")
             .setEmptyPopupText("No state declaration found")
             .createLineMarkerInfo(markerHolderLeaf)

@@ -11,7 +11,7 @@ import com.justai.jaicf.plugin.identifierReference
 
 class NavigateToState(message: String, state: State) : NavigateToElementFix(
     message,
-    state.identifierReference ?: state.callExpression
+    state.callExpression
 )
 
 open class NavigateToElementFix(private val message: String, arg: PsiElement) : LocalQuickFix {

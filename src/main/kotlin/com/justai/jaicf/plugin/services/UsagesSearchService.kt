@@ -55,7 +55,7 @@ class UsagesSearchService(val project: Project) {
     }
 
     private fun findExpressions(): List<KtExpression> {
-        val methods = SearchService.get(project).getMethodsUsedPathValue()
+        val methods = PathValueSearcher.get(project).getMethodsUsedPathValue()
             .ifEmpty { predefinedJumpReactions }
             .ifEmpty { return emptyList() }
 

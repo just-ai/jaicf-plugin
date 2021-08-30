@@ -12,7 +12,7 @@ import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.firstStateOrSuggestion
-import com.justai.jaicf.plugin.getBoundedPathExpression
+import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.identifierReference
 import com.justai.jaicf.plugin.plus
@@ -34,7 +34,7 @@ class StatePathReferenceContributor : PsiReferenceContributor() {
 class StatePathReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        val pathExpression = element.getBoundedPathExpression() ?: return emptyArray()
+        val pathExpression = element.boundedPathExpression ?: return emptyArray()
         val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return emptyArray()
 
         return if (pathExpression.isSimpleStringTemplate) {
@@ -62,5 +62,5 @@ class StatePsiReference(
 
     private val transitionResult by lazy { element.getFramingState()?.transit(path) }
 
-    override fun resolve() = transitionResult?.firstStateOrSuggestion()?.identifierReference
+    override fun resolve() = transitionResult?.firstStateOrSuggestion()?.callExpression
 }

@@ -10,7 +10,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.justai.jaicf.plugin.State
-import com.justai.jaicf.plugin.getInnerPathExpressions
+import com.justai.jaicf.plugin.innerPathExpressions
 import com.justai.jaicf.plugin.isRemoved
 import com.justai.jaicf.plugin.isValid
 import com.justai.jaicf.plugin.services.ScenarioService
@@ -73,10 +73,10 @@ abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holde
 
     override fun visitElement(element: PsiElement) {
         if (element is KtCallExpression)
-            element.getInnerPathExpressions().forEach(this::visitPathExpression)
+            element.innerPathExpressions.forEach(this::visitPathExpression)
 
         if (element is KtBinaryExpression)
-            element.getInnerPathExpressions().forEach(this::visitPathExpression)
+            element.innerPathExpressions.forEach(this::visitPathExpression)
     }
 }
 

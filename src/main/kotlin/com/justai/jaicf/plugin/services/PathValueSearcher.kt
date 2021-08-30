@@ -15,15 +15,14 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
-class SearchService(private val project: Project) {
+class PathValueSearcher(private val project: Project) {
 
     private val annotationClass = findClass(PLUGIN_PACKAGE, PATH_ARGUMENT_ANNOTATION_NAME, project)
     private val jaicfMethods = LazySafeValue(emptyList<KtFunction>()) { findUsages(project.allScope()) }
     private val projectMethods = LazySafeValue(emptyList<KtFunction>()) { findUsages(project.projectScope()) }
 
     fun getMethodsUsedPathValue(): List<KtFunction> {
-        if (annotationClass == null)
-            return emptyList()
+        if (!VersionService.usedAnnotations(project)) return emptyList()
 
         val annotatedMethods = projectMethods.value + jaicfMethods.value
 
@@ -51,6 +50,6 @@ class SearchService(private val project: Project) {
     companion object {
         private val logger = Logger.getInstance(this::class.java)
 
-        fun get(project: Project): SearchService = ServiceManager.getService(project, SearchService::class.java)
+        fun get(project: Project): PathValueSearcher = ServiceManager.getService(project, PathValueSearcher::class.java)
     }
 }

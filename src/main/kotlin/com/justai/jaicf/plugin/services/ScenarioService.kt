@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -30,7 +31,6 @@ import com.justai.jaicf.plugin.Scenario
 import com.justai.jaicf.plugin.Scenario.Condition.ACTUAL
 import com.justai.jaicf.plugin.Scenario.Condition.CORRUPTED
 import com.justai.jaicf.plugin.Scenario.Condition.MODIFIED
-import com.justai.jaicf.plugin.Scenario.Condition.REMOVED
 import com.justai.jaicf.plugin.ScenarioPackageFqName
 import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.StateIdentifier
@@ -39,7 +39,9 @@ import com.justai.jaicf.plugin.StateIdentifier.NoIdentifier
 import com.justai.jaicf.plugin.StateIdentifier.PredefinedIdentifier
 import com.justai.jaicf.plugin.actualCondition
 import com.justai.jaicf.plugin.argumentExpression
+import com.justai.jaicf.plugin.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.argumentExpressionsByAnnotation
+import com.justai.jaicf.plugin.argumentExpressionsOrDefaultValuesByAnnotation
 import com.justai.jaicf.plugin.contains
 import com.justai.jaicf.plugin.declaration
 import com.justai.jaicf.plugin.findChildOfType
@@ -65,6 +67,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
@@ -73,12 +76,12 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class ScenarioService(project: Project) {
 
-    private val scenariosByFiles: SafeValue<Map<KtFile, List<Scenario>>> = SafeValue(emptyMap())
+    private val scenariosByFiles: SafeValue<MutableMap<KtFile, List<Scenario>>> = SafeValue(mutableMapOf())
     private val modifiedFiles: MutableSet<KtFile> = mutableSetOf()
     private val builder: ScenarioBuilder = ScenarioBuilder(project)
 
     init {
-        scenariosByFiles.tryToUpdate { builder.buildScenarios(project.projectScope()) }
+        scenariosByFiles.tryToUpdate { builder.buildScenarios(project.projectScope()).toMutableMap() }
     }
 
     fun getState(element: PsiElement) =
@@ -122,13 +125,11 @@ class ScenarioService(project: Project) {
     private fun invalidScenariosIfModified(file: KtFile) {
         scenariosByFiles.value[file]?.forEach { scenario ->
             when {
-                scenario.innerState.callExpression.isRemoved -> {
-                    scenario.condition = REMOVED
-                }
+                scenario.innerState.callExpression.isRemoved ->
+                    scenario.removed()
 
-                scenario.innerState.textHashCode != scenario.innerState.callExpression.text.hashCode() -> {
+                scenario.innerState.textHashCode != scenario.innerState.callExpression.text.hashCode() ->
                     scenario.modified()
-                }
             }
         }
     }
@@ -142,32 +143,26 @@ class ScenarioService(project: Project) {
 
         scenariosByFiles.tryToUpdate { scenariosMap ->
             val scenarios = scenariosMap[file] ?: emptyList()
-            scenarios
+
+            val actualScenarios = scenarios
                 .filter { it.condition == MODIFIED || it.condition == CORRUPTED }
                 .onEach { builder.rebuildScenario(it) }
-                .filter { it.actualCondition == ACTUAL }
+                .filter { it.condition == ACTUAL }
 
-            val newScenarios = tryToFindNewScenarios(file, scenarios)
-            val containsRemoved =
-                scenarios.any { it.condition == REMOVED || !it.innerState.callExpression.isExist }
+            val newScenarios = tryToFindNewScenarios(file, actualScenarios)
 
-            modifiedFiles.remove(file)
-            return@tryToUpdate if (newScenarios.isEmpty() && !containsRemoved) {
-                scenariosMap
-            } else {
-                val newScenarioList = (scenarios + newScenarios).filter { it.actualCondition == ACTUAL }
+            scenariosMap[file] = scenarios + newScenarios
 
-                scenariosMap.toMutableMap().also {
-                    it[file] = newScenarioList
-                }
+            scenariosMap.also {
+                modifiedFiles.remove(file)
             }
         }
     }
 
-    private fun tryToFindNewScenarios(file: KtFile, existedScenarios: List<Scenario>) =
+    private fun tryToFindNewScenarios(file: KtFile, existedScenarios: List<Scenario>): List<Scenario> =
         builder.getScenariosCallExpressions(file.fileScope())
             .filter { existedScenarios.none { scenario -> scenario.innerState.callExpression == it } }
-            .map { builder.buildScenario(it) }
+            .mapNotNull { builder.buildScenario(it) }
             .filter { it.innerState.callExpression.isExist }
 
     private fun recursiveFindState(state: State, element: PsiElement): State =
@@ -179,8 +174,26 @@ private class ScenarioBuilder(val project: Project) {
     private val scenariosBuildMethods: List<PsiMethod> by lazy { getScenariosBuildMethodsDeclarations() }
 
     fun buildScenarios(scope: GlobalSearchScope) = getScenariosCallExpressions(scope)
-        .map { buildScenario(it) }
+        .mapNotNull { buildScenario(it) }
         .groupBy(Scenario::file)
+
+    fun buildScenario(body: KtCallExpression) =
+        Scenario(body.containingKtFile).run {
+            val state = StateBuilder.buildState(body, this) ?: return@run null
+            innerState = state
+            this
+        }
+
+    fun rebuildScenario(scenario: Scenario) {
+        StateBuilder.buildState(scenario.innerState.callExpression, scenario)
+            ?.let {
+                scenario.innerState = it
+                scenario.actual()
+            }
+            ?: run {
+                scenario.corrupted()
+            }
+    }
 
     fun getScenariosCallExpressions(scope: GlobalSearchScope) = scenariosBuildMethods
         .flatMap { ReferencesSearch.search(it, scope).findAll() }
@@ -234,25 +247,27 @@ private class ScenarioBuilder(val project: Project) {
         return findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)?.allMethods
             ?.filter { it.name == SCENARIO_METHOD_NAME || it.name == CREATE_MODEL_METHOD_NAME } ?: emptyList()
     }
-
-    fun buildScenario(body: KtCallExpression) =
-        Scenario(body.containingKtFile).apply {
-            innerState = StateBuilder.buildState(body, null, this)
-        }
-
-    fun rebuildScenario(scenario: Scenario) {
-        scenario.innerState = StateBuilder.buildState(scenario.innerState.callExpression, null, scenario)
-        scenario.condition = ACTUAL
-    }
 }
 
 private object StateBuilder {
 
+    private val logger = Logger.getInstance(StateBuilder::class.java)
+
     fun buildState(
         stateExpression: KtCallExpression,
-        parentState: State? = null,
         scenario: Scenario,
-    ): State {
+        parentState: State? = null,
+    ): State? {
+        if (stateExpression.isRemoved) {
+            logger.warn("${stateExpression.text} is removed")
+            return null
+        }
+
+        if (!stateExpression.isStateDeclaration) {
+            logger.warn("${stateExpression.text} is not a state")
+            return null
+        }
+
         val identifier = stateExpression.identifierOfStateExpression()
         val statements = extractStatements(stateExpression)
 
@@ -263,25 +278,6 @@ private object StateBuilder {
                 textHashCode = stateExpression.text.hashCode()
             }
     }
-
-    private fun extractStatements(stateExpression: KtCallExpression): List<KtCallExpression> {
-        val bodyArgument =
-            getAnnotatedLambdaArgument(stateExpression)
-                ?: getAnnotatedLambdaBlockInDeclaration(stateExpression)
-                ?: getLambdaArgumentByArgumentName(stateExpression)
-                ?: return emptyList()
-
-        return bodyArgument.bodyExpression?.statements?.mapNotNull { it as? KtCallExpression } ?: emptyList()
-    }
-
-    private fun getAnnotatedLambdaArgument(stateExpression: KtCallExpression) =
-        (stateExpression.argumentExpressionsByAnnotation(STATE_BODY_ANNOTATION_NAME) as? KtLambdaExpression)
-
-    private fun getAnnotatedLambdaBlockInDeclaration(stateExpression: KtCallExpression) =
-        (stateExpression.declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression)
-
-    private fun getLambdaArgumentByArgumentName(stateExpression: KtCallExpression) =
-        (stateExpression.argumentExpression(STATE_BODY_ARGUMENT_NAME) as? KtLambdaExpression)
 
     private fun buildAppends(state: State, statements: List<KtCallExpression>) = statements
         .filter { it.isAppendWithoutContext && !it.isAppendWithContext }
@@ -295,46 +291,78 @@ private object StateBuilder {
         statements: List<KtCallExpression>,
         scenario: Scenario,
     ) = statements
-        .filter { it.isState || it.isFallback || it.isAnnotatedWithStateDeclaration }
-        .map { buildState(it, state, scenario) }
+        .filter(this::isState)
+        .mapNotNull { buildState(it, scenario, state) }
+
+    private fun extractStatements(stateExpression: KtCallExpression): List<KtCallExpression> {
+        val bodyArgument =
+            if (VersionService.usedAnnotations(stateExpression.project))
+                getAnnotatedLambdaArgument(stateExpression) ?: getAnnotatedLambdaBlockInDeclaration(stateExpression)
+            else
+                getLambdaArgumentByArgumentName(stateExpression)
+
+        return bodyArgument?.bodyExpression?.statements?.mapNotNull { it as? KtCallExpression } ?: emptyList()
+    }
+
+    private fun getAnnotatedLambdaArgument(stateExpression: KtCallExpression) =
+        (stateExpression.argumentExpressionsOrDefaultValuesByAnnotation(STATE_BODY_ANNOTATION_NAME).firstOrNull() as? KtLambdaExpression)
+
+    private fun getAnnotatedLambdaBlockInDeclaration(stateExpression: KtCallExpression) =
+        (stateExpression.declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression)
+
+    private fun getLambdaArgumentByArgumentName(stateExpression: KtCallExpression) =
+        (stateExpression.argumentExpression(STATE_BODY_ARGUMENT_NAME) as? KtLambdaExpression)
+
+    private fun isState(expression: KtCallExpression) =
+        if (VersionService.usedAnnotations(expression.project)) expression.isAnnotatedWithStateDeclaration
+        else expression.isState || expression.isFallback
 }
 
+val KtCallExpression.isStateDeclaration: Boolean
+    get() =
+        if (VersionService.usedAnnotations(project)) isAnnotatedWithStateDeclaration
+        else isState || isFallback || isScenario || isCreateModelFun
 
 private fun KtCallExpression.identifierOfStateExpression(): StateIdentifier {
-    return when {
-        isAnnotatedWithStateDeclaration -> {
-            val stateNameExpression = argumentExpressionsByAnnotation(STATE_NAME_ANNOTATION_NAME).firstOrNull()
-            if (stateNameExpression != null) {
-                return ExpressionIdentifier(stateNameExpression, stateNameExpression.parent)
-            }
-
-            val stateAnnotation = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).last()
-
-            val stateName = stateAnnotation.argumentExpression(STATE_NAME_ANNOTATION_ARGUMENT_NAME)?.stringValueOrNull
-
-            return stateName?.let { PredefinedIdentifier(it, this) }
-                ?: return NoIdentifier(
-                    this,
-                    "The state name is not defined. Use @$STATE_NAME_ANNOTATION_NAME or specify $STATE_NAME_ANNOTATION_ARGUMENT_NAME of @$STATE_DECLARATION_ANNOTATION_NAME."
-                )
+    return if (VersionService.usedAnnotations(project)) {
+        val stateNameExpression = argumentExpressionsByAnnotation(STATE_NAME_ANNOTATION_NAME).firstOrNull()
+        if (stateNameExpression != null) {
+            return ExpressionIdentifier(stateNameExpression, stateNameExpression.parent)
         }
 
-        isScenario -> PredefinedIdentifier("", this)
+        val defaultExpression = argumentExpressionsOrDefaultValuesByAnnotation(STATE_NAME_ANNOTATION_NAME).firstOrNull()
+        if (defaultExpression != null) {
+            return ExpressionIdentifier(defaultExpression, defaultExpression.parent)
+        }
 
-        isCreateModelFun -> PredefinedIdentifier("", this)
+        val stateAnnotation = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).last()
 
-        isFallback -> argumentExpression(STATE_NAME_ARGUMENT_NAME)?.let { ExpressionIdentifier(it, it.parent) }
-            ?: PredefinedIdentifier("fallback", this)
+        val stateName = stateAnnotation.argumentExpression(STATE_NAME_ANNOTATION_ARGUMENT_NAME)?.stringValueOrNull
 
-        isState -> argumentExpression(STATE_NAME_ARGUMENT_NAME)?.let { ExpressionIdentifier(it, it.parent) }
-            ?: NoIdentifier(this,
-                "JAICF Plugin is not able to resolve state name. Specify $STATE_NAME_ARGUMENT_NAME parameter.")
+        return stateName?.let { PredefinedIdentifier(it, this) }
+            ?: return NoIdentifier(
+                this,
+                "The state name is not defined. Use @$STATE_NAME_ANNOTATION_NAME or specify $STATE_NAME_ANNOTATION_ARGUMENT_NAME of @$STATE_DECLARATION_ANNOTATION_NAME."
+            )
+    } else {
+        when {
+            isScenario -> PredefinedIdentifier("", this)
 
-        isAppendWithContext -> argumentExpression(APPEND_CONTEXT_ARGUMENT_NAME)
-            ?.let { ExpressionIdentifier(it, it.parent) } ?: NoIdentifier(this,
-            "JAICF Plugin is not able to resolve state name. Specify $APPEND_CONTEXT_ARGUMENT_NAME parameter.")
+            isCreateModelFun -> PredefinedIdentifier("", this)
 
-        else -> throw IllegalArgumentException("${this.text} is not a state declaration")
+            isFallback -> argumentExpression(STATE_NAME_ARGUMENT_NAME)?.let { ExpressionIdentifier(it, it.parent) }
+                ?: PredefinedIdentifier("fallback", this)
+
+            isState -> argumentExpression(STATE_NAME_ARGUMENT_NAME)?.let { ExpressionIdentifier(it, it.parent) }
+                ?: NoIdentifier(this,
+                    "JAICF Plugin is not able to resolve state name. Specify $STATE_NAME_ARGUMENT_NAME parameter.")
+
+            isAppendWithContext -> argumentExpression(APPEND_CONTEXT_ARGUMENT_NAME)
+                ?.let { ExpressionIdentifier(it, it.parent) } ?: NoIdentifier(this,
+                "JAICF Plugin is not able to resolve state name. Specify $APPEND_CONTEXT_ARGUMENT_NAME parameter.")
+
+            else -> throw IllegalArgumentException("${this.text} is not a state declaration")
+        }
     }
 }
 
@@ -363,9 +391,6 @@ private val KtCallExpression.isAppendWithContext: Boolean
     get() = valueArgument(APPEND_CONTEXT_ARGUMENT_NAME) != null &&
             (isOverride(scenarioGraphBuilderClassFqName, APPEND_METHOD_NAME) ||
                     isOverride(rootBuilderClassFqName, APPEND_METHOD_NAME))
-
-val KtCallExpression.isStateDeclaration: Boolean
-    get() = isState || isFallback || isScenario || isCreateModelFun || isAnnotatedWithStateDeclaration
 
 private fun Scenario.allAppends() = topLevelAppends + innerState.allAppends()
 

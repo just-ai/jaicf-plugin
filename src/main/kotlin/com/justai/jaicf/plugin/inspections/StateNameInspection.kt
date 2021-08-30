@@ -31,6 +31,7 @@ class StateNameInspection : LocalInspectionTool() {
                 return
             }
 
+            // TODO подублировать для call expression и для имени
             if (stateName == null) {
                 registerWarning(
                     visitedState.identifierReference ?: visitedState.callExpression,
@@ -42,6 +43,7 @@ class StateNameInspection : LocalInspectionTool() {
             inspectStateIdentifier(visitedState, stateName)
         }
 
+        // TODO подублировать для call expression и для имени
         private fun inspectStateIdentifier(state: State, stateName: String) {
             val parsedStateName = StatePath.parse(stateName)
             val identifierReference = state.identifierReference ?: return

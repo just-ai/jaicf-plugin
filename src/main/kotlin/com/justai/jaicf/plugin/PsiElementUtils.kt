@@ -47,6 +47,9 @@ val KtExpression.stringValueOrNull: String?
 fun KtCallElement.argumentExpressionOrDefaultValue(identifier: String) =
     argumentExpression(identifier) ?: parameter(identifier)?.defaultValue
 
+fun KtCallExpression.argumentExpression(parameter: KtParameter) =
+    parameter.name?.let { argumentExpression(it) }
+
 fun KtCallExpression.argumentExpressionOrDefaultValue(parameter: KtParameter) =
     parameter.name?.let { argumentExpression(it) } ?: parameter.defaultValue
 
@@ -58,13 +61,24 @@ fun KtCallElement.parameter(identifier: String) =
 
 fun KtCallExpression.argumentExpressionsByAnnotation(name: String) =
     parametersByAnnotation(name)
+        .mapNotNull { argumentExpression(it) }
+
+fun KtCallExpression.argumentExpressionsOrDefaultValuesByAnnotation(name: String) =
+    parametersByAnnotation(name)
         .mapNotNull { argumentExpressionOrDefaultValue(it) }
 
 fun KtCallExpression.parametersByAnnotation(name: String) =
     parameters.filter { it.annotationNames.contains(name) }
 
 fun KtCallExpression.getMethodAnnotations(name: String) =
-    declaration?.annotationEntries?.filter { it.shortName?.asString() == name } ?: emptyList()
+    declaration?.getMethodAnnotations(name) ?: emptyList()
+
+fun KtFunction.getMethodAnnotations(name: String) =
+    annotationEntries.filter { it.shortName?.asString() == name }
+
+val KtFunction.isBinary get() = isExist && containingFile.name.endsWith(".class")
+
+val KtFunction.source get() = if (canNavigateToSource()) navigationElement as? KtFunction else null
 
 fun KtCallElement.valueArgument(identifier: String) =
     valueArguments.firstOrNull { it is KtValueArgument && it.identifier == identifier }
@@ -86,17 +100,23 @@ val KtCallExpression.signature: String?
     }
 
 val KtCallElement.declaration: KtFunction?
-    get() = referenceExpression?.resolve() as? KtFunction
+    get() = referenceExpression?.resolveToSource
 
 val KtCallElement.referenceExpression: KtReferenceExpression?
     get() = findChildOfType<KtNameReferenceExpression>()
+
+val KtReferenceExpression.resolveToSource: KtFunction?
+    get() = (resolve() as? KtFunction)?.let {
+        if (it.isBinary) it.source
+        else it
+    }
 
 inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
     return PsiTreeUtil.findChildOfType(this, T::class.java)
 }
 
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
-    callName() == funName && isReceiverInheritedOf(receiver) && (parameters?.let { it == parametersTypes } ?: true)
+    isExist && callName() == funName && isReceiverInheritedOf(receiver) && (parameters?.let { it == parametersTypes } ?: true)
 
 fun KtCallExpression.isReceiverInheritedOf(baseClass: FqName) =
     receiverFqName == baseClass ||

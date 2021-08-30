@@ -2,12 +2,7 @@ package com.justai.jaicf.plugin
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiNameIdentifierOwner
-import com.intellij.psi.search.searches.ReferencesSearch
 import com.justai.jaicf.plugin.Lexeme.Transition
 import com.justai.jaicf.plugin.TransitionResult.NoState
 import com.justai.jaicf.plugin.TransitionResult.OutOfStateBoundUsage
@@ -15,8 +10,6 @@ import com.justai.jaicf.plugin.TransitionResult.StateFound
 import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.services.ScenarioService
-import com.justai.jaicf.plugin.services.SearchService
-import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtExpression
 
 private val logger = Logger.getInstance("StateNavigation")
@@ -110,8 +103,6 @@ fun TransitionResult.statesOrSuggestions() = when (this) {
     is SuggestionsFound -> suggestionsStates
     else -> emptyList()
 }
-
-
 
 internal fun String.withoutLeadSlashes() =
     if (contains('/'))

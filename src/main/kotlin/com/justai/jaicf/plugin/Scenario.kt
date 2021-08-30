@@ -26,12 +26,20 @@ class Scenario(
     val declarationElement: PsiElement
         get() = innerState.callExpression
 
+    fun actual() {
+        condition = Condition.ACTUAL
+    }
+
     fun modified() {
         condition = Condition.MODIFIED
     }
 
     fun removed() {
         condition = Condition.REMOVED
+    }
+
+    fun corrupted() {
+        condition = Condition.CORRUPTED
     }
 
     override fun equals(other: Any?): Boolean {
@@ -114,9 +122,6 @@ private fun State.recursiveStateTraversal(action: (State) -> Boolean): Boolean {
 sealed class StateIdentifier {
 
     abstract fun resolveText(): String?
-
-    val valid: Boolean
-        get() = resolveText() != null
 
     data class PredefinedIdentifier(
         val stateName: String,
