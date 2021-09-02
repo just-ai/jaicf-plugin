@@ -5,33 +5,34 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
-import com.intellij.openapi.util.NotNullLazyValue
+import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.justai.jaicf.plugin.State
+import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.absolutePath
 import com.justai.jaicf.plugin.asLeaf
 import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getFramingState
-import com.justai.jaicf.plugin.getPathExpressionsOfBoundedBlock
-import com.justai.jaicf.plugin.identifierReference
 import com.justai.jaicf.plugin.isValid
-import com.justai.jaicf.plugin.services.ScenarioService
-import com.justai.jaicf.plugin.services.UsagesSearchService
+import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
+import com.justai.jaicf.plugin.providers.Icons.MULTI_RECEIVER_ICON
+import com.justai.jaicf.plugin.providers.Icons.NO_RECEIVER_ICON
+import com.justai.jaicf.plugin.providers.Icons.SINGLE_RECEIVER_ICON
+import com.justai.jaicf.plugin.providers.Icons.SUGGESTIONS_ICON
+import com.justai.jaicf.plugin.services.StateUsagesSearchService
 import com.justai.jaicf.plugin.services.isStateDeclaration
+import com.justai.jaicf.plugin.services.name
+import com.justai.jaicf.plugin.states
 import com.justai.jaicf.plugin.statesOrSuggestions
 import com.justai.jaicf.plugin.transitToState
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
-import java.util.Collections.emptyList
 
 class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -39,29 +40,36 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
-        if (!isLeafIdentifier(element)) {
-            return
-        }
+        if (!isLeafIdentifier(element)) return
 
-        val pathExpressions: List<KtExpression> = element.getPathExpressionsOfBoundedBlock()
+        val pathExpressions = element.pathExpressionsOfBoundedBlock
 
         pathExpressions.forEach {
             val markerHolder =
                 it.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: it.asLeaf ?: return@forEach
+            val transitionResult = transitToState(it)
+            val icon = when {
+                transitionResult.states().size > 1 -> MULTI_RECEIVER_ICON
+                transitionResult.states().size == 1 -> SINGLE_RECEIVER_ICON
+                transitionResult is SuggestionsFound -> SUGGESTIONS_ICON
+                else -> NO_RECEIVER_ICON
+            }
 
-            transitToState(it).statesOrSuggestions().forEach { state ->
+            transitionResult.statesOrSuggestions().onEach { state ->
                 if (state.isValid)
-                    result.add(buildLineMarker(state, markerHolder))
+                    result.add(buildLineMarker(state.callExpression, markerHolder, icon))
                 else
                     logger.warn("Transited state is invalid. $state")
+            }.ifEmpty {
+                result.add(buildLineMarker(null, markerHolder, icon))
             }
         }
     }
 
-    private fun buildLineMarker(state: State, markerHolderLeaf: LeafPsiElement) =
-        NavigationGutterIconBuilder.create(Icons.RECEIVER)
+    private fun buildLineMarker(expression: PsiElement?, markerHolderLeaf: LeafPsiElement, icon: Icon) =
+        NavigationGutterIconBuilder.create(icon)
             .setAlignment(Alignment.LEFT)
-            .setTargets(listOf(state.callExpression))
+            .setTargets(listOfNotNull(expression))
             .setTooltipText("Navigate to state declaration")
             .setEmptyPopupText("No state declaration found")
             .createLineMarkerInfo(markerHolderLeaf)
@@ -86,41 +94,34 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             return
         }
 
-        result.add(buildLineMarker(callExpression, element as LeafPsiElement))
+        buildLineMarker(callExpression, element as LeafPsiElement)?.let { result.add(it) }
     }
 
-    private fun buildLineMarker(stateExpression: KtCallExpression, markerHolderLeaf: LeafPsiElement) =
-        NavigationGutterIconBuilder.create(Icons.SENDER)
-            .setAlignment(Alignment.LEFT)
-            .setTargets(
-                NotNullLazyValue.createValue {
-                    val framingState = stateExpression.getFramingState()
-                        ?: markerHolderLeaf.getBoundedCallExpressionOrNull(KtValueArgument::class.java)
-                            ?.getFramingState()
+    private fun buildLineMarker(
+        stateExpression: KtCallExpression,
+        markerHolderLeaf: LeafPsiElement,
+    ): RelatedItemLineMarkerInfo<PsiElement>? {
+        val framingState = stateExpression.getFramingState()
+            ?: markerHolderLeaf.getBoundedCallExpressionOrNull(KtValueArgument::class.java)?.getFramingState()
+            ?: return null
 
-                    if (framingState == null) {
-                        logger.warn("Framing state of stateExpression is null. ${stateExpression.text}")
-                        return@createValue emptyList()
-                    }
+        val service = StateUsagesSearchService[stateExpression] ?: return null
+        val usages = service.findStateUsages(framingState)
+            .mapNotNull { it.asLeaf }
+            .mapNotNull {
+                it.getFramingState() ?: return@mapNotNull null
+                it
+            }
+            .ifEmpty { return null }
 
-                    if (!framingState.isValid) {
-                        logger.warn("Framing state is invalid. $framingState")
-                        return@createValue emptyList()
-                    }
-
-                    UsagesSearchService.get(stateExpression.project).findStateUsages(framingState)
-                        .mapNotNull { it.asLeaf }
-                        .mapNotNull {
-                            it.getFramingState() ?: return@mapNotNull null
-                            it
-                        }
-                }
-            )
-            .setEmptyPopupText("No references to this state found")
+        return NavigationGutterIconBuilder.create(Icons.SENDER)
+            .setAlignment(LEFT)
+            .setTargets(usages)
             .setTooltipText("Find references to this state")
             .setPopupTitle("Found References")
             .setCellRenderer(JumpExprCellRenderer)
             .createLineMarkerInfo(markerHolderLeaf)
+    }
 
     companion object {
         private val logger = Logger.getInstance(StateIdentifierLineMarkerProvider::class.java)
@@ -130,25 +131,28 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
     override fun getElementText(element: PsiElement?): String {
-        return element?.getFramingState()?.absolutePath()?.toString()
-            ?: super.getElementText(element)
+        val framingState = element?.getFramingState() ?: return super.getElementText(element)
+        return "${framingState.absolutePath}"
     }
 
     override fun getContainerText(element: PsiElement?, name: String?): String? {
         if (element == null)
             return null
 
-        val reference =
-            ServiceManager.getService(element.project, ScenarioService::class.java).getScenarioReference(element)
+        val scenarioName =
+            element.getFramingState()?.scenario?.name
                 ?: return super.getContainerText(element, name)
 
-        return "defined in ${reference.name}"
+        return "defined in $scenarioName"
     }
 }
 
 private object Icons {
-    var RECEIVER: Icon = AllIcons.Gutter.WriteAccess
-    var SENDER: Icon = AllIcons.Gutter.ReadAccess
+    val SINGLE_RECEIVER_ICON: Icon = AllIcons.RunConfigurations.TestState.Run
+    val MULTI_RECEIVER_ICON: Icon = AllIcons.RunConfigurations.TestState.Run_run
+    val SUGGESTIONS_ICON: Icon = AllIcons.RunConfigurations.TestState.Yellow2
+    val NO_RECEIVER_ICON: Icon = AllIcons.RunConfigurations.TestState.Red2
+    val SENDER: Icon = AllIcons.Gutter.ReadAccess
 }
 
 private fun isLeafIdentifier(element: PsiElement) = element is LeafPsiElement && element.elementType == IDENTIFIER

@@ -11,7 +11,9 @@ data class StatePath(
     val transitions: List<Lexeme.Transition>
         get() = lexemes.mapNotNull { it as? Lexeme.Transition }
 
-    override fun toString() = lexemes.joinToString(separator = "") { it.identifier }
+    override fun toString() =
+        if (lexemes.singleOrNull() == Root) Slash.identifier
+        else lexemes.joinToString(separator = "") { it.identifier }
 
     companion object {
         fun parse(path: String) = StatePath(recursiveParse(path, true))
@@ -40,7 +42,7 @@ sealed class Lexeme(val identifier: String) {
             fun transitToOneOf(states: List<State>) =
                 states.firstOrNull { canTransitTo(it) }
 
-            fun canTransitTo(state: State) = identifier == state.identifier.resolveText()?.withoutLeadSlashes()
+            fun canTransitTo(state: State) = identifier == state.name?.withoutLeadSlashes()
         }
     }
 
@@ -88,7 +90,7 @@ fun StatePath.transitionsWithRanges(): List<Pair<Lexeme.Transition, TextRange>> 
         .map { it as Pair<Lexeme.Transition, TextRange> }
 }
 
-fun StatePath.lexemesWithRanges(): List<Pair<Lexeme, TextRange>> {
+private fun StatePath.lexemesWithRanges(): List<Pair<Lexeme, TextRange>> {
     var lastRange = TextRange.EMPTY_RANGE
     return lexemes.map { lexeme ->
         lastRange = TextRange(lastRange.endOffset, lastRange.endOffset + lexeme.identifier.length)

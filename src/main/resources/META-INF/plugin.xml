@@ -15,7 +15,7 @@
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.PathValueSearcher"/>
 
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.UsagesSearchService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.StateUsagesSearchService"/>
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.VersionService"/>
 
@@ -66,6 +66,12 @@
                          groupName="JAICF"
                          enabledByDefault="true"
                          implementationClass="com.justai.jaicf.plugin.inspections.StatePathInspection"/>
+
+        <localInspection displayName="Multi state path inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.MultiContextStatePathInspection"/>
 
         <codeInsight.lineMarkerProvider language="kotlin"
                                         implementationClass="com.justai.jaicf.plugin.providers.StatePathLineMarkerProvider"/>

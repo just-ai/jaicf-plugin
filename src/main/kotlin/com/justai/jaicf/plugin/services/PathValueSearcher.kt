@@ -5,36 +5,35 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
-import com.justai.jaicf.plugin.LazySafeValue
 import com.justai.jaicf.plugin.PATH_ARGUMENT_ANNOTATION_NAME
 import com.justai.jaicf.plugin.PLUGIN_PACKAGE
+import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.findClass
 import org.jetbrains.kotlin.idea.search.allScope
+import org.jetbrains.kotlin.idea.search.minus
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
-class PathValueSearcher(private val project: Project) {
+class PathValueSearcher(private val project: Project) : Service {
 
     private val annotationClass = findClass(PLUGIN_PACKAGE, PATH_ARGUMENT_ANNOTATION_NAME, project)
-    private val jaicfMethods = LazySafeValue(emptyList<KtFunction>()) { findUsages(project.allScope()) }
-    private val projectMethods = LazySafeValue(emptyList<KtFunction>()) { findUsages(project.projectScope()) }
+    private val jaicfMethods by lazy { findUsages(project.allScope() - project.projectScope()) }
+    private val projectMethods = RecursiveSafeValue(emptyList<KtFunction>()) { findUsages(project.projectScope()) }
 
     fun getMethodsUsedPathValue(): List<KtFunction> {
-        if (!VersionService.usedAnnotations(project)) return emptyList()
+        if (VersionService.isAnnotationsUnsupported(project))
+            return emptyList()
 
-        val annotatedMethods = projectMethods.value + jaicfMethods.value
+        if (jaicfMethods.isEmpty())
+            logger.error("No annotated method by @$PATH_ARGUMENT_ANNOTATION_NAME was found in jaicf")
 
-        if (annotatedMethods.isEmpty()) {
-            logger.info("No annotated method by @$PATH_ARGUMENT_ANNOTATION_NAME was found")
-        }
-
-        return annotatedMethods
+        return projectMethods.value + jaicfMethods
     }
 
-    fun markFileAsModified(file: KtFile) {
-        projectMethods.lazyUpdate { findUsages(project.projectScope()) }
+    override fun markFileAsModified(file: KtFile) {
+        projectMethods.invalid()
     }
 
     private fun findUsages(scope: SearchScope): List<KtFunction> {
@@ -50,6 +49,7 @@ class PathValueSearcher(private val project: Project) {
     companion object {
         private val logger = Logger.getInstance(this::class.java)
 
-        fun get(project: Project): PathValueSearcher = ServiceManager.getService(project, PathValueSearcher::class.java)
+        operator fun get(project: Project): PathValueSearcher =
+            ServiceManager.getService(project, PathValueSearcher::class.java)
     }
 }

@@ -1,39 +1,48 @@
 package com.justai.jaicf.plugin
 
-import java.util.concurrent.atomic.AtomicBoolean
+class RecursiveSafeValue<T>(initValue: T, private val failFast: Boolean = false, private val updater: (T) -> T) {
 
-class LazySafeValue<T>(initValue: T, @Volatile private var lazyUpdater: ((T) -> T)? = null) {
-
-    val value: T
-        get() = lazyUpdater?.let { safeValue.tryToUpdate(it) }?.also { lazyUpdater = null }
-            ?: safeValue.value
-
-    private val safeValue = SafeValue(initValue)
-
-    fun update(updater: (T) -> T) = safeValue.tryToUpdate(updater)
-
-    fun lazyUpdate(updater: (T) -> T) {
-        lazyUpdater = updater
-    }
-}
-
-class SafeValue<T>(initValue: T) {
+    private val isUpdatingByThread = ThreadLocal.withInitial { false }
 
     @Volatile
-    var value: T = initValue
-        private set
+    private var isUpdating = false
 
-    private val isUpdating: AtomicBoolean = AtomicBoolean(false)
+    @Volatile
+    private var safeValue: T = initValue
 
-    fun tryToUpdate(updater: (T) -> T): T {
-        if (isUpdating.compareAndSet(false, true)) {
+    @Volatile
+    private var valid = false
+
+
+    val value: T
+        get() {
+            if (valid ||
+                isUpdatingByThread.get() ||
+                (failFast && isUpdating)
+            )
+                return safeValue
+
             try {
-                value = updater.invoke(value)
-                return value
+                synchronized(this) {
+                    if (valid)
+                        return safeValue
+
+                    isUpdatingByThread.set(true)
+                    isUpdating = true
+
+                    return updater(safeValue).also {
+                        safeValue = it
+                        valid = true
+                    }
+                }
             } finally {
-                isUpdating.set(false)
+                isUpdatingByThread.set(false)
+                isUpdating = false
             }
         }
-        return value
+
+
+    fun invalid() {
+        valid = false
     }
 }

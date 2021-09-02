@@ -60,9 +60,7 @@ class Scenario(
         return result
     }
 
-    override fun toString(): String {
-        return "Scenario(condition=$condition, declarationElement=$declarationElement)"
-    }
+    override fun toString() = "Scenario(condition=$condition, declarationElement=$declarationElement)"
 
     enum class Condition {
         ACTUAL, MODIFIED, REMOVED, CORRUPTED
@@ -79,9 +77,8 @@ class State(
     lateinit var states: List<State>
     var textHashCode: Int = 0
 
-    override fun toString(): String {
-        return "State(identifier=$identifier, scenario=$scenario, callExpression=${callExpression.text})"
-    }
+    override fun toString() =
+        "State(identifier=$identifier, scenario=$scenario, callExpression=${callExpression.text})"
 }
 
 val Scenario.isValid: Boolean
@@ -145,6 +142,8 @@ sealed class StateIdentifier {
     }
 }
 
+val State.name get() = identifier.resolveText()
+
 data class Append(
     val referenceToScenario: KtReferenceExpression,
     val callExpression: KtCallExpression,
@@ -176,7 +175,7 @@ fun Append.resolve(): Scenario? {
     if (referenceToScenario.isRemoved) {
         return null
     }
-    val service = ServiceManager.getService(referenceToScenario.project, ScenarioService::class.java)
+    val service = ScenarioService[referenceToScenario] ?: return null
 
     val resolvedReference = referenceToScenario.resolve()
     if (resolvedReference is KtParameter) {
@@ -197,10 +196,6 @@ val State.identifierReference: PsiElement?
 
 val State.root: State
     get() = parent?.root ?: this
-
-infix fun StateIdentifier.same(other: StateIdentifier) =
-    this === other ||
-            resolveText()?.let { it.withoutLeadSlashes() == other.resolveText()?.withoutLeadSlashes() } == true
 
 val State.isTopState: Boolean
     get() = parent === scenario.innerState

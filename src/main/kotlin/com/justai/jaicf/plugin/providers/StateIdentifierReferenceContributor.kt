@@ -18,7 +18,7 @@ import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
-import com.justai.jaicf.plugin.services.UsagesSearchService
+import com.justai.jaicf.plugin.services.StateUsagesSearchService
 import com.justai.jaicf.plugin.services.isStateDeclaration
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -44,7 +44,7 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
         return arrayOf(
             MultiPsiReference(element, element.rangeToEndOf(argument)) {
-                argument.getFramingState()?.let { UsagesSearchService.get(element.project).findStateUsages(it) }
+                argument.getFramingState()?.let { StateUsagesSearchService[element]?.findStateUsages(it) }
                     ?: emptyList()
             }
         )

@@ -27,15 +27,9 @@ abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
         if (file !is KtFile)
             return
 
-        val service = getScenarioService(file)
+        val service = ScenarioService[file] ?: return
 
         service.getScenarios(file).forEach {
-            if (it.declarationElement.isRemoved) {
-                logger.warn("Scenario is removed. $it")
-                it.removed()
-                return@forEach
-            }
-
             recursiveEntryIntoState(it.innerState)
         }
     }
@@ -49,8 +43,6 @@ abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
         visitState(state)
         state.states.forEach { recursiveEntryIntoState(it) }
     }
-
-    private fun getScenarioService(file: KtFile) = ServiceManager.getService(file.project, ScenarioService::class.java)
 
     companion object {
         private val logger = Logger.getInstance(StateVisitor::class.java)

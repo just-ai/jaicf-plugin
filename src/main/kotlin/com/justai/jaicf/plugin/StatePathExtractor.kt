@@ -3,14 +3,11 @@ package com.justai.jaicf.plugin
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.services.VersionService
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
@@ -18,10 +15,9 @@ import org.jetbrains.kotlin.psi.psiUtil.isInsideOf
 import org.jetbrains.kotlin.psi.psiUtil.isNull
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
-
 val KtCallExpression.innerPathExpressions: List<KtExpression>
     get() =
-        if (VersionService.usedAnnotations(project)) {
+        if (VersionService.isAnnotationsSupported(project)) {
             val expressions = argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
@@ -36,7 +32,7 @@ val KtCallExpression.innerPathExpressions: List<KtExpression>
 
 val KtBinaryExpression.innerPathExpressions: List<KtExpression>
     get() {
-        return if (VersionService.usedAnnotations(project)) {
+        return if (VersionService.isAnnotationsSupported(project)) {
             val operation = getChildOfType<KtOperationReferenceExpression>() ?: return emptyList()
             val function = operation.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
@@ -75,7 +71,7 @@ val PsiElement.boundedPathExpression: KtExpression?
 
         when (boundedElement) {
             is KtDotQualifiedExpression -> {
-                if (!VersionService.usedAnnotations(project))
+                if (!VersionService.isAnnotationsSupported(project))
                     return null
 
                 val callExpression = boundedElement.getChildOfType<KtCallExpression>() ?: return null
@@ -91,7 +87,7 @@ val PsiElement.boundedPathExpression: KtExpression?
             }
 
             is KtValueArgument -> {
-                return if (VersionService.usedAnnotations(project)) {
+                return if (VersionService.isAnnotationsSupported(project)) {
                     // TODO duplicate
                     if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true)
                         boundedElement.getArgumentExpression()
@@ -107,33 +103,34 @@ val PsiElement.boundedPathExpression: KtExpression?
         }
     }
 
-fun PsiElement.getPathExpressionsOfBoundedBlock(): List<KtExpression> {
-    val boundedElement = getFirstBoundedElement(
-        KtDotQualifiedExpression::class.java,
-        KtBinaryExpression::class.java,
-        KtCallExpression::class.java,
-        KtValueArgument::class.java
-    )
+val PsiElement.pathExpressionsOfBoundedBlock: List<KtExpression>
+    get() {
+        val boundedElement = getFirstBoundedElement(
+            KtDotQualifiedExpression::class.java,
+            KtBinaryExpression::class.java,
+            KtCallExpression::class.java,
+            KtValueArgument::class.java
+        )
 
-    return when (boundedElement) {
-        is KtDotQualifiedExpression ->
-            if (VersionService.usedAnnotations(project))
-                boundedElement.getChildOfType<KtCallExpression>()?.let {
-                    if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
-                    else null
-                }
-            else
-                null
+        return when (boundedElement) {
+            is KtDotQualifiedExpression ->
+                if (VersionService.isAnnotationsSupported(project))
+                    boundedElement.getChildOfType<KtCallExpression>()?.let {
+                        if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
+                        else null
+                    }
+                else
+                    null
 
-        is KtBinaryExpression -> boundedElement.innerPathExpressions
+            is KtBinaryExpression -> boundedElement.innerPathExpressions
 
-        is KtCallExpression -> boundedElement.innerPathExpressions
+            is KtCallExpression -> boundedElement.innerPathExpressions
 
-        is KtValueArgument -> boundedElement.getBoundedCallExpressionOrNull()?.innerPathExpressions
+            is KtValueArgument -> boundedElement.getBoundedCallExpressionOrNull()?.innerPathExpressions
 
-        else -> null
-    } ?: emptyList()
-}
+            else -> null
+        } ?: emptyList()
+    }
 
 /**
  * @return true if this value argument is inside of `reactions.go` or `reactions.changeState` call expressions.

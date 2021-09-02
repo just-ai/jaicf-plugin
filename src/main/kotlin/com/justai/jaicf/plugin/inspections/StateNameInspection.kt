@@ -13,6 +13,7 @@ import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.identifierReference
 import com.justai.jaicf.plugin.isRootState
 import com.justai.jaicf.plugin.isTopState
+import com.justai.jaicf.plugin.name
 
 class StateNameInspection : LocalInspectionTool() {
 
@@ -24,14 +25,12 @@ class StateNameInspection : LocalInspectionTool() {
     private class ForbiddenStateNameVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
 
         override fun visitState(visitedState: State) {
-            val stateName = visitedState.identifier.resolveText()
-
             if (visitedState.identifier is StateIdentifier.NoIdentifier) {
                 registerGenericError(visitedState.callExpression, visitedState.identifier.errorMessage)
                 return
             }
 
-            // TODO подублировать для call expression и для имени
+            val stateName = visitedState.name
             if (stateName == null) {
                 registerWarning(
                     visitedState.identifierReference ?: visitedState.callExpression,
@@ -43,7 +42,6 @@ class StateNameInspection : LocalInspectionTool() {
             inspectStateIdentifier(visitedState, stateName)
         }
 
-        // TODO подублировать для call expression и для имени
         private fun inspectStateIdentifier(state: State, stateName: String) {
             val parsedStateName = StatePath.parse(stateName)
             val identifierReference = state.identifierReference ?: return

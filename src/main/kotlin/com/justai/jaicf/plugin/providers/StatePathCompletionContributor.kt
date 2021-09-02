@@ -25,6 +25,7 @@ import com.justai.jaicf.plugin.allStates
 import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.isValid
+import com.justai.jaicf.plugin.name
 import com.justai.jaicf.plugin.parent
 import com.justai.jaicf.plugin.statesOrSuggestions
 import com.justai.jaicf.plugin.stringValueOrNull
@@ -33,6 +34,7 @@ import com.justai.jaicf.plugin.withoutLeadSlashes
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 
 class StatePathCompletionContributor : CompletionContributor() {
     init {
@@ -52,9 +54,9 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         val statePath = StatePath.parse(pathBeforeCaret)
         val statesSuggestions: List<State> = getStatesSuggestions(pathExpression, statePath) ?: return
 
-        if (lastTransitionFitIntoElement(statePath, parameters)) {
+        if (isLastTransitionFitIntoElement(statePath, parameters)) {
             statesSuggestions
-                .mapNotNull { it.identifier.resolveText()?.withoutLeadSlashes() }
+                .mapNotNull { it.name?.withoutLeadSlashes() }
                 .onEach {
                     resultSet
                         .withPrefixMatcherIfComplexExpression(pathExpression, statePath)
@@ -66,7 +68,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
             statesSuggestions
                 .asSequence()
-                .mapNotNull { it.identifier.resolveText()?.withoutLeadSlashes() }
+                .mapNotNull { it.name?.withoutLeadSlashes() }
                 .filter { it.startsWith(prefix) }
                 .map { it.substringAfter(prefix) }
                 .filter { it.isNotBlank() }
@@ -83,15 +85,15 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
     private fun getStatesSuggestions(pathExpression: KtExpression, path: StatePath): List<State>? {
         val framingState = pathExpression.getFramingState() ?: return null
 
-        return if (framingState.isValid)
+        return if (framingState.isValid) {
             framingState.transit(path.parent).statesOrSuggestions().flatMap { it.allStates() }
-        else {
+        } else {
             logger.warn("Framing state is invalid. $framingState")
             null
         }
     }
 
-    private fun lastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
+    private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
         !(
                 path.lexemes.isNotEmpty() &&
                         path.lexemes.last() is Lexeme.Transition &&

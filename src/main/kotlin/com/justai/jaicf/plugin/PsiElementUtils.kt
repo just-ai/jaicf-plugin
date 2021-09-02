@@ -1,6 +1,5 @@
 package com.justai.jaicf.plugin
 
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiClass
@@ -14,7 +13,6 @@ import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.nj2k.postProcessing.type
-import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -26,7 +24,6 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.ValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
@@ -36,10 +33,8 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import java.lang.Integer.min
 
-private val logger = Logger.getInstance("PsiElementUtils")
-
 fun KtCallElement.argumentConstantValue(identifier: String) =
-    argumentExpressionOrDefaultValue(identifier)?.stringValueOrNull
+    argumentExpression(identifier)?.stringValueOrNull
 
 val KtExpression.stringValueOrNull: String?
     get() = constantValueOrNull()?.value?.toString()
@@ -92,15 +87,8 @@ val KtCallExpression.parameters: List<KtParameter>
 val KtParameter.annotationNames: List<String>
     get() = annotationEntries.mapNotNull { it.shortName?.asString() }
 
-val KtCallExpression.signature: String?
-    get() = declaration?.fqName?.let { name ->
-        parametersTypes.let { types ->
-            "$name(${types.joinToString()})"
-        }
-    }
-
 val KtCallElement.declaration: KtFunction?
-    get() = referenceExpression?.resolveToSource
+    get() = if (isExist) referenceExpression?.resolveToSource else null
 
 val KtCallElement.referenceExpression: KtReferenceExpression?
     get() = findChildOfType<KtNameReferenceExpression>()
@@ -116,7 +104,13 @@ inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
 }
 
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
-    isExist && callName() == funName && isReceiverInheritedOf(receiver) && (parameters?.let { it == parametersTypes } ?: true)
+    try {
+        isExist && callName() == funName
+                && isReceiverInheritedOf(receiver)
+                && (parameters?.let { it == parametersTypes } ?: true)
+    } catch (e: NullPointerException) {
+        false
+    }
 
 fun KtCallExpression.isReceiverInheritedOf(baseClass: FqName) =
     receiverFqName == baseClass ||
@@ -144,12 +138,6 @@ fun PsiElement.getBoundedValueArgumentOrNull() =
 fun PsiElement.getBoundedCallExpressionOrNull(vararg stopAt: Class<out PsiElement>) =
     getParentOfType<KtCallExpression>(true, *stopAt)
 
-fun PsiElement.getBoundedBinaryExpressionOrNull() =
-    getParentOfType<KtBinaryExpression>(true, KtProperty::class.java)
-
-fun PsiElement.getBoundedDotQualifiedExpression() =
-    getParentOfType<KtDotQualifiedExpression>(true, KtValueArgument::class.java)
-
 fun PsiElement.getFirstBoundedElement(vararg elements: Class<out PsiElement>): PsiElement? {
     var currentParent = parent
     while (currentParent != null) {
@@ -167,9 +155,6 @@ val PsiElement.asLeaf: LeafPsiElement?
 val KtValueArgument.identifier: String?
     get() = definedIdentifier ?: parameter()?.name
 
-val ValueArgument.identifier: String
-    get() = getArgumentName().toString()
-
 fun KtDotQualifiedExpression.getRootDotReceiver(): KtNameReferenceExpression? =
     when (val receiver = getDotReceiver()) {
         is KtDotQualifiedExpression -> receiver.getRootDotReceiver()
@@ -180,7 +165,7 @@ fun KtDotQualifiedExpression.getRootDotReceiver(): KtNameReferenceExpression? =
 fun KtDotQualifiedExpression.getDotReceiver(): PsiElement = children[0]
 
 fun KtValueArgument.parameter(): KtParameter? {
-    val callElement = callElement() ?: return null
+    val callElement = getParentOfType<KtCallElement>(true) ?: return null
     val params = callElement.declaration?.valueParameters ?: return null
 
     if (params.isEmpty())
@@ -201,8 +186,6 @@ val KtValueArgument.definedIdentifier: String?
     get() = getArgumentName()?.asName?.identifier
 
 fun KtValueArgument.getBoundedCallExpressionOrNull() = getParentOfType<KtCallExpression>(true)
-
-fun KtValueArgument.callElement() = getParentOfType<KtCallElement>(true)
 
 fun findClass(packageFq: String, className: String, project: Project): PsiClass? {
     val kotlinPsiFacade = KotlinJavaPsiFacade.getInstance(project)

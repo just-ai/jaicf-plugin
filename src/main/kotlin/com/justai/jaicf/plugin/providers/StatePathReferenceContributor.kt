@@ -14,7 +14,6 @@ import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.firstStateOrSuggestion
 import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.getFramingState
-import com.justai.jaicf.plugin.identifierReference
 import com.justai.jaicf.plugin.plus
 import com.justai.jaicf.plugin.rangeToEndOf
 import com.justai.jaicf.plugin.stringValueOrNull

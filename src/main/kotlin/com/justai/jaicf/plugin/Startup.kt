@@ -8,35 +8,35 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.justai.jaicf.plugin.services.AppendService
-import com.justai.jaicf.plugin.services.ScenarioService
 import com.justai.jaicf.plugin.services.PathValueSearcher
-import com.justai.jaicf.plugin.services.UsagesSearchService
+import com.justai.jaicf.plugin.services.ScenarioService
+import com.justai.jaicf.plugin.services.Service
+import com.justai.jaicf.plugin.services.StateUsagesSearchService
+import com.justai.jaicf.plugin.services.VersionService
 import org.jetbrains.kotlin.psi.KtFile
 
 class Startup : StartupActivity {
     override fun runActivity(project: Project) {
         DumbService.getInstance(project).runWhenSmart {
-            val scenarioService = ServiceManager.getService(project, ScenarioService::class.java)
-            val appendService = ServiceManager.getService(project, AppendService::class.java)
-            val searchService = ServiceManager.getService(project, PathValueSearcher::class.java)
-            val usagesService = ServiceManager.getService(project, UsagesSearchService::class.java)
+            val services = listOf(
+                ScenarioService::class.java,
+                AppendService::class.java,
+                PathValueSearcher::class.java,
+                StateUsagesSearchService::class.java,
+                VersionService::class.java
+            ).map { ServiceManager.getService(project, it) }
 
-            PsiManager.getInstance(project)
-                .addPsiTreeChangeListener(ScenarioInvalidator(scenarioService, appendService, searchService, usagesService)) { }
+            PsiManager.getInstance(project).addPsiTreeChangeListener(ScenarioInvalidator(services)) { }
         }
     }
 }
 
 private class ScenarioInvalidator(
-    private val scenarioService: ScenarioService,
-    private val appendService: AppendService,
-    private val searcher: PathValueSearcher,
-    private val usagesService: UsagesSearchService,
+    val services: List<Service>,
 ) : PsiTreeChangeAdapter() {
     override fun childrenChanged(event: PsiTreeChangeEvent) {
-        (event.file as? KtFile)?.let { scenarioService.markFileAsModified(it) }
-        (event.file as? KtFile)?.let { appendService.markFileAsModified(it) }
-        (event.file as? KtFile)?.let { searcher.markFileAsModified(it) }
-        (event.file as? KtFile)?.let { usagesService.markFileAsModified(it) }
+        (event.file as? KtFile)?.let { file ->
+            services.forEach { it.markFileAsModified(file) }
+        }
     }
 }

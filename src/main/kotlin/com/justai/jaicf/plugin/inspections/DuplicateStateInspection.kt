@@ -4,10 +4,13 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.Logger
 import com.justai.jaicf.plugin.State
+import com.justai.jaicf.plugin.absolutePath
 import com.justai.jaicf.plugin.allStates
 import com.justai.jaicf.plugin.identifierReference
+import com.justai.jaicf.plugin.name
 import com.justai.jaicf.plugin.nameReferenceExpression
-import com.justai.jaicf.plugin.same
+import com.justai.jaicf.plugin.services.name
+import com.justai.jaicf.plugin.withoutLeadSlashes
 
 class DuplicateStateInspection : LocalInspectionTool() {
 
@@ -18,31 +21,26 @@ class DuplicateStateInspection : LocalInspectionTool() {
     class DuplicateStateVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
 
         override fun visitState(visitedState: State) {
-            getDuplicates(visitedState)
-                .onEach {
+            visitedState.allStates()
+                .duplicates
+                .forEach(this::registerGenericError)
+        }
+
+        private fun registerGenericError(duplicates: List<State>) {
+            duplicates
+                .flatMap { (duplicates - it).map { duplicate -> it to duplicate } }
+                .forEach { (state, duplicate) ->
                     registerGenericError(
-                        visitedState.callExpression.nameReferenceExpression() ?: visitedState.callExpression,
+                        state.callExpression.nameReferenceExpression() ?: state.callExpression,
                         "Duplicated state declaration found. Consider using different state names",
-                        NavigateToState("Go to duplicate state declaration ${it.identifierReference?.text}", it)
+                        NavigateToState("Go to duplicate state declaration ${duplicate.scenario.name}:${duplicate.absolutePath}", duplicate)
                     )
                 }
         }
 
-        private fun getDuplicates(visitedState: State): List<State> {
-            val states = visitedState.parent?.allStates() ?: return emptyList()
-
-            if (states.isEmpty()) {
-                logger.error("state.parent.allStates is empty. ${visitedState.parent}")
-                return emptyList()
-            }
-
-            return states
-                .filter { it !== visitedState }
-                .filter { visitedState.identifier same it.identifier }
-        }
-    }
-
-    companion object {
-        private val logger = Logger.getInstance(this::class.java)
+        private val List<State>.duplicates
+            get() = groupBy { it.name?.withoutLeadSlashes() }
+                .filter { it.key != null && it.value.size > 1 }
+                .map { it.value }
     }
 }

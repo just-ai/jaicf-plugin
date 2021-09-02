@@ -8,8 +8,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.justai.jaicf.plugin.APPEND_METHOD_NAME
-import com.justai.jaicf.plugin.Append
-import com.justai.jaicf.plugin.LazySafeValue
+import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.SCENARIO_EXTENSIONS_CLASS_NAME
 import com.justai.jaicf.plugin.SCENARIO_PACKAGE
 import com.justai.jaicf.plugin.Scenario
@@ -26,55 +25,42 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 
-class AppendService(private val project: Project) {
+class AppendService(private val project: Project) : Service {
 
-    private val appendsByFiles: LazySafeValue<Map<KtFile, List<TopLevelAppend>>> =
-        LazySafeValue(emptyMap())
-    private val modifiedFiles: MutableSet<KtFile> = mutableSetOf()
-    private val builder: AppendBuilder =
-        AppendBuilder(project)
-
-    init {
-        appendsByFiles.lazyUpdate {
-            this.getProjectAppends().also {
-                logger.info("Successful init project appends")
-            }
-        }
+    private val builder = AppendBuilder(project)
+    private val modifiedFiles = mutableSetOf<KtFile>()
+    private val appendsByFiles by lazy {
+        RecursiveSafeValue(getProjectAppends(), updater = this::updateAppendsIfNeeded)
     }
 
-    fun markFileAsModified(file: KtFile) {
+    override fun markFileAsModified(file: KtFile) {
         modifiedFiles += file
+        appendsByFiles.invalid()
     }
 
-    fun getAppends(scenario: Scenario): List<Append> {
-        updateAppendsIfNeeded()
-
-        return appendsByFiles.value.values
-            .flatten()
-            .filter { it.scenarioReceiver === scenario }
-            .mapNotNull { it.append }
-    }
+    fun getAppends(scenario: Scenario) = appendsByFiles.value.values
+        .flatten()
+        .filter { it.scenarioReceiver === scenario }
+        .mapNotNull { it.append }
 
     private fun getProjectAppends() = builder.buildAppends(project.projectScope()).groupBy(TopLevelAppend::file)
 
-    private fun updateAppendsIfNeeded() {
+    private fun updateAppendsIfNeeded(map: Map<KtFile, List<TopLevelAppend>>): Map<KtFile, List<TopLevelAppend>> {
         if (modifiedFiles.isEmpty())
-            return
+            return map
 
-        appendsByFiles.update {
-            val appendsMap = it.toMutableMap()
+        val appendsMap = map.toMutableMap()
 
-            val files = modifiedFiles.toList()
-            modifiedFiles.clear()
+        val files = modifiedFiles.toList()
+        modifiedFiles.clear()
 
-            files.forEach { file ->
-                val appends = it[file] ?: emptyList()
-                val updatedAppends = getUpdatedAppends(file, appends)
-                appendsMap[file] = updatedAppends + buildNewAppends(file, updatedAppends)
-            }
-
-            appendsMap
+        files.forEach { file ->
+            val appends = map[file] ?: emptyList()
+            val updatedAppends = getUpdatedAppends(file, appends)
+            appendsMap[file] = updatedAppends + buildNewAppends(file, updatedAppends)
         }
+
+        return appendsMap
     }
 
     private fun getUpdatedAppends(file: KtFile, appends: List<TopLevelAppend>) =
@@ -133,7 +119,7 @@ class AppendBuilder(val project: Project) {
             }
     }
 
-    fun buildAppends(scope: GlobalSearchScope): List<TopLevelAppend> = getTopLevelAppendsUsages(scope)
+    fun buildAppends(scope: GlobalSearchScope) = getTopLevelAppendsUsages(scope)
         .mapNotNull { buildAppend(it) }
 
     fun buildAppend(callExpression: KtCallExpression): TopLevelAppend? {

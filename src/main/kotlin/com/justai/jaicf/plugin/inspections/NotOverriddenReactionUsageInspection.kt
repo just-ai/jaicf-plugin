@@ -34,7 +34,7 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
     class UsesReactionUsageVisitor(holder: ProblemsHolder) : KtCallExpressionVisitor(holder) {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
-            if (!VersionService.usedAnnotations(callExpression.project))
+            if (VersionService.isAnnotationsUnsupported(callExpression.project))
                 return
 
             val receiverClass = callExpression.receiverType().toClassDescriptor ?: return
@@ -62,10 +62,8 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
         private fun reactionIsNotOverridden(reactionName: String, callExpression: KtCallExpression): Boolean {
             val reactionDescriptor = getReactionDescriptor(reactionName, callExpression) ?: return false
 
-            return if (reactionDescriptor.isFinal)
-                false
-            else
-                callExpression.receiverType()?.findOverridingFunction(reactionDescriptor) == null
+            return if (reactionDescriptor.isFinal) false
+            else callExpression.receiverType()?.findOverridingFunction(reactionDescriptor) == null
         }
 
         private fun getReactionDescriptor(reactionName: String, callExpression: KtCallExpression): FunctionDescriptor? {
@@ -94,23 +92,23 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
     class NotOverriddenReactionUsageVisitor(holder: ProblemsHolder) : KtCallExpressionVisitor(holder) {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
-            if (reactionIsNotOverridden(callExpression)) {
-                val functionReceiverClass = callExpression.receiverType().toClassDescriptor ?: return
+            if (!reactionIsNotOverridden(callExpression)) return
 
-                if (functionReceiverClass.isFinal) {
-                    val functionName = callExpression.declaration?.name
+            val functionReceiverClass = callExpression.receiverType().toClassDescriptor ?: return
 
-                    if (functionName == null) {
-                        logger.warn("Function of reaction doesn't have a name. ${callExpression.text}")
-                        return
-                    }
+            if (!functionReceiverClass.isFinal) return
 
-                    registerWarning(
-                        callExpression,
-                        "${functionName.capitalize()} reaction is not implemented by this channel"
-                    )
-                }
+            val functionName = callExpression.declaration?.name
+
+            if (functionName == null) {
+                logger.warn("Function of reaction doesn't have a name. ${callExpression.text}")
+                return
             }
+
+            registerWarning(
+                callExpression,
+                "${functionName.capitalize()} reaction is not implemented by this channel"
+            )
         }
 
         private fun reactionIsNotOverridden(callExpression: KtCallExpression): Boolean {
