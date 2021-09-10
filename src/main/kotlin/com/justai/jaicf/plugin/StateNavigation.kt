@@ -83,14 +83,16 @@ fun State.transit(path: StatePath) = path.transitions
 fun State.transit(transition: Transition) = when (transition) {
     Transition.Current -> StateFound(this)
 
-    Transition.Revert -> {
-        if (isRootState) {
-            ScenarioService[callExpression]?.getAppendingStates(scenario)
-                ?.let { StatesFound(it + this) }
-                ?: StateFound(this)
-        } else {
-            StateFound(this.parent ?: this)
-        }
+    Transition.Revert -> when {
+        isRootState -> ScenarioService[callExpression]?.getAppendingStates(scenario)
+            ?.let { StatesFound(it + this) }
+            ?: StateFound(this)
+
+        isTopState && parent != null -> ScenarioService[callExpression]?.getAppendingStates(scenario)
+            ?.let { StatesFound(it + parent) }
+            ?: StateFound(parent)
+
+        else -> StateFound(this.parent ?: this)
     }
 
     Transition.Root -> roots.let {
