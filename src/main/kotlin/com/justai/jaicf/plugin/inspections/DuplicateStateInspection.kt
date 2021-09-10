@@ -2,15 +2,16 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.openapi.diagnostic.Logger
+import com.justai.jaicf.plugin.Lexeme.Transition.GoState
+import com.justai.jaicf.plugin.Lexeme.Transition.Revert
 import com.justai.jaicf.plugin.State
-import com.justai.jaicf.plugin.absolutePath
 import com.justai.jaicf.plugin.allStates
-import com.justai.jaicf.plugin.identifierReference
+import com.justai.jaicf.plugin.fullPath
 import com.justai.jaicf.plugin.name
 import com.justai.jaicf.plugin.nameReferenceExpression
-import com.justai.jaicf.plugin.services.name
-import com.justai.jaicf.plugin.withoutLeadSlashes
+import com.justai.jaicf.plugin.states
+import com.justai.jaicf.plugin.transit
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class DuplicateStateInspection : LocalInspectionTool() {
 
@@ -21,26 +22,27 @@ class DuplicateStateInspection : LocalInspectionTool() {
     class DuplicateStateVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
 
         override fun visitState(visitedState: State) {
-            visitedState.allStates()
-                .duplicates
-                .forEach(this::registerGenericError)
+            val stateName = visitedState.name ?: return
+            val parents = visitedState.transit(Revert).states().filter { it !== visitedState }
+
+            parents
+                .flatMap { it.allStates() }
+                .filter { it !== visitedState && it.name == stateName }
+                .ifNotEmpty { registerGenericError(visitedState, this) }
         }
 
-        private fun registerGenericError(duplicates: List<State>) {
-            duplicates
-                .flatMap { (duplicates - it).map { duplicate -> it to duplicate } }
-                .forEach { (state, duplicate) ->
-                    registerGenericError(
-                        state.callExpression.nameReferenceExpression() ?: state.callExpression,
-                        "Duplicated state declaration found. Consider using different state names",
-                        NavigateToState("Go to duplicate state declaration ${duplicate.scenario.name}:${duplicate.absolutePath}", duplicate)
-                    )
-                }
-        }
+        private fun registerGenericError(state: State, duplicates: List<State>) {
+            val holder = state.callExpression.nameReferenceExpression() ?: state.callExpression
 
-        private val List<State>.duplicates
-            get() = groupBy { it.name?.withoutLeadSlashes() }
-                .filter { it.key != null && it.value.size > 1 }
-                .map { it.value }
+            duplicates.forEach {
+                registerGenericError(
+                    holder,
+                    "Duplicated state declaration found. Consider using different state names",
+                    NavigateToState("Go to duplicate state declaration ${it.fullPath}", it)
+                )
+            }
+        }
     }
 }
+
+private fun State.transitTo(stateName: String) = transit(GoState(stateName))
