@@ -2,6 +2,8 @@ package com.justai.jaicf.plugin.services
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
@@ -39,6 +41,9 @@ class PathValueSearcher(private val project: Project) : Service {
     private fun findUsages(scope: SearchScope): List<KtFunction> {
         if (annotationClass == null)
             return emptyList()
+
+        if (DumbService.getInstance(project).isDumb)
+            throw ProcessCanceledException()
 
         return ReferencesSearch.search(annotationClass, scope)
             .toList()

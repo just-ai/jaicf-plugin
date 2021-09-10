@@ -1,6 +1,8 @@
 package com.justai.jaicf.plugin.services
 
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -25,8 +27,8 @@ import org.jetbrains.kotlin.psi.KtFile
 
 class StateUsagesSearchService(val project: Project) : Service {
 
-    private val predefinedJumpReactions by lazy(::findPredefinedJumpReactions)
     private var modifiedFiles: List<KtFile> = emptyList()
+    private val predefinedJumpReactions by lazy { findPredefinedJumpReactions() }
     private val expressionsToTransitions =
         RecursiveSafeValue(mapOf<KtExpression, TransitionResult>(), true) {
             expressionsByFiles.value.values.flatten().associateWith { transitToState(it) }
@@ -62,6 +64,9 @@ class StateUsagesSearchService(val project: Project) : Service {
     }
 
     private fun findPredefinedJumpReactions(): List<PsiMethod> {
+        if (DumbService.getInstance(project).isDumb)
+            throw ProcessCanceledException()
+
         val reactionsClass = findClass(REACTIONS_PACKAGE, REACTIONS_CLASS_NAME, project) ?: return emptyList()
 
         return reactionsClass.allMethods.filter {

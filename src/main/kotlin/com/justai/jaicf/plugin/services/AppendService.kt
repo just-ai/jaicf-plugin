@@ -2,7 +2,6 @@ package com.justai.jaicf.plugin.services
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
@@ -104,13 +103,7 @@ class AppendBuilder(val project: Project) {
     private val scenarioService: ScenarioService = ServiceManager.getService(project, ScenarioService::class.java)
 
     private fun getTopLevelAppendDeclaration(): PsiMethod? {
-        check(!DumbService.getInstance(project).isDumb) { "IDEA in dumb mode" }
-
-        return findClass(
-            SCENARIO_PACKAGE,
-            SCENARIO_EXTENSIONS_CLASS_NAME,
-            project
-        )
+        return findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)
             ?.allMethods
             ?.first { it.name == APPEND_METHOD_NAME }
             .also {

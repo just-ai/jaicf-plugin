@@ -2,6 +2,7 @@ package com.justai.jaicf.plugin.services
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -191,9 +192,14 @@ private class ScenarioBuilder(val project: Project) {
 
     private val scenariosBuildMethods: List<PsiMethod> by lazy { getScenariosBuildMethodsDeclarations() }
 
-    fun buildScenarios(scope: GlobalSearchScope) = getScenariosCallExpressions(scope)
-        .mapNotNull { buildScenario(it) }
-        .groupBy(Scenario::file)
+    fun buildScenarios(scope: GlobalSearchScope): Map<KtFile, List<Scenario>> {
+        if (DumbService.getInstance(project).isDumb)
+            throw ProcessCanceledException()
+
+        return getScenariosCallExpressions(scope)
+            .mapNotNull { buildScenario(it) }
+            .groupBy(Scenario::file)
+    }
 
     fun buildScenario(body: KtCallExpression) =
         Scenario(body.containingKtFile).run {
@@ -262,12 +268,9 @@ private class ScenarioBuilder(val project: Project) {
         }
     }
 
-    private fun getScenariosBuildMethodsDeclarations(): List<PsiMethod> {
-        check(!DumbService.getInstance(project).isDumb) { "IDEA in dumb mode" }
-
-        return findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)?.allMethods
+    private fun getScenariosBuildMethodsDeclarations(): List<PsiMethod> =
+        findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)?.allMethods
             ?.filter { it.name == SCENARIO_METHOD_NAME || it.name == CREATE_MODEL_METHOD_NAME } ?: emptyList()
-    }
 }
 
 private object StateBuilder {

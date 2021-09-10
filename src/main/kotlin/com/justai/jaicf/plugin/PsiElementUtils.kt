@@ -1,5 +1,7 @@
 package com.justai.jaicf.plugin
 
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiClass
@@ -188,6 +190,9 @@ val KtValueArgument.definedIdentifier: String?
 fun KtValueArgument.getBoundedCallExpressionOrNull() = getParentOfType<KtCallExpression>(true)
 
 fun findClass(packageFq: String, className: String, project: Project): PsiClass? {
+    if (DumbService.getInstance(project).isDumb)
+        throw ProcessCanceledException()
+
     val kotlinPsiFacade = KotlinJavaPsiFacade.getInstance(project)
     val projectScope = GlobalSearchScope.allScope(project)
     return kotlinPsiFacade.findPackage(packageFq, projectScope)?.classes?.firstOrNull { it.name == className }
