@@ -6,9 +6,10 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.justai.jaicf.plugin.RecursiveSafeValue
 import org.jetbrains.kotlin.psi.KtFile
 
-class VersionService(project: Project) : Service{
+class VersionService(private val project: Project) : Service {
 
-    private val libraries = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
+    private val libraries
+        get() = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
 
     val jaicfVersion = RecursiveSafeValue<Version?>(null) {
         val version = libraries
