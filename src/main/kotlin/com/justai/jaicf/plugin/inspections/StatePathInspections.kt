@@ -12,7 +12,7 @@ import com.justai.jaicf.plugin.TransitionResult.StateFound
 import com.justai.jaicf.plugin.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.TransitionResult.UnresolvedPath
-import com.justai.jaicf.plugin.absolutePath
+import com.justai.jaicf.plugin.fullPath
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.services.ScenarioService
 import com.justai.jaicf.plugin.services.name
@@ -43,11 +43,8 @@ class StatePathInspection : LocalInspectionTool() {
                 is SuggestionsFound -> transitToState.suggestionsStates.forEach { suggestion ->
                     registerWeakWarning(
                         pathExpression,
-                        "Found unrelated state ${suggestion.scenario.name}:${suggestion.absolutePath}",
-                        NavigateToState(
-                            "Go to unrelated state declaration ${suggestion.scenario.name}:${suggestion.absolutePath}",
-                            suggestion
-                        )
+                        "Found unrelated state ${suggestion.fullPath}",
+                        NavigateToState("Go to unrelated state declaration ${suggestion.fullPath}", suggestion)
                     )
                 }
             }
@@ -77,10 +74,8 @@ class MultiContextStatePathInspection : LocalInspectionTool() {
                     registerWeakWarning(
                         pathExpression,
                         "State resolved not in all contexts",
-                        NavigateToState(
-                            "Go to unrelated state declaration ${state.scenario.name}:${state.absolutePath}",
-                            state
-                        ))
+                        NavigateToState("Go to unrelated state declaration ${state.fullPath}", state)
+                    )
                 }
         }
 

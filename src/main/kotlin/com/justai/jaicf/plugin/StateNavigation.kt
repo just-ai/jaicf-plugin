@@ -11,6 +11,7 @@ import com.justai.jaicf.plugin.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.services.ScenarioService
+import com.justai.jaicf.plugin.services.name
 import org.jetbrains.kotlin.psi.KtExpression
 
 private val logger = Logger.getInstance("StateNavigation")
@@ -39,6 +40,9 @@ val State.absolutePath: StatePath?
         val currentName = name ?: return null
         return parentPath + Transition.GoState(currentName.withoutLeadSlashes())
     }
+
+val State.fullPath: String
+    get() = scenario.name?.let { "$it:$absolutePath" } ?: "$absolutePath"
 
 fun transitToState(pathExpression: KtExpression): TransitionResult {
     val framingState = pathExpression.getFramingState() ?: return OutOfStateBoundUsage
