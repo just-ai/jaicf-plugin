@@ -54,6 +54,7 @@ import com.justai.jaicf.plugin.isRemoved
 import com.justai.jaicf.plugin.resolve
 import com.justai.jaicf.plugin.rootBuilderClassFqName
 import com.justai.jaicf.plugin.scenarioGraphBuilderClassFqName
+import com.justai.jaicf.plugin.search
 import com.justai.jaicf.plugin.stringValueOrNull
 import com.justai.jaicf.plugin.valueArgument
 import org.jetbrains.kotlin.idea.search.fileScope
@@ -72,7 +73,6 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
-import org.jetbrains.kotlin.util.firstNotNullResult
 
 class ScenarioService(project: Project) : Service {
 
@@ -86,8 +86,8 @@ class ScenarioService(project: Project) : Service {
 
     fun getState(element: PsiElement) =
         getScenarios(element.containingFile)
-            .filter { contains(it.innerState, element) }
-            .firstNotNullResult { recursiveFindState(it.innerState, element) }
+            .firstOrNull { contains(it.innerState, element) }
+            ?.let { recursiveFindState(it.innerState, element) }
 
     fun resolveScenario(expr: KtReferenceExpression) =
         builder.getScenarioBody(expr)?.let { block ->
@@ -220,7 +220,7 @@ private class ScenarioBuilder(val project: Project) {
     }
 
     fun getScenariosCallExpressions(scope: GlobalSearchScope) = scenariosBuildMethods
-        .flatMap { ReferencesSearch.search(it, scope, true).findAll() }
+        .flatMap { it.search(scope).findAll() }
         .map { it.element.parent }
         .filterIsInstance<KtCallExpression>()
 

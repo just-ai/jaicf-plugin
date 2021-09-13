@@ -5,7 +5,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ReferencesSearch
 import com.justai.jaicf.plugin.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.SCENARIO_EXTENSIONS_CLASS_NAME
@@ -18,6 +17,7 @@ import com.justai.jaicf.plugin.isActual
 import com.justai.jaicf.plugin.isRemoved
 import com.justai.jaicf.plugin.isValid
 import com.justai.jaicf.plugin.resolve
+import com.justai.jaicf.plugin.search
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -140,11 +140,10 @@ class AppendBuilder(val project: Project) {
     }
 
     fun getTopLevelAppendsUsages(scope: GlobalSearchScope): List<KtCallExpression> =
-        topLevelMethod?.let { method ->
-            ReferencesSearch.search(method, scope)
-                .map { it.element.parent }
-                .filterIsInstance<KtCallExpression>()
-        } ?: emptyList()
+        topLevelMethod?.search(scope)
+            ?.map { it.element.parent }
+            ?.filterIsInstance<KtCallExpression>()
+            ?: emptyList()
 
     companion object {
         private val logger = Logger.getInstance(this::class.java)

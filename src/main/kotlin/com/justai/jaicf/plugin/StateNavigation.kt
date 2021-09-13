@@ -50,6 +50,7 @@ fun transitToState(pathExpression: KtExpression): TransitionResult {
     return framingState.transit(statePath)
 }
 
+// TODO cache
 fun State.transit(path: StatePath) = path.transitions
     .fold<Transition, TransitionResult>(StateFound(this)) { transitionResult, transition ->
         when (transitionResult) {
@@ -59,6 +60,7 @@ fun State.transit(path: StatePath) = path.transitions
                 .map { it.transit(transition) }
                 .filter { it is StateFound || it is StatesFound }
                 .flatMap { it.states() }
+                .distinct()
                 .let {
                     when {
                         it.isEmpty() -> NoState
@@ -71,6 +73,7 @@ fun State.transit(path: StatePath) = path.transitions
                 .map { it.transit(transition) }
                 .filterIsInstance<StateFound>()
                 .map { it.state }
+                .distinct()
                 .let {
                     if (it.isEmpty()) NoState
                     else SuggestionsFound(it)

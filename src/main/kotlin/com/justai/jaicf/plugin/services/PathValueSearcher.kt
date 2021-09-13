@@ -11,6 +11,7 @@ import com.justai.jaicf.plugin.PATH_ARGUMENT_ANNOTATION_NAME
 import com.justai.jaicf.plugin.PLUGIN_PACKAGE
 import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.findClass
+import com.justai.jaicf.plugin.search
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.search.minus
 import org.jetbrains.kotlin.idea.search.projectScope
@@ -45,7 +46,7 @@ class PathValueSearcher(private val project: Project) : Service {
         if (DumbService.getInstance(project).isDumb)
             throw ProcessCanceledException()
 
-        return ReferencesSearch.search(annotationClass, scope)
+        return annotationClass.search(scope)
             .toList()
             .mapNotNull { it.element.getParentOfType<KtFunction>(true) }
             .distinct()

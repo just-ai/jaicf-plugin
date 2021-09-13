@@ -11,11 +11,13 @@ import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.firstStateOrSuggestion
+import com.justai.jaicf.plugin.TransitionResult
 import com.justai.jaicf.plugin.boundedPathExpression
+import com.justai.jaicf.plugin.firstStateOrSuggestion
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.plus
 import com.justai.jaicf.plugin.rangeToEndOf
+import com.justai.jaicf.plugin.services.AvailabilityService
 import com.justai.jaicf.plugin.stringValueOrNull
 import com.justai.jaicf.plugin.transit
 import com.justai.jaicf.plugin.transitionsWithRanges
@@ -33,6 +35,9 @@ class StatePathReferenceContributor : PsiReferenceContributor() {
 class StatePathReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+        if (AvailabilityService[element]?.referenceContributorAvailable == false)
+            return emptyArray()
+
         val pathExpression = element.boundedPathExpression ?: return emptyArray()
         val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return emptyArray()
 
@@ -55,11 +60,24 @@ class StatePathReferenceProvider : PsiReferenceProvider() {
 
 class StatePsiReference(
     element: PsiElement,
-    path: StatePath,
+    private val path: StatePath,
     textRange: TextRange = element.textRange,
 ) : PsiReferenceBase<PsiElement?>(element, textRange) {
 
-    private val transitionResult by lazy { element.getFramingState()?.transit(path) }
+    private val transitionResult: TransitionResult?
+        get() {
+            savedResult?.let { return it }
+
+            if (AvailabilityService[element]?.referenceContributorAvailable == false)
+                return null
+
+            return element.getFramingState()?.transit(path).also {
+                savedResult = it
+            }
+        }
+
+    // TODO add caches to navigation
+    private var savedResult: TransitionResult? = null
 
     override fun resolve() = transitionResult?.firstStateOrSuggestion()?.callExpression
 }

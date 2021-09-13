@@ -16,9 +16,10 @@ import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.TransitionResult
 import com.justai.jaicf.plugin.findClass
-import com.justai.jaicf.plugin.firstStateOrSuggestion
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
+import com.justai.jaicf.plugin.search
+import com.justai.jaicf.plugin.statesOrSuggestions
 import com.justai.jaicf.plugin.transitToState
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.projectScope
@@ -30,20 +31,21 @@ class StateUsagesSearchService(val project: Project) : Service {
     private var modifiedFiles: List<KtFile> = emptyList()
     private val predefinedJumpReactions by lazy { findPredefinedJumpReactions() }
     private val expressionsToTransitions =
-        RecursiveSafeValue(mapOf<KtExpression, TransitionResult>(), true) {
+        RecursiveSafeValue(mapOf<KtExpression, TransitionResult>()) {
             expressionsByFiles.value.values.flatten().associateWith { transitToState(it) }
         }
     private val expressionsByFiles by lazy {
-        RecursiveSafeValue(findExpressions(project.projectScope()).groupBy { it.containingKtFile }, true) { map ->
-            val unmodifiedFiles = map.keys - modifiedFiles
-            (unmodifiedFiles.associateWith { map[it]!! } + modifiedFiles.associateWith { findExpressions(it.fileScope()) })
+        RecursiveSafeValue(findExpressions(project.projectScope()).groupBy { it.containingKtFile }) { map ->
+            val unmodifiedFiles = (map.keys - modifiedFiles).filter { it.isExist }
+            (unmodifiedFiles.associateWith { map[it]!! } + modifiedFiles.filter { it.isExist }
+                .associateWith { findExpressions(it.fileScope()) })
                 .filter { it.value.isNotEmpty() }
                 .also { modifiedFiles = emptyList() }
         }
     }
 
     fun findStateUsages(state: State): List<KtExpression> = expressionsToTransitions.value
-        .filter { (_, transition) -> transition.firstStateOrSuggestion() == state }
+        .filter { (_, transition) -> state in transition.statesOrSuggestions() }
         .map { it.key }
 
     override fun markFileAsModified(file: KtFile) {
@@ -58,7 +60,7 @@ class StateUsagesSearchService(val project: Project) : Service {
 
         return methods
             .filter { it.isExist }
-            .flatMap { ReferencesSearch.search(it, scope, true).findAll() }
+            .flatMap { it.search(scope).findAll() }
             .map { it.element }
             .flatMap { it.pathExpressionsOfBoundedBlock }
     }

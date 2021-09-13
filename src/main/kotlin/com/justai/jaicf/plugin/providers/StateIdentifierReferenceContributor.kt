@@ -13,13 +13,16 @@ import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.STATE_NAME_ARGUMENT_NAME
+import com.justai.jaicf.plugin.TransitionResult
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
+import com.justai.jaicf.plugin.services.AvailabilityService
 import com.justai.jaicf.plugin.services.StateUsagesSearchService
 import com.justai.jaicf.plugin.services.isStateDeclaration
+import com.justai.jaicf.plugin.transit
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 
@@ -36,6 +39,9 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
     @ExperimentalStdlibApi
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+        if (AvailabilityService[element]?.referenceContributorAvailable == false)
+            return emptyArray()
+
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
 
         if (!argument.isNameOfStateDeclaration) {
@@ -54,10 +60,23 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 class MultiPsiReference(
     element: PsiElement,
     textRange: TextRange = element.textRange,
-    referencesProvider: () -> List<PsiElement>,
+    private val referencesProvider: () -> List<PsiElement>,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
-    private val references by lazy { referencesProvider() }
+    private val references: List<PsiElement>
+        get() {
+            savedReferences?.let { return it }
+
+            if (AvailabilityService[element]?.referenceContributorAvailable == false)
+                return emptyList()
+
+            return referencesProvider().also {
+                savedReferences = it
+            }
+        }
+
+    // TODO add caches to navigation
+    private var savedReferences: List<PsiElement>? = null
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
         return references.map(::PsiElementResolveResult).toTypedArray()

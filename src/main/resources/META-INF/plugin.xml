@@ -19,6 +19,8 @@
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.VersionService"/>
 
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.AvailabilityService"/>
+
         <completion.contributor language="kotlin"
                                 id="StatePathCompletionContributor"
                                 implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionContributor"
