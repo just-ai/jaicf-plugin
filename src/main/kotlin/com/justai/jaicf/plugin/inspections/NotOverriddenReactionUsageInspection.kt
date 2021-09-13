@@ -34,7 +34,7 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
     class UsesReactionUsageVisitor(holder: ProblemsHolder) : KtCallExpressionVisitor(holder) {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
-            if (VersionService.isAnnotationsUnsupported(callExpression.project))
+            if (VersionService[callExpression]?.jaicf.isAnnotationsSupported)
                 return
 
             val receiverClass = callExpression.receiverType().toClassDescriptor ?: return

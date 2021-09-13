@@ -189,15 +189,6 @@ val KtValueArgument.definedIdentifier: String?
 
 fun KtValueArgument.getBoundedCallExpressionOrNull() = getParentOfType<KtCallExpression>(true)
 
-fun findClass(packageFq: String, className: String, project: Project): PsiClass? {
-    if (DumbService.getInstance(project).isDumb)
-        throw ProcessCanceledException()
-
-    val kotlinPsiFacade = KotlinJavaPsiFacade.getInstance(project)
-    val projectScope = GlobalSearchScope.allScope(project)
-    return kotlinPsiFacade.findPackage(packageFq, projectScope)?.classes?.firstOrNull { it.name == className }
-}
-
 val PsiElement.isRemoved: Boolean
     get() = !this.isValid || containingFile == null
 

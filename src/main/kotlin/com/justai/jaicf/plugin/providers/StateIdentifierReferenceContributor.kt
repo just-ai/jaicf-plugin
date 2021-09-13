@@ -39,8 +39,10 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
     @ExperimentalStdlibApi
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (AvailabilityService[element]?.referenceContributorAvailable == false)
+        if (AvailabilityService[element]?.referenceContributorAvailable == false) {
+            val a = 1
             return emptyArray()
+        }
 
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
 
@@ -65,10 +67,14 @@ class MultiPsiReference(
 
     private val references: List<PsiElement>
         get() {
+            if (AvailabilityService[element]?.referenceContributorAvailable == false) {
+                val a = 1
+            }
             savedReferences?.let { return it }
 
-            if (AvailabilityService[element]?.referenceContributorAvailable == false)
+            if (AvailabilityService[element]?.referenceContributorAvailable == false) {
                 return emptyList()
+            }
 
             return referencesProvider().also {
                 savedReferences = it

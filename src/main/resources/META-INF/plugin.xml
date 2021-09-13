@@ -13,7 +13,7 @@
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.AppendService"/>
 
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.PathValueSearcher"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.JumpMethodsService"/>
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.StateUsagesSearchService"/>
 

@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
 val KtCallExpression.innerPathExpressions: List<KtExpression>
     get() =
-        if (VersionService.isAnnotationsSupported(project)) {
+        if (VersionService[project].jaicf.isAnnotationsSupported) {
             val expressions = argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
@@ -32,7 +32,7 @@ val KtCallExpression.innerPathExpressions: List<KtExpression>
 
 val KtBinaryExpression.innerPathExpressions: List<KtExpression>
     get() {
-        return if (VersionService.isAnnotationsSupported(project)) {
+        return if (VersionService[project].jaicf.isAnnotationsSupported) {
             val operation = getChildOfType<KtOperationReferenceExpression>() ?: return emptyList()
             val function = operation.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
@@ -71,7 +71,7 @@ val PsiElement.boundedPathExpression: KtExpression?
 
         when (boundedElement) {
             is KtDotQualifiedExpression -> {
-                if (!VersionService.isAnnotationsSupported(project))
+                if (!VersionService[project].jaicf.isAnnotationsSupported)
                     return null
 
                 val callExpression = boundedElement.getChildOfType<KtCallExpression>() ?: return null
@@ -87,7 +87,7 @@ val PsiElement.boundedPathExpression: KtExpression?
             }
 
             is KtValueArgument -> {
-                return if (VersionService.isAnnotationsSupported(project)) {
+                return if (VersionService[project].jaicf.isAnnotationsSupported) {
                     // TODO duplicate
                     if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true)
                         boundedElement.getArgumentExpression()
@@ -114,7 +114,7 @@ val PsiElement.pathExpressionsOfBoundedBlock: List<KtExpression>
 
         return when (boundedElement) {
             is KtDotQualifiedExpression ->
-                if (VersionService.isAnnotationsSupported(project))
+                if (VersionService[project].jaicf.isAnnotationsSupported)
                     boundedElement.getChildOfType<KtCallExpression>()?.let {
                         if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
                         else null

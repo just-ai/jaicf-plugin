@@ -17,9 +17,9 @@ class Scenario(
     val file: KtFile,
     var condition: Condition = Condition.ACTUAL,
 ) {
-    private val appendService by lazy { ServiceManager.getService(file.project, AppendService::class.java) }
+    private val appendService by lazy { AppendService[file] }
     val topLevelAppends: List<Append>
-        get() = appendService.getAppends(this)
+        get() = appendService?.getAppends(this) ?: emptyList()
 
     lateinit var innerState: State
 

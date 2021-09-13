@@ -13,7 +13,6 @@ class RecursiveSafeValue<T>(initValue: T, private val failFast: Boolean = false,
     @Volatile
     private var valid = false
 
-
     val value: T
         get() {
             if (valid ||
@@ -40,7 +39,6 @@ class RecursiveSafeValue<T>(initValue: T, private val failFast: Boolean = false,
                 isUpdating = false
             }
         }
-
 
     fun invalid() {
         valid = false

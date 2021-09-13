@@ -9,7 +9,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ReferencesSearch
 import com.justai.jaicf.plugin.APPEND_CONTEXT_ARGUMENT_NAME
 import com.justai.jaicf.plugin.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.APPEND_OTHER_ARGUMENT_NAME
@@ -76,7 +75,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class ScenarioService(project: Project) : Service {
 
-    private val modifiedFiles: MutableSet<KtFile> = mutableSetOf()
+    private var modifiedFiles = setOf<KtFile>()
     private val builder: ScenarioBuilder = ScenarioBuilder(project)
     private val scenariosByFiles by lazy {
         RecursiveSafeValue(builder.buildScenarios(project.projectScope())) {
@@ -115,7 +114,9 @@ class ScenarioService(project: Project) : Service {
     }
 
     override fun markFileAsModified(file: KtFile) {
-        modifiedFiles += file
+        if (file !in modifiedFiles)
+            modifiedFiles = modifiedFiles + file
+
         scenariosByFiles.invalid()
     }
 
@@ -165,7 +166,7 @@ class ScenarioService(project: Project) : Service {
                 val newScenarios = tryToFindNewScenarios(file, actualScenarios)
 
                 file to actualScenarios + newScenarios.also {
-                    modifiedFiles.remove(file)
+                    modifiedFiles = modifiedFiles - file
                 }
             }
             .filter { it.second.isNotEmpty() }
@@ -185,6 +186,9 @@ class ScenarioService(project: Project) : Service {
         operator fun get(element: PsiElement): ScenarioService? =
             if (element.isExist) ServiceManager.getService(element.project, ScenarioService::class.java)
             else null
+
+        operator fun get(project: Project): ScenarioService =
+            ServiceManager.getService(project, ScenarioService::class.java)
     }
 }
 
@@ -220,7 +224,7 @@ private class ScenarioBuilder(val project: Project) {
     }
 
     fun getScenariosCallExpressions(scope: GlobalSearchScope) = scenariosBuildMethods
-        .flatMap { it.search(scope).findAll() }
+        .flatMap { it.search(scope) }
         .map { it.element.parent }
         .filterIsInstance<KtCallExpression>()
 
@@ -320,7 +324,7 @@ private object StateBuilder {
 
     private fun extractStatements(stateExpression: KtCallExpression): List<KtCallExpression> {
         val bodyArgument =
-            if (VersionService.isAnnotationsSupported(stateExpression.project))
+            if (VersionService[stateExpression]?.jaicf.isAnnotationsSupported)
                 getAnnotatedLambdaArgument(stateExpression) ?: getAnnotatedLambdaBlockInDeclaration(stateExpression)
             else
                 getLambdaArgumentByArgumentName(stateExpression)
@@ -339,17 +343,17 @@ private object StateBuilder {
         (stateExpression.argumentExpression(STATE_BODY_ARGUMENT_NAME) as? KtLambdaExpression)
 
     private fun isState(expression: KtCallExpression) =
-        if (VersionService.isAnnotationsSupported(expression.project)) expression.isAnnotatedWithStateDeclaration
+        if (VersionService[expression]?.jaicf.isAnnotationsSupported) expression.isAnnotatedWithStateDeclaration
         else expression.isState || expression.isFallback
 }
 
 val KtCallExpression.isStateDeclaration: Boolean
     get() =
-        if (VersionService.isAnnotationsSupported(project)) isAnnotatedWithStateDeclaration
+        if (VersionService[project].jaicf.isAnnotationsSupported) isAnnotatedWithStateDeclaration
         else isState || isFallback || isScenario || isCreateModelFun
 
 private fun KtCallExpression.identifierOfStateExpression(): StateIdentifier {
-    return if (VersionService.isAnnotationsSupported(project)) {
+    return if (VersionService[project].jaicf.isAnnotationsSupported) {
         val stateNameExpression = argumentExpressionsByAnnotation(STATE_NAME_ANNOTATION_NAME).firstOrNull()
         if (stateNameExpression != null) {
             return ExpressionIdentifier(stateNameExpression, stateNameExpression.parent)

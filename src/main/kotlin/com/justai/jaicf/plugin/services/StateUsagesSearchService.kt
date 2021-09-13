@@ -1,21 +1,12 @@
 package com.justai.jaicf.plugin.services
 
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ReferencesSearch
-import com.justai.jaicf.plugin.REACTIONS_CHANGE_STATE_METHOD_NAME
-import com.justai.jaicf.plugin.REACTIONS_CLASS_NAME
-import com.justai.jaicf.plugin.REACTIONS_GO_METHOD_NAME
-import com.justai.jaicf.plugin.REACTIONS_PACKAGE
 import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.TransitionResult
-import com.justai.jaicf.plugin.findClass
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.search
@@ -28,57 +19,71 @@ import org.jetbrains.kotlin.psi.KtFile
 
 class StateUsagesSearchService(val project: Project) : Service {
 
-    private var modifiedFiles: List<KtFile> = emptyList()
-    private val predefinedJumpReactions by lazy { findPredefinedJumpReactions() }
+    private var modifiedFiles = setOf<KtFile>()
+    private val expressionService = ExpressionService[project]
+
     private val expressionsToTransitions =
         RecursiveSafeValue(mapOf<KtExpression, TransitionResult>()) {
-            expressionsByFiles.value.values.flatten().associateWith { transitToState(it) }
+            expressionService.expressions.associateWith { transitToState(it) }.also {
+                modifiedFiles = emptySet()
+            }
         }
-    private val expressionsByFiles by lazy {
-        RecursiveSafeValue(findExpressions(project.projectScope()).groupBy { it.containingKtFile }) { map ->
-            val unmodifiedFiles = (map.keys - modifiedFiles).filter { it.isExist }
-            (unmodifiedFiles.associateWith { map[it]!! } + modifiedFiles.filter { it.isExist }
-                .associateWith { findExpressions(it.fileScope()) })
-                .filter { it.value.isNotEmpty() }
-                .also { modifiedFiles = emptyList() }
-        }
-    }
 
     fun findStateUsages(state: State): List<KtExpression> = expressionsToTransitions.value
         .filter { (_, transition) -> state in transition.statesOrSuggestions() }
         .map { it.key }
 
     override fun markFileAsModified(file: KtFile) {
-        modifiedFiles = modifiedFiles + file
+        if (file !in modifiedFiles)
+            modifiedFiles = modifiedFiles + file
+
         expressionsToTransitions.invalid()
-        expressionsByFiles.invalid()
-    }
-
-    private fun findExpressions(scope: GlobalSearchScope): List<KtExpression> {
-        val methods = PathValueSearcher[project].getMethodsUsedPathValue()
-            .ifEmpty { predefinedJumpReactions }
-
-        return methods
-            .filter { it.isExist }
-            .flatMap { it.search(scope).findAll() }
-            .map { it.element }
-            .flatMap { it.pathExpressionsOfBoundedBlock }
-    }
-
-    private fun findPredefinedJumpReactions(): List<PsiMethod> {
-        if (DumbService.getInstance(project).isDumb)
-            throw ProcessCanceledException()
-
-        val reactionsClass = findClass(REACTIONS_PACKAGE, REACTIONS_CLASS_NAME, project) ?: return emptyList()
-
-        return reactionsClass.allMethods.filter {
-            it.name == REACTIONS_GO_METHOD_NAME || it.name == REACTIONS_CHANGE_STATE_METHOD_NAME
-        }
     }
 
     companion object {
         operator fun get(element: PsiElement): StateUsagesSearchService? =
             if (element.isExist) ServiceManager.getService(element.project, StateUsagesSearchService::class.java)
             else null
+    }
+}
+
+class ExpressionService(val project: Project) : Service {
+
+    val expressions: List<KtExpression>
+        get() = expressionsByFiles.value.values.flatten()
+
+    private var modifiedFiles = setOf<KtFile>()
+
+    private val expressionsByFiles by lazy {
+        RecursiveSafeValue(findExpressions(project.projectScope()).groupBy { it.containingKtFile }) { map ->
+            val unmodifiedFiles = (map.keys - modifiedFiles).filter { it.isExist }
+            val scopeOfModifiedFiles = modifiedFiles.map { it.fileScope() }.reduce { acc, scope -> acc.union(scope) }
+
+            (unmodifiedFiles.associateWith { map[it]!! } +
+                    findExpressions(scopeOfModifiedFiles).groupBy { it.containingKtFile })
+                .filter { it.value.isNotEmpty() }
+                .also { modifiedFiles = emptySet() }
+        }
+    }
+
+    private fun findExpressions(scope: GlobalSearchScope): List<KtExpression> {
+        val methods = JumpMethodsService[project].getMethods()
+
+        return methods
+            .flatMap { it.search(scope) }
+            .map { it.element }
+            .flatMap { it.pathExpressionsOfBoundedBlock }
+    }
+
+    override fun markFileAsModified(file: KtFile) {
+        if (file !in modifiedFiles)
+            modifiedFiles = modifiedFiles + file
+
+        expressionsByFiles.invalid()
+    }
+
+    companion object {
+        operator fun get(project: Project): ExpressionService =
+            ServiceManager.getService(project, ExpressionService::class.java)
     }
 }

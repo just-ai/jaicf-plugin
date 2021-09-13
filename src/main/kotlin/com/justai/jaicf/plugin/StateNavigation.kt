@@ -20,7 +20,7 @@ fun PsiElement.getFramingState(): State? {
     if (isRemoved)
         return null
 
-    return ServiceManager.getService(project, ScenarioService::class.java).getState(this)?.let {
+    return ScenarioService[project].getState(this)?.let {
         return@let if (it.isValid) {
             it
         } else {

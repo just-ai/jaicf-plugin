@@ -3,6 +3,7 @@ package com.justai.jaicf.plugin.services
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.justai.jaicf.plugin.APPEND_METHOD_NAME
@@ -14,10 +15,12 @@ import com.justai.jaicf.plugin.TopLevelAppend
 import com.justai.jaicf.plugin.findClass
 import com.justai.jaicf.plugin.getRootDotReceiver
 import com.justai.jaicf.plugin.isActual
+import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.isRemoved
 import com.justai.jaicf.plugin.isValid
 import com.justai.jaicf.plugin.resolve
 import com.justai.jaicf.plugin.search
+import com.justai.jaicf.plugin.services.ScenarioService.Companion
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -27,13 +30,15 @@ import org.jetbrains.kotlin.psi.KtFile
 class AppendService(private val project: Project) : Service {
 
     private val builder = AppendBuilder(project)
-    private val modifiedFiles = mutableSetOf<KtFile>()
+    private var modifiedFiles = setOf<KtFile>()
     private val appendsByFiles by lazy {
         RecursiveSafeValue(getProjectAppends(), updater = this::updateAppendsIfNeeded)
     }
 
     override fun markFileAsModified(file: KtFile) {
-        modifiedFiles += file
+        if (file !in modifiedFiles)
+            modifiedFiles = modifiedFiles + file
+
         appendsByFiles.invalid()
     }
 
@@ -51,7 +56,7 @@ class AppendService(private val project: Project) : Service {
         val appendsMap = map.toMutableMap()
 
         val files = modifiedFiles.toList()
-        modifiedFiles.clear()
+        modifiedFiles = emptySet()
 
         files.forEach { file ->
             val appends = map[file] ?: emptyList()
@@ -93,6 +98,13 @@ class AppendService(private val project: Project) : Service {
 
     companion object {
         private val logger = Logger.getInstance(this::class.java)
+
+        operator fun get(element: PsiElement): AppendService? =
+            if (element.isExist) ServiceManager.getService(element.project, AppendService::class.java)
+            else null
+
+        operator fun get(project: Project): AppendService =
+            ServiceManager.getService(project, AppendService::class.java)
     }
 }
 
@@ -100,7 +112,7 @@ class AppendService(private val project: Project) : Service {
 class AppendBuilder(val project: Project) {
 
     private val topLevelMethod: PsiMethod? by lazy { getTopLevelAppendDeclaration() }
-    private val scenarioService: ScenarioService = ServiceManager.getService(project, ScenarioService::class.java)
+    private val scenarioService = ScenarioService[project]
 
     private fun getTopLevelAppendDeclaration(): PsiMethod? {
         return findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)

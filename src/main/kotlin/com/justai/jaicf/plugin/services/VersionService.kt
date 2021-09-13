@@ -3,37 +3,39 @@ package com.justai.jaicf.plugin.services
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.psi.PsiElement
+import com.justai.jaicf.plugin.JAICF_CORE_ARTIFACT_ID
+import com.justai.jaicf.plugin.JAICF_GROUP_ID
 import com.justai.jaicf.plugin.RecursiveSafeValue
+import com.justai.jaicf.plugin.isExist
 import org.jetbrains.kotlin.psi.KtFile
 
 class VersionService(private val project: Project) : Service {
 
-    private val libraries
-        get() = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
+    val jaicf: Version?
+        get() = jaicfVersionValue.value
 
-    val jaicfVersion = RecursiveSafeValue<Version?>(null) {
+    private val jaicfVersionValue = RecursiveSafeValue<Version?>(null) {
+        val libraries = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
         val version = libraries
-            .filter { it.name?.contains("com.just-ai.jaicf:core") == true }
+            .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
             .mapNotNull { it.name?.split(":")?.last() }
             .firstOrNull()
-            ?: return@RecursiveSafeValue null
 
-        return@RecursiveSafeValue Version(version)
+        version?.let(::Version)
     }
 
     override fun markFileAsModified(file: KtFile) {
-        jaicfVersion.invalid()
+        jaicfVersionValue.invalid()
     }
 
     companion object {
-        fun get(project: Project): VersionService? = ServiceManager.getService(project, VersionService::class.java)
+        operator fun get(project: Project): VersionService =
+            ServiceManager.getService(project, VersionService::class.java)
 
-        fun isAnnotationsUnsupported(project: Project) = !isAnnotationsSupported(project)
-
-        fun isAnnotationsSupported(project: Project): Boolean {
-            val jaicfVersion = get(project)?.jaicfVersion?.value ?: return false
-            return jaicfVersion >= Version("1.1.3")
-        }
+        operator fun get(element: PsiElement): VersionService? =
+            if (element.isExist) ServiceManager.getService(element.project, VersionService::class.java)
+            else null
     }
 }
 
@@ -52,3 +54,9 @@ data class Version(val version: String) {
             else components.size.compareTo(other.components.size)
         }
 }
+
+val VersionService.isJaicfSupportsAnnotations: Boolean
+    get() = this.jaicf?.let { it >= Version("1.1.3") } == true
+
+val VersionService.isJaicfInclude: Boolean
+    get() = this.jaicf != null

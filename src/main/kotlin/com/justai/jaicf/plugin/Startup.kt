@@ -8,7 +8,8 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.justai.jaicf.plugin.services.AppendService
-import com.justai.jaicf.plugin.services.PathValueSearcher
+import com.justai.jaicf.plugin.services.ExpressionService
+import com.justai.jaicf.plugin.services.JumpMethodsService
 import com.justai.jaicf.plugin.services.ScenarioService
 import com.justai.jaicf.plugin.services.Service
 import com.justai.jaicf.plugin.services.StateUsagesSearchService
@@ -21,9 +22,10 @@ class Startup : StartupActivity {
             val services = listOf(
                 ScenarioService::class.java,
                 AppendService::class.java,
-                PathValueSearcher::class.java,
+                JumpMethodsService::class.java,
                 StateUsagesSearchService::class.java,
-                VersionService::class.java
+                VersionService::class.java,
+                ExpressionService::class.java
             ).map { ServiceManager.getService(project, it) }
 
             PsiManager.getInstance(project).addPsiTreeChangeListener(ScenarioInvalidator(services)) { }

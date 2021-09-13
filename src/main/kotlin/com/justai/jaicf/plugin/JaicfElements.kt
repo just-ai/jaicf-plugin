@@ -38,3 +38,6 @@ const val STATE_BODY_ANNOTATION_NAME = "StateBody"
 const val STATE_NAME_ANNOTATION_ARGUMENT_NAME = "name"
 const val USES_REACTION_ANNOTATION_NAME = "UsesReaction"
 const val USES_REACTION_METHOD_ARGUMENT_NAME = "name"
+
+const val JAICF_GROUP_ID = "com.just-ai.jaicf"
+const val JAICF_CORE_ARTIFACT_ID = "core"
