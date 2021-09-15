@@ -1,16 +1,16 @@
-package com.justai.jaicf.plugin.services
+package com.justai.jaicf.plugin.services.managers
 
 import com.intellij.openapi.project.Project
-import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
-import kotlin.reflect.KProperty
+import com.justai.jaicf.plugin.services.CachedValueDelegate
+import com.justai.jaicf.plugin.services.VersionService
+import com.justai.jaicf.plugin.services.isJaicfInclude
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
-import org.jetbrains.kotlin.psi.KtFile
 
-abstract class Service(protected val project: Project) {
+open class Manager(protected val project: Project) {
 
-    protected val manager: CachedValuesManager = CachedValuesManager.getManager(project)
+    private val manager: CachedValuesManager = CachedValuesManager.getManager(project)
 
     fun <T> cached(vararg dependencies: Any?, value: () -> (T)) =
         CachedValueDelegate(manager.createCachedValue { Result.create(value(), *dependencies) })
@@ -24,14 +24,4 @@ abstract class Service(protected val project: Project) {
     protected val enabled: Boolean by cached(LibraryModificationTracker.getInstance(project)) {
         VersionService[project].isJaicfInclude
     }
-
-    open fun markFileAsModified(file: KtFile) {}
-}
-
-class CachedValueDelegate<T>(private val cachedValue: CachedValue<T>) {
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = cachedValue.value
-//
-//    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
-//        println("$value has been assigned to '${property.name}' in $thisRef.")
-//    }
 }

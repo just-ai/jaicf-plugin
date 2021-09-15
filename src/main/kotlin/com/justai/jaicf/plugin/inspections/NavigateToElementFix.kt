@@ -6,12 +6,11 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
-import com.justai.jaicf.plugin.State
-import com.justai.jaicf.plugin.identifierReference
+import com.justai.jaicf.plugin.services.managers.dto.State
 
 class NavigateToState(message: String, state: State) : NavigateToElementFix(
     message,
-    state.callExpression
+    state.stateExpression
 )
 
 open class NavigateToElementFix(private val message: String, arg: PsiElement) : LocalQuickFix {

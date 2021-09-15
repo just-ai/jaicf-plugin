@@ -7,19 +7,15 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <postStartupActivity implementation="com.justai.jaicf.plugin.Startup"/>
-
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.ScenarioService"/>
-
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.AppendService"/>
-
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.JumpMethodsService"/>
-
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.StateUsagesSearchService"/>
-
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.VersionService"/>
-
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.AvailabilityService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.trackers.FileModificationTrackerProvider"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.PathValueExpressionManager"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.PathValueMethodsManager"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.TopLevelAppendDataManager"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.ScenarioDataManager"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.linter.ScenarioReferenceResolver"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.navigation.Navigator"/>
 
         <completion.contributor language="kotlin"
                                 id="StatePathCompletionContributor"

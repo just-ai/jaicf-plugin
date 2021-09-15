@@ -2,6 +2,7 @@ package com.justai.jaicf.plugin
 
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.services.VersionService
+import com.justai.jaicf.plugin.services.isJaicfInclude
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -17,22 +18,22 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
 val KtCallExpression.innerPathExpressions: List<KtExpression>
     get() =
-        if (VersionService[project].jaicf.isAnnotationsSupported) {
-            val expressions = argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
+        if (VersionService[project].isJaicfInclude) {
+            val expressions =
+                argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
                 (this.receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
 
             expressions.filterNot { it.isNull() }
         } else {
-            if (isJumpReaction) listOfNotNull(argumentExpression(REACTIONS_JUMP_PATH_ARGUMENT_NAME))
-            else emptyList()
+            emptyList()
         }
 
 
 val KtBinaryExpression.innerPathExpressions: List<KtExpression>
     get() {
-        return if (VersionService[project].jaicf.isAnnotationsSupported) {
+        return if (VersionService[project].isJaicfInclude) {
             val operation = getChildOfType<KtOperationReferenceExpression>() ?: return emptyList()
             val function = operation.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
@@ -71,7 +72,7 @@ val PsiElement.boundedPathExpression: KtExpression?
 
         when (boundedElement) {
             is KtDotQualifiedExpression -> {
-                if (!VersionService[project].jaicf.isAnnotationsSupported)
+                if (!VersionService[project].isJaicfInclude)
                     return null
 
                 val callExpression = boundedElement.getChildOfType<KtCallExpression>() ?: return null
@@ -87,15 +88,13 @@ val PsiElement.boundedPathExpression: KtExpression?
             }
 
             is KtValueArgument -> {
-                return if (VersionService[project].jaicf.isAnnotationsSupported) {
+                return if (VersionService[project].isJaicfInclude) {
                     // TODO duplicate
                     if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true)
                         boundedElement.getArgumentExpression()
                     else null
                 } else {
-                    if (boundedElement.isJumpReactionArgument)
-                        boundedElement.getArgumentExpression()
-                    else null
+                    null
                 }
             }
 
@@ -114,7 +113,7 @@ val PsiElement.pathExpressionsOfBoundedBlock: List<KtExpression>
 
         return when (boundedElement) {
             is KtDotQualifiedExpression ->
-                if (VersionService[project].jaicf.isAnnotationsSupported)
+                if (VersionService[project].isJaicfInclude)
                     boundedElement.getChildOfType<KtCallExpression>()?.let {
                         if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
                         else null
@@ -131,13 +130,3 @@ val PsiElement.pathExpressionsOfBoundedBlock: List<KtExpression>
             else -> null
         } ?: emptyList()
     }
-
-/**
- * @return true if this value argument is inside of `reactions.go` or `reactions.changeState` call expressions.
- * */
-private val KtValueArgument.isJumpReactionArgument: Boolean
-    get() = getBoundedCallExpressionOrNull()?.isJumpReaction == true && identifier == REACTIONS_JUMP_PATH_ARGUMENT_NAME
-
-private val KtCallExpression.isJumpReaction: Boolean
-    get() = isOverride(reactionsClassFqName, REACTIONS_GO_METHOD_NAME) ||
-            isOverride(reactionsClassFqName, REACTIONS_CHANGE_STATE_METHOD_NAME)

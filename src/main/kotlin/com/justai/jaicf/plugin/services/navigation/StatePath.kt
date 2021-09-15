@@ -3,6 +3,8 @@ package com.justai.jaicf.plugin
 import com.intellij.openapi.util.TextRange
 import com.justai.jaicf.plugin.Lexeme.Slash
 import com.justai.jaicf.plugin.Lexeme.Transition.Root
+import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.services.managers.dto.name
 
 data class StatePath(
     val lexemes: List<Lexeme> = emptyList(),
@@ -28,7 +30,7 @@ data class StatePath(
     }
 }
 
-sealed class Lexeme(val identifier: String) {
+sealed class Lexeme(open val identifier: String) {
 
     sealed class Transition(identifier: String) : Lexeme(identifier) {
 
@@ -38,7 +40,7 @@ sealed class Lexeme(val identifier: String) {
 
         object Current : Transition(".")
 
-        class GoState(identifier: String) : Transition(identifier) {
+        data class GoState(override val identifier: String) : Transition(identifier) {
             fun transitToOneOf(states: List<State>) =
                 states.firstOrNull { canTransitTo(it) }
 
@@ -97,3 +99,9 @@ private fun StatePath.lexemesWithRanges(): List<Pair<Lexeme, TextRange>> {
         Pair(lexeme, lastRange)
     }
 }
+
+internal fun String.withoutLeadSlashes() =
+    if (contains('/'))
+        this.dropWhile { it == '/' }
+    else
+        this

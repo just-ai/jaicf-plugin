@@ -7,13 +7,13 @@ import com.justai.jaicf.plugin.Lexeme.Slash
 import com.justai.jaicf.plugin.Lexeme.Transition
 import com.justai.jaicf.plugin.Lexeme.Transition.Current
 import com.justai.jaicf.plugin.Lexeme.Transition.Revert
-import com.justai.jaicf.plugin.State
-import com.justai.jaicf.plugin.StateIdentifier
 import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.identifierReference
-import com.justai.jaicf.plugin.isRootState
-import com.justai.jaicf.plugin.isTopState
-import com.justai.jaicf.plugin.name
+import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.services.managers.dto.StateIdentifier
+import com.justai.jaicf.plugin.services.managers.dto.identifierReference
+import com.justai.jaicf.plugin.services.managers.dto.isRootState
+import com.justai.jaicf.plugin.services.managers.dto.isTopState
+import com.justai.jaicf.plugin.services.managers.dto.name
 
 class StateNameInspection : LocalInspectionTool() {
 
@@ -26,14 +26,14 @@ class StateNameInspection : LocalInspectionTool() {
 
         override fun visitState(visitedState: State) {
             if (visitedState.identifier is StateIdentifier.NoIdentifier) {
-                registerGenericError(visitedState.callExpression, visitedState.identifier.errorMessage)
+                registerGenericError(visitedState.stateExpression, visitedState.identifier.errorMessage)
                 return
             }
 
             val stateName = visitedState.name
             if (stateName == null) {
                 registerWarning(
-                    visitedState.identifierReference ?: visitedState.callExpression,
+                    visitedState.identifierReference ?: visitedState.stateExpression,
                     "JAICF Plugin is not able to resolve state name"
                 )
                 return

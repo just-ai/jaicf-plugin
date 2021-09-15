@@ -26,10 +26,6 @@ const val REACTIONS_CLASS_NAME = "Reactions"
 const val REACTIONS_CLASS = "$REACTIONS_PACKAGE.$REACTIONS_CLASS_NAME"
 val reactionsClassFqName = FqName(REACTIONS_CLASS)
 
-const val REACTIONS_GO_METHOD_NAME = "go"
-const val REACTIONS_CHANGE_STATE_METHOD_NAME = "changeState"
-const val REACTIONS_JUMP_PATH_ARGUMENT_NAME = "path"
-
 const val PLUGIN_PACKAGE = "com.justai.jaicf.plugin"
 const val PATH_ARGUMENT_ANNOTATION_NAME = "PathValue"
 const val STATE_DECLARATION_ANNOTATION_NAME = "StateDeclaration"

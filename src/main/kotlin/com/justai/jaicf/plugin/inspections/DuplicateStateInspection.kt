@@ -4,13 +4,13 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.justai.jaicf.plugin.Lexeme.Transition.GoState
 import com.justai.jaicf.plugin.Lexeme.Transition.Revert
-import com.justai.jaicf.plugin.State
-import com.justai.jaicf.plugin.allStates
-import com.justai.jaicf.plugin.fullPath
-import com.justai.jaicf.plugin.name
 import com.justai.jaicf.plugin.nameReferenceExpression
-import com.justai.jaicf.plugin.states
-import com.justai.jaicf.plugin.transit
+import com.justai.jaicf.plugin.services.linter.allStates
+import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.services.managers.dto.name
+import com.justai.jaicf.plugin.services.navigation.fullPath
+import com.justai.jaicf.plugin.services.navigation.states
+import com.justai.jaicf.plugin.services.navigation.transit
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class DuplicateStateInspection : LocalInspectionTool() {
@@ -26,13 +26,13 @@ class DuplicateStateInspection : LocalInspectionTool() {
             val parents = visitedState.transit(Revert).states().filter { it !== visitedState }
 
             parents
-                .flatMap { it.allStates() }
+                .flatMap { it.allStates }
                 .filter { it !== visitedState && it.name == stateName }
                 .ifNotEmpty { registerGenericError(visitedState, this) }
         }
 
         private fun registerGenericError(state: State, duplicates: List<State>) {
-            val holder = state.callExpression.nameReferenceExpression() ?: state.callExpression
+            val holder = state.stateExpression.let { it.nameReferenceExpression() ?: it }
 
             duplicates.forEach {
                 registerGenericError(

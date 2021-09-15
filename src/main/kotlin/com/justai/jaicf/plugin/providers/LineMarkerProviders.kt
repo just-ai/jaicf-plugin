@@ -10,24 +10,23 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
-import com.justai.jaicf.plugin.absolutePath
 import com.justai.jaicf.plugin.asLeaf
 import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
-import com.justai.jaicf.plugin.getFramingState
-import com.justai.jaicf.plugin.isValid
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.providers.Icons.MULTI_RECEIVER_ICON
 import com.justai.jaicf.plugin.providers.Icons.NO_RECEIVER_ICON
 import com.justai.jaicf.plugin.providers.Icons.SINGLE_RECEIVER_ICON
 import com.justai.jaicf.plugin.providers.Icons.SUGGESTIONS_ICON
-import com.justai.jaicf.plugin.services.StateUsagesSearchService
-import com.justai.jaicf.plugin.services.isStateDeclaration
-import com.justai.jaicf.plugin.services.name
-import com.justai.jaicf.plugin.states
-import com.justai.jaicf.plugin.statesOrSuggestions
-import com.justai.jaicf.plugin.transitToState
+import com.justai.jaicf.plugin.services.locator.framingState
+import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
+import com.justai.jaicf.plugin.services.managers.dto.name
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.services.navigation.absolutePath
+import com.justai.jaicf.plugin.services.navigation.states
+import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
+import com.justai.jaicf.plugin.services.navigation.transitToState
+import com.justai.jaicf.plugin.services.usages
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -56,10 +55,7 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
             }
 
             transitionResult.statesOrSuggestions().onEach { state ->
-                if (state.isValid)
-                    result.add(buildLineMarker(state.callExpression, markerHolder, icon))
-                else
-                    logger.warn("Transited state is invalid. $state")
+                result.add(buildLineMarker(state.stateExpression, markerHolder, icon))
             }.ifEmpty {
                 result.add(buildLineMarker(null, markerHolder, icon))
             }
@@ -101,15 +97,14 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
         stateExpression: KtCallExpression,
         markerHolderLeaf: LeafPsiElement,
     ): RelatedItemLineMarkerInfo<PsiElement>? {
-        val framingState = stateExpression.getFramingState()
-            ?: markerHolderLeaf.getBoundedCallExpressionOrNull(KtValueArgument::class.java)?.getFramingState()
+        val framingState = stateExpression.framingState
+            ?: markerHolderLeaf.getBoundedCallExpressionOrNull(KtValueArgument::class.java)?.framingState
             ?: return null
 
-        val service = StateUsagesSearchService[stateExpression] ?: return null
-        val usages = service.findStateUsages(framingState)
+        val usages = framingState.usages
             .mapNotNull { it.asLeaf }
             .mapNotNull {
-                it.getFramingState() ?: return@mapNotNull null
+                it.framingState ?: return@mapNotNull null
                 it
             }
             .ifEmpty { return null }
@@ -122,16 +117,12 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setCellRenderer(JumpExprCellRenderer)
             .createLineMarkerInfo(markerHolderLeaf)
     }
-
-    companion object {
-        private val logger = Logger.getInstance(StateIdentifierLineMarkerProvider::class.java)
-    }
 }
 
 private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
     override fun getElementText(element: PsiElement?): String {
-        val framingState = element?.getFramingState() ?: return super.getElementText(element)
+        val framingState = element?.framingState ?: return super.getElementText(element)
         return "${framingState.absolutePath}"
     }
 
@@ -140,7 +131,7 @@ private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
             return null
 
         val scenarioName =
-            element.getFramingState()?.scenario?.name
+            element.framingState?.scenario?.name
                 ?: return super.getContainerText(element, name)
 
         return "defined in $scenarioName"

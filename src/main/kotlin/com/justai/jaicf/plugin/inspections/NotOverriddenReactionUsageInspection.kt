@@ -9,7 +9,6 @@ import com.justai.jaicf.plugin.argumentConstantValue
 import com.justai.jaicf.plugin.declaration
 import com.justai.jaicf.plugin.getMethodAnnotations
 import com.justai.jaicf.plugin.reactionsClassFqName
-import com.justai.jaicf.plugin.services.VersionService
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
@@ -34,9 +33,6 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
     class UsesReactionUsageVisitor(holder: ProblemsHolder) : KtCallExpressionVisitor(holder) {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
-            if (VersionService[callExpression]?.jaicf.isAnnotationsSupported)
-                return
-
             val receiverClass = callExpression.receiverType().toClassDescriptor ?: return
             if (!receiverClass.isFinal) return
 

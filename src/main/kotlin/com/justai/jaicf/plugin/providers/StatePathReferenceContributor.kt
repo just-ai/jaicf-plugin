@@ -3,23 +3,25 @@ package com.justai.jaicf.plugin.providers
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementResolveResult
+import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
+import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.TransitionResult
 import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.firstStateOrSuggestion
-import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.plus
 import com.justai.jaicf.plugin.rangeToEndOf
 import com.justai.jaicf.plugin.services.AvailabilityService
+import com.justai.jaicf.plugin.services.locator.framingState
+import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
+import com.justai.jaicf.plugin.services.navigation.transit
 import com.justai.jaicf.plugin.stringValueOrNull
-import com.justai.jaicf.plugin.transit
 import com.justai.jaicf.plugin.transitionsWithRanges
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
@@ -35,8 +37,6 @@ class StatePathReferenceContributor : PsiReferenceContributor() {
 class StatePathReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (AvailabilityService[element]?.referenceContributorAvailable == false)
-            return emptyArray()
 
         val pathExpression = element.boundedPathExpression ?: return emptyArray()
         val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return emptyArray()
@@ -62,22 +62,21 @@ class StatePsiReference(
     element: PsiElement,
     private val path: StatePath,
     textRange: TextRange = element.textRange,
-) : PsiReferenceBase<PsiElement?>(element, textRange) {
+) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
-    private val transitionResult: TransitionResult?
-        get() {
-            savedResult?.let { return it }
+    private val service = AvailabilityService[element]
 
-            if (AvailabilityService[element]?.referenceContributorAvailable == false)
-                return null
+    override fun resolve() =
+        if (service?.referenceContributorAvailable == true)
+            element.framingState?.transit(path)?.statesOrSuggestions()?.singleOrNull()?.stateExpression
+        else null
 
-            return element.getFramingState()?.transit(path).also {
-                savedResult = it
-            }
-        }
-
-    // TODO add caches to navigation
-    private var savedResult: TransitionResult? = null
-
-    override fun resolve() = transitionResult?.firstStateOrSuggestion()?.callExpression
+    override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> =
+        if (service?.referenceContributorAvailable == true)
+            element.framingState?.transit(path)?.statesOrSuggestions()
+                ?.map { it.stateExpression }
+                ?.map(::PsiElementResolveResult)?.toTypedArray()
+                ?: emptyArray()
+        else
+            emptyArray()
 }

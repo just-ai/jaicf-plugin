@@ -3,23 +3,21 @@ package com.justai.jaicf.plugin.inspections
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.justai.jaicf.plugin.Lexeme.Transition
-import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.TransitionResult
-import com.justai.jaicf.plugin.TransitionResult.NoState
-import com.justai.jaicf.plugin.TransitionResult.OutOfStateBoundUsage
-import com.justai.jaicf.plugin.TransitionResult.StateFound
-import com.justai.jaicf.plugin.TransitionResult.StatesFound
-import com.justai.jaicf.plugin.TransitionResult.SuggestionsFound
-import com.justai.jaicf.plugin.TransitionResult.UnresolvedPath
-import com.justai.jaicf.plugin.fullPath
-import com.justai.jaicf.plugin.getFramingState
-import com.justai.jaicf.plugin.services.ScenarioService
-import com.justai.jaicf.plugin.services.name
-import com.justai.jaicf.plugin.states
+import com.justai.jaicf.plugin.services.locator.framingState
+import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.services.navigation.TransitionResult
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.NoState
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.OutOfStateBoundUsage
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.StateFound
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.StatesFound
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.UnresolvedPath
+import com.justai.jaicf.plugin.services.navigation.fullPath
+import com.justai.jaicf.plugin.services.navigation.states
+import com.justai.jaicf.plugin.services.navigation.transit
+import com.justai.jaicf.plugin.services.navigation.transitToState
 import com.justai.jaicf.plugin.stringValueOrNull
-import com.justai.jaicf.plugin.transit
-import com.justai.jaicf.plugin.transitToState
 import org.jetbrains.kotlin.psi.KtExpression
 
 class StatePathInspection : LocalInspectionTool() {
@@ -61,13 +59,13 @@ class MultiContextStatePathInspection : LocalInspectionTool() {
     class StatePathVisitor(holder: ProblemsHolder) : PathExpressionVisitor(holder) {
 
         override fun visitPathExpression(pathExpression: KtExpression) {
-            val framingState = pathExpression.getFramingState() ?: return
+            val framingState = pathExpression.framingState ?: return
             val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return
 
             if (framingState.transit(statePath).states().isEmpty())
                 return
 
-            val failedTransitions = collectFailedTransitions(framingState, statePath.transitions)
+             val failedTransitions = collectFailedTransitions(framingState, statePath.transitions)
 
             failedTransitions
                 .forEach { (state, _) ->

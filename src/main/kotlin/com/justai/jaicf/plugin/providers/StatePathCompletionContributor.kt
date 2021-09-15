@@ -19,22 +19,20 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 import com.justai.jaicf.plugin.Lexeme
-import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.allStates
 import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.getFramingState
-import com.justai.jaicf.plugin.isValid
-import com.justai.jaicf.plugin.name
 import com.justai.jaicf.plugin.parent
-import com.justai.jaicf.plugin.statesOrSuggestions
+import com.justai.jaicf.plugin.services.linter.allStates
+import com.justai.jaicf.plugin.services.locator.framingState
+import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.services.managers.dto.name
+import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
+import com.justai.jaicf.plugin.services.navigation.transit
 import com.justai.jaicf.plugin.stringValueOrNull
-import com.justai.jaicf.plugin.transit
 import com.justai.jaicf.plugin.withoutLeadSlashes
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 
 class StatePathCompletionContributor : CompletionContributor() {
     init {
@@ -83,14 +81,9 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
     }
 
     private fun getStatesSuggestions(pathExpression: KtExpression, path: StatePath): List<State>? {
-        val framingState = pathExpression.getFramingState() ?: return null
+        val framingState = pathExpression.framingState ?: return null
 
-        return if (framingState.isValid) {
-            framingState.transit(path.parent).statesOrSuggestions().flatMap { it.allStates() }
-        } else {
-            logger.warn("Framing state is invalid. $framingState")
-            null
-        }
+        return framingState.transit(path.parent).statesOrSuggestions().flatMap { it.allStates }
     }
 
     private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =

@@ -1,40 +1,45 @@
 package com.justai.jaicf.plugin.services
 
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.JAICF_CORE_ARTIFACT_ID
 import com.justai.jaicf.plugin.JAICF_GROUP_ID
-import com.justai.jaicf.plugin.RecursiveSafeValue
 import com.justai.jaicf.plugin.isExist
-import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
+import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 
-class VersionService(private val project: Project) : Service {
 
-    val jaicf: Version?
-        get() = jaicfVersionValue.value
+class VersionService(project: Project) : Service(project) {
 
-    private val jaicfVersionValue = RecursiveSafeValue<Version?>(null) {
-        val libraries = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
-        val version = libraries
-            .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
-            .mapNotNull { it.name?.split(":")?.last() }
-            .firstOrNull()
+    val jaicf by cached(LibraryModificationTracker.getInstance(project)) {
+        val (l, version) = measureTimeMillisWithResult {
+            libraries
+                .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
+                .mapNotNull { it.name?.split(":")?.last() }
+                .firstOrNull()
+                ?.let(::Version)
+        }
 
-        version?.let(::Version)
+        println("VersionService: jaicf updated: $l")
+        version
     }
 
-    override fun markFileAsModified(file: KtFile) {
-        jaicfVersionValue.invalid()
+    private val libraries by cached(LibraryModificationTracker.getInstance(project)) {
+        val (l, version) = measureTimeMillisWithResult {
+            LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
+        }
+
+        println("VersionService: libraries updated: $l")
+        version
     }
 
     companion object {
         operator fun get(project: Project): VersionService =
-            ServiceManager.getService(project, VersionService::class.java)
+            project.getService(VersionService::class.java)
 
         operator fun get(element: PsiElement): VersionService? =
-            if (element.isExist) ServiceManager.getService(element.project, VersionService::class.java)
+            if (element.isExist) element.project.getService(VersionService::class.java)
             else null
     }
 }
@@ -55,8 +60,5 @@ data class Version(val version: String) {
         }
 }
 
-val VersionService.isJaicfSupportsAnnotations: Boolean
-    get() = this.jaicf?.let { it >= Version("1.1.3") } == true
-
 val VersionService.isJaicfInclude: Boolean
-    get() = this.jaicf != null
+    get() = this.jaicf?.let { it >= Version("1.1.3") } == true

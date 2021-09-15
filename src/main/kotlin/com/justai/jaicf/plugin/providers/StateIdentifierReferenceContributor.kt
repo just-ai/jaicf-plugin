@@ -13,16 +13,14 @@ import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.STATE_NAME_ARGUMENT_NAME
-import com.justai.jaicf.plugin.TransitionResult
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
-import com.justai.jaicf.plugin.getFramingState
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
 import com.justai.jaicf.plugin.services.AvailabilityService
-import com.justai.jaicf.plugin.services.StateUsagesSearchService
-import com.justai.jaicf.plugin.services.isStateDeclaration
-import com.justai.jaicf.plugin.transit
+import com.justai.jaicf.plugin.services.locator.framingState
+import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
+import com.justai.jaicf.plugin.services.usages
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 
@@ -39,10 +37,6 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
     @ExperimentalStdlibApi
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (AvailabilityService[element]?.referenceContributorAvailable == false) {
-            val a = 1
-            return emptyArray()
-        }
 
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
 
@@ -52,7 +46,7 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
         return arrayOf(
             MultiPsiReference(element, element.rangeToEndOf(argument)) {
-                argument.getFramingState()?.let { StateUsagesSearchService[element]?.findStateUsages(it) }
+                argument.framingState?.usages
                     ?: emptyList()
             }
         )
@@ -65,30 +59,18 @@ class MultiPsiReference(
     private val referencesProvider: () -> List<PsiElement>,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
-    private val references: List<PsiElement>
-        get() {
-            if (AvailabilityService[element]?.referenceContributorAvailable == false) {
-                val a = 1
-            }
-            savedReferences?.let { return it }
+    private val service = AvailabilityService[element]
 
-            if (AvailabilityService[element]?.referenceContributorAvailable == false) {
-                return emptyList()
-            }
-
-            return referencesProvider().also {
-                savedReferences = it
-            }
-        }
-
-    // TODO add caches to navigation
-    private var savedReferences: List<PsiElement>? = null
+    override fun resolve() =
+        if (service?.referenceContributorAvailable == true)
+            referencesProvider().singleOrNull()
+        else null
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return references.map(::PsiElementResolveResult).toTypedArray()
+        return if (service?.referenceContributorAvailable == true)
+            referencesProvider().map(::PsiElementResolveResult).toTypedArray()
+        else emptyArray()
     }
-
-    override fun resolve() = references.firstOrNull()
 }
 
 val KtValueArgument.isNameOfStateDeclaration: Boolean

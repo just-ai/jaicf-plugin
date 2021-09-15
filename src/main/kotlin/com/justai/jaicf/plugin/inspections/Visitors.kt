@@ -3,17 +3,15 @@ package com.justai.jaicf.plugin.inspections
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.ElementManipulators
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
-import com.justai.jaicf.plugin.State
 import com.justai.jaicf.plugin.innerPathExpressions
-import com.justai.jaicf.plugin.isRemoved
-import com.justai.jaicf.plugin.isValid
-import com.justai.jaicf.plugin.services.ScenarioService
+import com.justai.jaicf.plugin.services.VersionService
+import com.justai.jaicf.plugin.services.isJaicfInclude
+import com.justai.jaicf.plugin.services.managers.ScenarioDataManager
+import com.justai.jaicf.plugin.services.managers.dto.State
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -24,28 +22,22 @@ abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
     abstract fun visitState(visitedState: State)
 
     override fun visitFile(file: PsiFile) {
+        if (VersionService[file]?.isJaicfInclude == false)
+            return
+
         if (file !is KtFile)
             return
 
-        val service = ScenarioService[file] ?: return
+        val service = ScenarioDataManager[file] ?: return
 
-        service.getScenarios(file).forEach {
+        service.getScenarios(file)?.forEach {
             recursiveEntryIntoState(it.innerState)
         }
     }
 
     private fun recursiveEntryIntoState(state: State) {
-        if (!state.isValid) {
-            logger.warn("State is removed. $state")
-            return
-        }
-
         visitState(state)
         state.states.forEach { recursiveEntryIntoState(it) }
-    }
-
-    companion object {
-        private val logger = Logger.getInstance(StateVisitor::class.java)
     }
 }
 
@@ -54,6 +46,9 @@ abstract class KtCallExpressionVisitor(holder: ProblemsHolder) : VisitorBase(hol
     abstract fun visitCallExpression(callExpression: KtCallExpression)
 
     override fun visitElement(element: PsiElement) {
+        if (VersionService[element]?.isJaicfInclude == false)
+            return
+
         if (element is KtCallExpression)
             visitCallExpression(element)
     }
@@ -64,6 +59,9 @@ abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holde
     abstract fun visitPathExpression(pathExpression: KtExpression)
 
     override fun visitElement(element: PsiElement) {
+        if (VersionService[element]?.isJaicfInclude == false)
+            return
+
         if (element is KtCallExpression)
             element.innerPathExpressions.forEach(this::visitPathExpression)
 
