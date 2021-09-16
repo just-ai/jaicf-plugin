@@ -25,7 +25,9 @@ import com.justai.jaicf.plugin.providers.Icons.SUGGESTIONS_ICON
 import com.justai.jaicf.plugin.services.locator.framingState
 import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
 import com.justai.jaicf.plugin.services.managers.dto.name
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.OutOfStateBoundUsage
 import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.services.navigation.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.services.navigation.absolutePath
 import com.justai.jaicf.plugin.services.navigation.states
 import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
@@ -55,6 +57,8 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf ?: return@forEach
             val transitionResult = transitToState(it.bound, it.pathExpression)
             val icon = when {
+                transitionResult is UnresolvedPath -> return@forEach
+                transitionResult is OutOfStateBoundUsage -> return@forEach
                 transitionResult.states().size > 1 -> MULTI_RECEIVER_ICON
                 transitionResult.states().size == 1 -> SINGLE_RECEIVER_ICON
                 transitionResult is SuggestionsFound -> SUGGESTIONS_ICON
