@@ -4,6 +4,8 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.justai.jaicf.plugin.Lexeme.Transition
 import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.StatePathExpression
+import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.services.locator.framingState
 import com.justai.jaicf.plugin.services.managers.dto.State
 import com.justai.jaicf.plugin.services.navigation.TransitionResult
@@ -28,19 +30,19 @@ class StatePathInspection : LocalInspectionTool() {
 
     class StatePathVisitor(holder: ProblemsHolder) : PathExpressionVisitor(holder) {
 
-        override fun visitPathExpression(pathExpression: KtExpression) {
-            when (val transitToState = transitToState(pathExpression)) {
+        override fun visitPathExpression(pathExpression: StatePathExpression) {
+            when (val transitToState = transitToState(pathExpression.bound, pathExpression.pathExpression)) {
                 UnresolvedPath -> registerWeakWarning(
-                    pathExpression, "JAICF Plugin is not able to resolve the path"
+                    pathExpression.holderExpression, "JAICF Plugin is not able to resolve the path"
                 )
 
                 NoState -> registerWeakWarning(
-                    pathExpression, "No state with this path found"
+                    pathExpression.holderExpression, "No state with this path found"
                 )
 
                 is SuggestionsFound -> transitToState.suggestionsStates.forEach { suggestion ->
                     registerWeakWarning(
-                        pathExpression,
+                        pathExpression.holderExpression,
                         "Found unrelated state ${suggestion.fullPath}",
                         NavigateToState("Go to unrelated state declaration ${suggestion.fullPath}", suggestion)
                     )
@@ -58,9 +60,9 @@ class MultiContextStatePathInspection : LocalInspectionTool() {
 
     class StatePathVisitor(holder: ProblemsHolder) : PathExpressionVisitor(holder) {
 
-        override fun visitPathExpression(pathExpression: KtExpression) {
-            val framingState = pathExpression.framingState ?: return
-            val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return
+        override fun visitPathExpression(pathExpression: StatePathExpression) {
+            val framingState = pathExpression.bound.framingState ?: return
+            val statePath = pathExpression.pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return
 
             if (framingState.transit(statePath).states().isEmpty())
                 return
@@ -70,7 +72,7 @@ class MultiContextStatePathInspection : LocalInspectionTool() {
             failedTransitions
                 .forEach { (state, _) ->
                     registerWeakWarning(
-                        pathExpression,
+                        pathExpression.holderExpression,
                         "State resolved not in all contexts",
                         NavigateToState("Go to unrelated state declaration ${state.fullPath}", state)
                     )

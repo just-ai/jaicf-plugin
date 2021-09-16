@@ -25,6 +25,12 @@ fun transitToState(pathExpression: KtExpression): TransitionResult {
     return framingState.transit(statePath)
 }
 
+fun transitToState(boundExpression: KtExpression, pathExpression: KtExpression): TransitionResult {
+    val framingState = boundExpression.framingState ?: return OutOfStateBoundUsage
+    val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return UnresolvedPath
+    return framingState.transit(statePath)
+}
+
 fun State.transit(path: StatePath) = path.transitions
     .fold<Transition, TransitionResult>(StateFound(this)) { transitionResult, transition ->
         when (transitionResult) {

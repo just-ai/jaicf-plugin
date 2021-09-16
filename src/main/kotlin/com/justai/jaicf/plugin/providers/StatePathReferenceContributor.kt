@@ -14,6 +14,7 @@ import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.plus
 import com.justai.jaicf.plugin.rangeToEndOf
@@ -38,7 +39,8 @@ class StatePathReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
 
-        val pathExpression = element.boundedPathExpression ?: return emptyArray()
+        val statePathExpression = element.boundedPathExpression as? BoundedExpression ?: return emptyArray()
+        val pathExpression = statePathExpression.pathExpression
         val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return emptyArray()
 
         return if (pathExpression.isSimpleStringTemplate) {

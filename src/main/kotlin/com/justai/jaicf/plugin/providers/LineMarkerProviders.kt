@@ -10,9 +10,13 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.justai.jaicf.plugin.StatePathExpression
+import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
+import com.justai.jaicf.plugin.StatePathExpression.OutBoundedExpression
 import com.justai.jaicf.plugin.asLeaf
 import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
+import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.providers.Icons.MULTI_RECEIVER_ICON
 import com.justai.jaicf.plugin.providers.Icons.NO_RECEIVER_ICON
@@ -30,8 +34,10 @@ import com.justai.jaicf.plugin.services.usages
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
+
 
 class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -44,9 +50,10 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val pathExpressions = element.pathExpressionsOfBoundedBlock
 
         pathExpressions.forEach {
+            val expression = it.holderExpression
             val markerHolder =
-                it.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: it.asLeaf ?: return@forEach
-            val transitionResult = transitToState(it)
+                expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf ?: return@forEach
+            val transitionResult = transitToState(it.bound, it.pathExpression)
             val icon = when {
                 transitionResult.states().size > 1 -> MULTI_RECEIVER_ICON
                 transitionResult.states().size == 1 -> SINGLE_RECEIVER_ICON
@@ -69,11 +76,9 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setTooltipText("Navigate to state declaration")
             .setEmptyPopupText("No state declaration found")
             .createLineMarkerInfo(markerHolderLeaf)
-
-    companion object {
-        private val logger = Logger.getInstance(StatePathLineMarkerProvider::class.java)
-    }
 }
+
+
 
 class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 

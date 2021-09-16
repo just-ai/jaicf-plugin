@@ -29,6 +29,7 @@ class PathValueExpressionManager(project: Project) : Manager(project) {
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }
             .flatMap { it.pathExpressionsOfBoundedBlock }
+            .map { it.pathExpression }
     }
 
     fun getExpressions() = expressionsMap.getValues().flatten()

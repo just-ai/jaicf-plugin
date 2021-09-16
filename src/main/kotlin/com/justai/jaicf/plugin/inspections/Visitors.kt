@@ -7,6 +7,7 @@ import com.intellij.psi.ElementManipulators
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
+import com.justai.jaicf.plugin.StatePathExpression
 import com.justai.jaicf.plugin.innerPathExpressions
 import com.justai.jaicf.plugin.services.VersionService
 import com.justai.jaicf.plugin.services.isJaicfInclude
@@ -56,7 +57,7 @@ abstract class KtCallExpressionVisitor(holder: ProblemsHolder) : VisitorBase(hol
 
 abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
 
-    abstract fun visitPathExpression(pathExpression: KtExpression)
+    abstract fun visitPathExpression(pathExpression: StatePathExpression)
 
     override fun visitElement(element: PsiElement) {
         if (VersionService[element]?.isJaicfInclude == false)

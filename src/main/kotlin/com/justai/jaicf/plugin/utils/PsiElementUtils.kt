@@ -1,6 +1,7 @@
 package com.justai.jaicf.plugin
 
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
+import org.jetbrains.kotlin.utils.ifEmpty
 import java.lang.Integer.min
 
 fun KtCallElement.argumentConstantValue(identifier: String) =
@@ -41,11 +43,9 @@ fun KtCallElement.argumentExpressionOrDefaultValue(identifier: String) =
 fun KtCallExpression.argumentExpression(parameter: KtParameter) =
     parameter.name?.let { argumentExpression(it) }
 
-fun KtCallExpression.argumentExpressionOrDefaultValue(parameter: KtParameter) =
-    parameter.name?.let { argumentExpression(it) } ?: parameter.defaultValue
-
 fun KtCallExpression.argumentExpressionsOrDefaultValues(parameter: KtParameter) =
-    parameter.name?.let { argumentExpressions(it) } ?: listOfNotNull(parameter.defaultValue)
+    parameter.name?.let { argumentExpressions(it) }?.ifEmpty { listOfNotNull(parameter.defaultValue) }
+        ?: listOfNotNull(parameter.defaultValue)
 
 fun KtCallElement.argumentExpression(identifier: String) =
     valueArgument(identifier)?.getArgumentExpression()

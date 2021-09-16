@@ -20,6 +20,7 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.parent
 import com.justai.jaicf.plugin.services.linter.allStates
@@ -47,7 +48,8 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         context: ProcessingContext,
         resultSet: CompletionResultSet,
     ) {
-        val pathExpression = parameters.position.boundedPathExpression ?: return
+        val statePathExpression = parameters.position.boundedPathExpression as? BoundedExpression ?: return
+        val pathExpression = statePathExpression.pathExpression
         val pathBeforeCaret = pathExpression.stringValueOrNull?.substringBeforeCaret() ?: return
         val statePath = StatePath.parse(pathBeforeCaret)
         val statesSuggestions: List<State> = getStatesSuggestions(pathExpression, statePath) ?: return
