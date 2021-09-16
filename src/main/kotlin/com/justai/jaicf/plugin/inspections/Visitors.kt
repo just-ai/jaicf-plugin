@@ -13,6 +13,7 @@ import com.justai.jaicf.plugin.services.VersionService
 import com.justai.jaicf.plugin.services.isJaicfInclude
 import com.justai.jaicf.plugin.services.managers.ScenarioDataManager
 import com.justai.jaicf.plugin.services.managers.dto.State
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -68,6 +69,18 @@ abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holde
 
         if (element is KtBinaryExpression)
             element.innerPathExpressions.forEach(this::visitPathExpression)
+    }
+}
+
+abstract class AnnotatedElementVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
+
+    abstract fun visitAnnotatedElement(annotatedElement: KtAnnotated)
+
+    override fun visitElement(element: PsiElement) {
+        if (VersionService[element]?.isJaicfInclude == false)
+            return
+
+        (element as? KtAnnotated)?.let { visitAnnotatedElement(it) }
     }
 }
 

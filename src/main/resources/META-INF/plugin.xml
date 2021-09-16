@@ -47,6 +47,12 @@
                          enabledByDefault="true"
                          implementationClass="com.justai.jaicf.plugin.inspections.StateNameInspection"/>
 
+        <localInspection displayName="PathValue annotation inspection"
+                         language="kotlin"
+                         groupName="JAICF"
+                         enabledByDefault="true"
+                         implementationClass="com.justai.jaicf.plugin.inspections.PathValueAnnotationInspection"/>
+
         <localInspection displayName="Non overridden reaction usage inspection"
                          language="kotlin"
                          groupName="JAICF"
