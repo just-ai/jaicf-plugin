@@ -91,11 +91,11 @@ class ScenarioReferenceResolver(project: Project) : Service(project) {
 
     companion object {
         operator fun get(element: PsiElement): ScenarioReferenceResolver? =
-            if (element.isExist) ServiceManager.getService(element.project, ScenarioReferenceResolver::class.java)
+            if (element.isExist) get(element.project)
             else null
 
         operator fun get(project: Project): ScenarioReferenceResolver =
-            ServiceManager.getService(project, ScenarioReferenceResolver::class.java)
+            project.getService(ScenarioReferenceResolver::class.java)
     }
 }
 

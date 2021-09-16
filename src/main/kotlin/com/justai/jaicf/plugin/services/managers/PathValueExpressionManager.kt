@@ -38,11 +38,11 @@ class PathValueExpressionManager(project: Project) : Manager(project) {
 
     companion object {
         operator fun get(element: PsiElement): PathValueExpressionManager? =
-            if (element.isExist) ServiceManager.getService(element.project, PathValueExpressionManager::class.java)
+            if (element.isExist) get(element.project)
             else null
 
         operator fun get(project: Project): PathValueExpressionManager =
-            ServiceManager.getService(project, PathValueExpressionManager::class.java)
+            project.getService(PathValueExpressionManager::class.java)
     }
 }
 

@@ -50,10 +50,10 @@ class ScenarioDataManager(project: Project) : Manager(project) {
 
     companion object {
         operator fun get(element: PsiElement): ScenarioDataManager? =
-            if (element.isExist) ServiceManager.getService(element.project, ScenarioDataManager::class.java)
+            if (element.isExist) get(element.project)
             else null
 
         operator fun get(project: Project): ScenarioDataManager =
-            ServiceManager.getService(project, ScenarioDataManager::class.java)
+            project.getService(ScenarioDataManager::class.java)
     }
 }

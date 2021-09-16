@@ -59,10 +59,10 @@ class TopLevelAppendDataManager(project: Project) : Manager(project) {
 
     companion object {
         operator fun get(element: PsiElement): TopLevelAppendDataManager? =
-            if (element.isExist) ServiceManager.getService(element.project, TopLevelAppendDataManager::class.java)
+            if (element.isExist) get(element.project)
             else null
 
         operator fun get(project: Project): TopLevelAppendDataManager =
-            ServiceManager.getService(project, TopLevelAppendDataManager::class.java)
+            project.getService(TopLevelAppendDataManager::class.java)
     }
 }

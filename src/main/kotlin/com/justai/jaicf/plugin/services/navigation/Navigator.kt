@@ -75,11 +75,11 @@ class Navigator(project: Project) : Service(project) {
 
     companion object {
         operator fun get(element: PsiElement): Navigator? =
-            if (element.isExist) ServiceManager.getService(element.project, Navigator::class.java)
+            if (element.isExist) get(element.project)
             else null
 
         operator fun get(project: Project): Navigator =
-            ServiceManager.getService(project, Navigator::class.java)
+            project.getService(Navigator::class.java)
     }
 }
 

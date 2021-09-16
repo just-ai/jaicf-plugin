@@ -31,6 +31,7 @@ class StateIdentifierReferenceContributor : PsiReferenceContributor() {
             StateIdentifierReferenceProvider()
         )
     }
+
 }
 
 class StateIdentifierReferenceProvider : PsiReferenceProvider() {
@@ -51,6 +52,8 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
             }
         )
     }
+
+
 }
 
 class MultiPsiReference(
@@ -70,6 +73,10 @@ class MultiPsiReference(
         return if (service?.referenceContributorAvailable == true)
             referencesProvider().map(::PsiElementResolveResult).toTypedArray()
         else emptyArray()
+    }
+
+    override fun handleElementRename(newElementName: String): PsiElement {
+        return super.handleElementRename(newElementName)
     }
 }
 

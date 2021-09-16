@@ -9,17 +9,24 @@ import com.justai.jaicf.plugin.argumentConstantValue
 import com.justai.jaicf.plugin.declaration
 import com.justai.jaicf.plugin.getMethodAnnotations
 import com.justai.jaicf.plugin.reactionsClassFqName
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.idea.actions.generate.findDeclaredFunction
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.isOverridable
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
-import org.jetbrains.kotlin.idea.quickfix.classForRefactor
+import org.jetbrains.kotlin.idea.refactoring.canRefactor
 import org.jetbrains.kotlin.idea.refactoring.isAbstract
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
@@ -103,7 +110,7 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
 
             registerWarning(
                 callExpression,
-                "${functionName.capitalize()} reaction is not implemented by this channel"
+                "$functionName reaction is not implemented by this channel"
             )
         }
 
@@ -134,3 +141,12 @@ private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = 
             false
         ) { it.overriddenDescriptors.contains(descriptor) } != null
     }
+
+private fun KtTypeReference.classForRefactor(): KtClass? {
+    val bindingContext = analyze(BodyResolveMode.PARTIAL)
+    val type = bindingContext[BindingContext.TYPE, this] ?: return null
+    val classDescriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
+    val declaration = DescriptorToSourceUtils.descriptorToDeclaration(classDescriptor) as? KtClass ?: return null
+    if (!declaration.canRefactor()) return null
+    return declaration
+}
