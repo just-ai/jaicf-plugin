@@ -44,8 +44,14 @@ fun KtCallExpression.argumentExpression(parameter: KtParameter) =
 fun KtCallExpression.argumentExpressionOrDefaultValue(parameter: KtParameter) =
     parameter.name?.let { argumentExpression(it) } ?: parameter.defaultValue
 
+fun KtCallExpression.argumentExpressionsOrDefaultValues(parameter: KtParameter) =
+    parameter.name?.let { argumentExpressions(it) } ?: listOfNotNull(parameter.defaultValue)
+
 fun KtCallElement.argumentExpression(identifier: String) =
     valueArgument(identifier)?.getArgumentExpression()
+
+fun KtCallElement.argumentExpressions(identifier: String) =
+    valueArgumentOrVarargArguments(identifier).map { it.getArgumentExpression() }
 
 fun KtCallElement.parameter(identifier: String) =
     declaration?.valueParameters?.firstOrNull { it.name == identifier }
@@ -56,7 +62,7 @@ fun KtCallExpression.argumentExpressionsByAnnotation(name: String) =
 
 fun KtCallExpression.argumentExpressionsOrDefaultValuesByAnnotation(name: String) =
     parametersByAnnotation(name)
-        .mapNotNull { argumentExpressionOrDefaultValue(it) }
+        .flatMap { argumentExpressionsOrDefaultValues(it) }.filterNotNull()
 
 fun KtCallExpression.parametersByAnnotation(name: String) =
     parameters.filter { it.annotationNames.contains(name) }
@@ -73,6 +79,9 @@ val KtFunction.source get() = if (canNavigateToSource()) navigationElement as? K
 
 fun KtCallElement.valueArgument(identifier: String) =
     valueArguments.firstOrNull { it is KtValueArgument && it.identifier == identifier }
+
+fun KtCallElement.valueArgumentOrVarargArguments(identifier: String) =
+    valueArguments.filter { it is KtValueArgument && it.identifier == identifier }
 
 val KtCallExpression.parametersTypes: List<String>
     get() = declaration?.valueParameters?.map { it.type().toString() } ?: emptyList()
