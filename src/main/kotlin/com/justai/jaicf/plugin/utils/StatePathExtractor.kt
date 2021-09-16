@@ -157,5 +157,5 @@ sealed class StatePathExpression(val bound: KtExpression, val pathExpression: Kt
 val StatePathExpression.holderExpression: KtExpression
     get() = when(this) {
         is BoundedExpression -> pathExpression
-        is OutBoundedExpression -> bound
+        is OutBoundedExpression -> (bound as? KtCallExpression)?.nameReferenceExpression() ?: bound
     }

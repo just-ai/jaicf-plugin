@@ -5,6 +5,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.justai.jaicf.plugin.Lexeme.Transition
 import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.StatePathExpression
+import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.services.locator.framingState
 import com.justai.jaicf.plugin.services.managers.dto.State
@@ -20,7 +21,6 @@ import com.justai.jaicf.plugin.services.navigation.states
 import com.justai.jaicf.plugin.services.navigation.transit
 import com.justai.jaicf.plugin.services.navigation.transitToState
 import com.justai.jaicf.plugin.stringValueOrNull
-import org.jetbrains.kotlin.psi.KtExpression
 
 class StatePathInspection : LocalInspectionTool() {
 
@@ -32,9 +32,10 @@ class StatePathInspection : LocalInspectionTool() {
 
         override fun visitPathExpression(pathExpression: StatePathExpression) {
             when (val transitToState = transitToState(pathExpression.bound, pathExpression.pathExpression)) {
-                UnresolvedPath -> registerWeakWarning(
-                    pathExpression.holderExpression, "JAICF Plugin is not able to resolve the path"
-                )
+                UnresolvedPath -> if (pathExpression is BoundedExpression)
+                    registerWeakWarning(
+                        pathExpression.holderExpression, "JAICF Plugin is not able to resolve the path"
+                    )
 
                 NoState -> registerWeakWarning(
                     pathExpression.holderExpression, "No state with this path found"
@@ -67,7 +68,7 @@ class MultiContextStatePathInspection : LocalInspectionTool() {
             if (framingState.transit(statePath).states().isEmpty())
                 return
 
-             val failedTransitions = collectFailedTransitions(framingState, statePath.transitions)
+            val failedTransitions = collectFailedTransitions(framingState, statePath.transitions)
 
             failedTransitions
                 .forEach { (state, _) ->

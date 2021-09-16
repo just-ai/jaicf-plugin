@@ -24,11 +24,11 @@ class PathValueAnnotationInspection : LocalInspectionTool() {
             when (annotatedElement) {
                 is KtParameter ->
                     if (annotatedElement.defaultValue != null && annotatedElement.defaultValue!!.stringValueOrNull == null)
-                        registerWarning(annotatedElement.defaultValue!!, message)
+                        registerWeakWarning(annotatedElement.defaultValue!!, message)
 
                 is KtAnnotatedExpression ->
                     if (annotatedElement.baseExpression?.stringValueOrNull == null)
-                        registerWarning(annotatedElement.baseExpression ?: annotatedElement, message)
+                        registerWeakWarning(annotatedElement.baseExpression ?: annotatedElement, message)
             }
         }
 
