@@ -5,6 +5,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.annotations.NotNull
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
 import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
@@ -107,6 +108,11 @@ val KtReferenceExpression.resolveToSource: KtFunction?
 inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
     return PsiTreeUtil.findChildOfType(this, T::class.java)
 }
+
+inline fun <reified T : PsiElement> PsiElement.findChildrenOfType(): Collection<T> {
+    return PsiTreeUtil.findChildrenOfType(this, T::class.java)
+}
+
 
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
     try {

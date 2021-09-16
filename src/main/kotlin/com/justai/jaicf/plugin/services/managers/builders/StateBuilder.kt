@@ -9,6 +9,7 @@ import com.justai.jaicf.plugin.argumentExpressionsByAnnotation
 import com.justai.jaicf.plugin.argumentExpressionsOrDefaultValuesByAnnotation
 import com.justai.jaicf.plugin.declaration
 import com.justai.jaicf.plugin.findChildOfType
+import com.justai.jaicf.plugin.findChildrenOfType
 import com.justai.jaicf.plugin.getMethodAnnotations
 import com.justai.jaicf.plugin.isRemoved
 import com.justai.jaicf.plugin.services.managers.dto.Scenario
@@ -21,6 +22,7 @@ import com.justai.jaicf.plugin.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 fun buildState(
@@ -50,8 +52,18 @@ private val KtCallExpression.statements: List<KtCallExpression>
 private val KtCallExpression.annotatedLambdaArgument: KtLambdaExpression?
     get() = this.argumentExpressionsOrDefaultValuesByAnnotation(STATE_BODY_ANNOTATION_NAME).firstIsInstanceOrNull()
 
-private val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
+val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
     get() = this.declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression
+
+fun KtCallExpression.getAnnotatedStringTemplatesInDeclaration(name: String): List<KtStringTemplateExpression> {
+    val bodyExpression = this.declaration?.bodyExpression ?: return emptyList()
+
+    val annotationsExpressions = bodyExpression.findChildrenOfType<KtAnnotatedExpression>().filter {
+        it.annotationEntries.any { entry -> entry.shortName?.asString() == name }
+    }
+
+    return annotationsExpressions.mapNotNull { it.baseExpression as? KtStringTemplateExpression }
+}
 
 val KtCallExpression.isStateDeclaration: Boolean
     get() = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty()

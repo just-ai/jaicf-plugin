@@ -5,6 +5,7 @@ import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.StatePathExpression.OutBoundedExpression
 import com.justai.jaicf.plugin.services.VersionService
 import com.justai.jaicf.plugin.services.isJaicfInclude
+import com.justai.jaicf.plugin.services.managers.builders.getAnnotatedStringTemplatesInDeclaration
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -17,6 +18,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.isInsideOf
 import org.jetbrains.kotlin.psi.psiUtil.isNull
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 val KtCallExpression.innerPathExpressions: List<StatePathExpression>
     get() =
@@ -26,6 +28,8 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
 
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
                 (this.receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
+
+            expressions += getAnnotatedStringTemplatesInDeclaration(PATH_ARGUMENT_ANNOTATION_NAME)
 
             expressions.filterNot { it.isNull() }.map { StatePathExpression.create(this, it) }
         } else {
