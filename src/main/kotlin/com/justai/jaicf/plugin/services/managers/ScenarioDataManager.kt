@@ -1,9 +1,7 @@
 package com.justai.jaicf.plugin.services.managers
 
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.SCENARIO_EXTENSIONS_CLASS_NAME
 import com.justai.jaicf.plugin.SCENARIO_METHOD_NAME
@@ -15,29 +13,21 @@ import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 
 class ScenarioDataManager(project: Project) : Manager(project) {
 
     private val scenariosBuildMethods by cachedIfEnabled(LibraryModificationTracker.getInstance(project)) {
-        println("ScenarioDataManager: scenariosBuildMethods updated")
-
         findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)
             ?.getMethods(SCENARIO_METHOD_NAME, CREATE_MODEL_METHOD_NAME)
     }
 
     private val scenariosMap = LiveMap(project) { file ->
-        val (l, version) = measureTimeMillisWithResult {
-            scenariosBuildMethods
-                ?.flatMap { it.search(file.fileScope()) }
-                ?.map { it.element.parent }
-                ?.filterIsInstance<KtCallExpression>()
-                ?.mapNotNull { buildScenario(it) }
-                ?: emptyList()
-        }
-
-        println("ScenarioDataManager: scenariosMap updated [${file.name}]: $l")
-        version
+        scenariosBuildMethods
+            ?.flatMap { it.search(file.fileScope()) }
+            ?.map { it.element.parent }
+            ?.filterIsInstance<KtCallExpression>()
+            ?.mapNotNull { buildScenario(it) }
+            ?: emptyList()
     }
 
     fun getScenarios(file: KtFile) =

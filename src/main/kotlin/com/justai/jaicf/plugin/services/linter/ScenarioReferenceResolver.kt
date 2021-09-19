@@ -31,8 +31,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 class ScenarioReferenceResolver(project: Project) : Service(project) {
 
     private val appendWithResolve by cachedIfEnabled(PsiModificationTracker.MODIFICATION_COUNT) {
-        println("ScenarioReferenceResolver: appendWithResolve updating")
-
         mutableMapOf<KtReferenceExpression, Scenario?>()
     }
     private val scenarioManager = ScenarioDataManager[project]

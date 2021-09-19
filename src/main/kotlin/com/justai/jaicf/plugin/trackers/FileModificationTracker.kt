@@ -2,12 +2,9 @@ package com.justai.jaicf.plugin.trackers
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
-import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
-import com.intellij.util.EventDispatcher
-import com.jetbrains.rd.util.concurrentMapOf
 import com.justai.jaicf.plugin.isRemoved
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -27,7 +24,7 @@ class FileModificationTrackerProvider(private val project: Project) {
     }
 }
 
-class MyTracker(project: Project, val originalFile: KtFile) : SimpleModificationTracker() {
+private class MyTracker(project: Project, val originalFile: KtFile) : SimpleModificationTracker() {
 
     init {
         PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener()) { }

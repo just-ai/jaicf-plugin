@@ -38,9 +38,6 @@ class LiveMap<T>(project: Project, private val lambda: (KtFile) -> (T)) : Servic
         manager.createCachedValue {
             val value = if (file.isExist) lambda(file) else null
             val tracker = FileModificationTrackerProvider[project].getTracker(file)
-            if (tracker == null) {
-                println("ALLERRRRRRT")
-            }
             Result.create(value, tracker)
         }
 }

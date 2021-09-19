@@ -7,31 +7,20 @@ import com.justai.jaicf.plugin.JAICF_CORE_ARTIFACT_ID
 import com.justai.jaicf.plugin.JAICF_GROUP_ID
 import com.justai.jaicf.plugin.isExist
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
-import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 
 
 class VersionService(project: Project) : Service(project) {
 
     val jaicf by cached(LibraryModificationTracker.getInstance(project)) {
-        val (l, version) = measureTimeMillisWithResult {
-            libraries
-                .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
-                .mapNotNull { it.name?.split(":")?.last() }
-                .firstOrNull()
-                ?.let(::Version)
-        }
-
-        println("VersionService: jaicf updated: $l")
-        version
+        libraries
+            .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
+            .mapNotNull { it.name?.split(":")?.last() }
+            .firstOrNull()
+            ?.let(::Version)
     }
 
     private val libraries by cached(LibraryModificationTracker.getInstance(project)) {
-        val (l, version) = measureTimeMillisWithResult {
-            LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
-        }
-
-        println("VersionService: libraries updated: $l")
-        version
+        LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
     }
 
     companion object {

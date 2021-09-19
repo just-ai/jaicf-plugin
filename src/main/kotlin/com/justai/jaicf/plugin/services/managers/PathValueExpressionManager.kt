@@ -23,8 +23,6 @@ class PathValueExpressionManager(project: Project) : Manager(project) {
     private val pathValueService = PathValueMethodsManager(project)
 
     private val expressionsMap = LiveMap(project) { file ->
-        println("PathValueExpressionManager: expressionsMap updating ${file.name}")
-
         pathValueService.methods
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }

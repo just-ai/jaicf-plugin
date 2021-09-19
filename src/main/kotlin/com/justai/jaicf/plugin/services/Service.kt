@@ -30,8 +30,4 @@ abstract class Service(protected val project: Project) {
 
 class CachedValueDelegate<T>(private val cachedValue: CachedValue<T>) {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T = cachedValue.value
-//
-//    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
-//        println("$value has been assigned to '${property.name}' in $thisRef.")
-//    }
 }
