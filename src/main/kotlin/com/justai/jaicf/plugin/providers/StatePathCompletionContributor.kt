@@ -22,6 +22,7 @@ import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
+import com.justai.jaicf.plugin.isComplexStringTemplate
 import com.justai.jaicf.plugin.parent
 import com.justai.jaicf.plugin.services.linter.allStates
 import com.justai.jaicf.plugin.services.locator.framingState
@@ -158,9 +159,3 @@ class StatePathCompletionConfidenceProvider : CompletionConfidence() {
 }
 
 private val supportedCharsForPopup = listOf('"', '/')
-
-val KtExpression.isSimpleStringTemplate: Boolean
-    get() = this is KtStringTemplateExpression && children.size == 1
-
-val KtExpression.isComplexStringTemplate: Boolean
-    get() = !isSimpleStringTemplate

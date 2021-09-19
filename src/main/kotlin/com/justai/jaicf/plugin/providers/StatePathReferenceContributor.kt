@@ -16,6 +16,7 @@ import com.justai.jaicf.plugin.Lexeme
 import com.justai.jaicf.plugin.StatePath
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
+import com.justai.jaicf.plugin.isSimpleStringTemplate
 import com.justai.jaicf.plugin.plus
 import com.justai.jaicf.plugin.rangeToEndOf
 import com.justai.jaicf.plugin.services.AvailabilityService

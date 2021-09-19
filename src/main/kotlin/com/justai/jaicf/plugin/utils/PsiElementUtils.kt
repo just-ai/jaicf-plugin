@@ -1,11 +1,9 @@
 package com.justai.jaicf.plugin
 
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.annotations.NotNull
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
 import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
@@ -22,9 +20,12 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.jetbrains.kotlin.psi.psiUtil.isPlain
+import org.jetbrains.kotlin.psi.psiUtil.plainContent
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
@@ -36,7 +37,15 @@ fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
 
 val KtExpression.stringValueOrNull: String?
-    get() = constantValueOrNull()?.value?.toString()
+    get() =
+        if (this is KtStringTemplateExpression && this.isPlain()) this.plainContent
+        else constantValueOrNull()?.value?.toString()
+
+val KtExpression.isSimpleStringTemplate: Boolean
+    get() = this is KtStringTemplateExpression && children.size <= 1
+
+val KtExpression.isComplexStringTemplate: Boolean
+    get() = !isSimpleStringTemplate
 
 fun KtCallElement.argumentExpressionOrDefaultValue(identifier: String) =
     argumentExpression(identifier) ?: parameter(identifier)?.defaultValue
