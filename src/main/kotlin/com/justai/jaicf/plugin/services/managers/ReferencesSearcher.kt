@@ -1,6 +1,5 @@
 package com.justai.jaicf.plugin.services.managers
 
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -16,7 +15,7 @@ import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 
 fun PsiElement.search(scope: SearchScope = this.project.projectScope()): Collection<PsiReference> {
     if (DumbService.getInstance(project).isDumb)
-        throw ProcessCanceledException()
+        return emptyList()
 
     val service = AvailabilityService[this]
     return try {
@@ -29,7 +28,7 @@ fun PsiElement.search(scope: SearchScope = this.project.projectScope()): Collect
 
 fun findClass(packageFq: String, className: String, project: Project): PsiClass? {
     if (DumbService.getInstance(project).isDumb)
-        return null // TODO кидать что то другое
+        return null
 
     val kotlinPsiFacade = KotlinJavaPsiFacade.getInstance(project)
     val projectScope = GlobalSearchScope.allScope(project)

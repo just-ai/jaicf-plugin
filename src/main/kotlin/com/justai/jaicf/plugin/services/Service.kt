@@ -24,8 +24,6 @@ abstract class Service(protected val project: Project) {
     protected val enabled: Boolean by cached(LibraryModificationTracker.getInstance(project)) {
         VersionService[project].isJaicfInclude
     }
-
-    open fun markFileAsModified(file: KtFile) {}
 }
 
 class CachedValueDelegate<T>(private val cachedValue: CachedValue<T>) {

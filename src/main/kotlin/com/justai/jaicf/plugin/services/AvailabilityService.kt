@@ -1,6 +1,5 @@
 package com.justai.jaicf.plugin.services
 
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.isExist

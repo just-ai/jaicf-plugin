@@ -41,7 +41,8 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         pathExpressions.forEach {
             val expression = it.holderExpression
             val markerHolder =
-                expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf ?: return@forEach
+                expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf
+                ?: return@forEach
             val transitionResult = transitToState(it.bound, it.pathExpression)
 
             if (transitionResult.statesOrSuggestions().isEmpty())
@@ -63,7 +64,6 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setEmptyPopupText("No state declaration found")
             .createLineMarkerInfo(markerHolderLeaf)
 }
-
 
 
 class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
