@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiElement
@@ -25,10 +26,10 @@ class VersionService(project: Project) : Service(project) {
 
     companion object {
         operator fun get(project: Project): VersionService =
-            project.getService(VersionService::class.java)
+            ServiceManager.getService(project, VersionService::class.java)
 
         operator fun get(element: PsiElement): VersionService? =
-            if (element.isExist) element.project.getService(VersionService::class.java)
+            if (element.isExist) ServiceManager.getService(element.project, VersionService::class.java)
             else null
     }
 }

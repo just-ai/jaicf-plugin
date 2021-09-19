@@ -130,8 +130,8 @@ private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 }
 
 private object Icons {
-    val GO_TO_STATES: Icon = AllIcons.Actions.ArrowExpand
-    val STATE_USAGES: Icon = AllIcons.Hierarchy.Supertypes
+    val GO_TO_STATES: Icon = AllIcons.Gutter.WriteAccess
+    val STATE_USAGES: Icon = AllIcons.Gutter.ReadAccess
 }
 
 private fun isLeafIdentifier(element: PsiElement) = element is LeafPsiElement && element.elementType == IDENTIFIER

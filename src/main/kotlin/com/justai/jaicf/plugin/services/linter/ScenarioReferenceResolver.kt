@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services.linter
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
@@ -92,7 +93,7 @@ class ScenarioReferenceResolver(project: Project) : Service(project) {
             else null
 
         operator fun get(project: Project): ScenarioReferenceResolver =
-            project.getService(ScenarioReferenceResolver::class.java)
+            ServiceManager.getService(project, ScenarioReferenceResolver::class.java)
     }
 }
 

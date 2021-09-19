@@ -1,11 +1,13 @@
 package com.justai.jaicf.plugin.trackers
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.justai.jaicf.plugin.isRemoved
+import com.justai.jaicf.plugin.services.navigation.Navigator
 import org.jetbrains.kotlin.psi.KtFile
 
 class FileModificationTrackerProvider(private val project: Project) {
@@ -20,7 +22,7 @@ class FileModificationTrackerProvider(private val project: Project) {
 
     companion object {
         operator fun get(project: Project): FileModificationTrackerProvider =
-            project.getService(FileModificationTrackerProvider::class.java)
+            ServiceManager.getService(project, FileModificationTrackerProvider::class.java)
     }
 }
 

@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services.managers
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.CREATE_MODEL_METHOD_NAME
@@ -44,6 +45,6 @@ class ScenarioDataManager(project: Project) : Manager(project) {
             else null
 
         operator fun get(project: Project): ScenarioDataManager =
-            project.getService(ScenarioDataManager::class.java)
+            ServiceManager.getService(project, ScenarioDataManager::class.java)
     }
 }

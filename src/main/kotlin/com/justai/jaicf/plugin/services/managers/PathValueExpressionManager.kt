@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services.managers
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.SearchScope
@@ -39,7 +40,7 @@ class PathValueExpressionManager(project: Project) : Manager(project) {
             else null
 
         operator fun get(project: Project): PathValueExpressionManager =
-            project.getService(PathValueExpressionManager::class.java)
+            ServiceManager.getService(project, PathValueExpressionManager::class.java)
     }
 }
 

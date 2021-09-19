@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services.managers
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -48,6 +49,6 @@ class TopLevelAppendDataManager(project: Project) : Manager(project) {
             else null
 
         operator fun get(project: Project): TopLevelAppendDataManager =
-            project.getService(TopLevelAppendDataManager::class.java)
+            ServiceManager.getService(project, TopLevelAppendDataManager::class.java)
     }
 }

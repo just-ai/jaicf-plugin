@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.services.navigation
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
@@ -78,7 +79,7 @@ class Navigator(project: Project) : Service(project) {
             else null
 
         operator fun get(project: Project): Navigator =
-            project.getService(Navigator::class.java)
+            ServiceManager.getService(project, Navigator::class.java)
     }
 }
 
