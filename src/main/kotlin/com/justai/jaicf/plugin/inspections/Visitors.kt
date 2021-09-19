@@ -16,7 +16,6 @@ import com.justai.jaicf.plugin.services.managers.dto.State
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 
 abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {

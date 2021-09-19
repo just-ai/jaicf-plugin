@@ -33,7 +33,6 @@ import com.justai.jaicf.plugin.services.navigation.transit
 import com.justai.jaicf.plugin.stringValueOrNull
 import com.justai.jaicf.plugin.withoutLeadSlashes
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class StatePathCompletionContributor : CompletionContributor() {

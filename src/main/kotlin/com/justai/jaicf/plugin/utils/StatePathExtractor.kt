@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.isInsideOf
 import org.jetbrains.kotlin.psi.psiUtil.isNull
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 val KtCallExpression.innerPathExpressions: List<StatePathExpression>
     get() =
@@ -155,7 +154,7 @@ sealed class StatePathExpression(val bound: KtExpression, val pathExpression: Kt
 }
 
 val StatePathExpression.holderExpression: KtExpression
-    get() = when(this) {
+    get() = when (this) {
         is BoundedExpression -> pathExpression
         is OutBoundedExpression -> (bound as? KtCallExpression)?.nameReferenceExpression() ?: bound
     }
