@@ -5,38 +5,25 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.justai.jaicf.plugin.StatePathExpression
-import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
-import com.justai.jaicf.plugin.StatePathExpression.OutBoundedExpression
 import com.justai.jaicf.plugin.asLeaf
 import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
-import com.justai.jaicf.plugin.providers.Icons.MULTI_RECEIVER_ICON
-import com.justai.jaicf.plugin.providers.Icons.NO_RECEIVER_ICON
-import com.justai.jaicf.plugin.providers.Icons.SINGLE_RECEIVER_ICON
-import com.justai.jaicf.plugin.providers.Icons.SUGGESTIONS_ICON
+import com.justai.jaicf.plugin.providers.Icons.GO_TO_STATES
 import com.justai.jaicf.plugin.services.locator.framingState
 import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
 import com.justai.jaicf.plugin.services.managers.dto.name
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.OutOfStateBoundUsage
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.services.navigation.absolutePath
-import com.justai.jaicf.plugin.services.navigation.states
 import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
 import com.justai.jaicf.plugin.services.navigation.transitToState
 import com.justai.jaicf.plugin.services.usages
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
 
@@ -56,26 +43,21 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
             val markerHolder =
                 expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf ?: return@forEach
             val transitionResult = transitToState(it.bound, it.pathExpression)
-            val icon = when {
-                transitionResult is UnresolvedPath -> return@forEach
-                transitionResult is OutOfStateBoundUsage -> return@forEach
-                transitionResult.states().size > 1 -> MULTI_RECEIVER_ICON
-                transitionResult.states().size == 1 -> SINGLE_RECEIVER_ICON
-                transitionResult is SuggestionsFound -> SUGGESTIONS_ICON
-                else -> NO_RECEIVER_ICON
-            }
+
+            if (transitionResult.statesOrSuggestions().isEmpty())
+                return@forEach
 
             transitionResult.statesOrSuggestions().onEach { state ->
-                result.add(buildLineMarker(state.stateExpression, markerHolder, icon))
+                result.add(buildLineMarker(state.stateExpression, markerHolder))
             }.ifEmpty {
-                result.add(buildLineMarker(null, markerHolder, icon))
+                result.add(buildLineMarker(null, markerHolder))
             }
         }
     }
 
-    private fun buildLineMarker(expression: PsiElement?, markerHolderLeaf: LeafPsiElement, icon: Icon) =
-        NavigationGutterIconBuilder.create(icon)
-            .setAlignment(Alignment.LEFT)
+    private fun buildLineMarker(expression: PsiElement?, markerHolderLeaf: LeafPsiElement) =
+        NavigationGutterIconBuilder.create(GO_TO_STATES)
+            .setAlignment(LEFT)
             .setTargets(listOfNotNull(expression))
             .setTooltipText("Navigate to state declaration")
             .setEmptyPopupText("No state declaration found")
@@ -118,7 +100,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             }
             .ifEmpty { return null }
 
-        return NavigationGutterIconBuilder.create(Icons.SENDER)
+        return NavigationGutterIconBuilder.create(Icons.STATE_USAGES)
             .setAlignment(LEFT)
             .setTargets(usages)
             .setTooltipText("Find references to this state")
@@ -148,11 +130,8 @@ private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 }
 
 private object Icons {
-    val SINGLE_RECEIVER_ICON: Icon = AllIcons.RunConfigurations.TestState.Run
-    val MULTI_RECEIVER_ICON: Icon = AllIcons.RunConfigurations.TestState.Run_run
-    val SUGGESTIONS_ICON: Icon = AllIcons.RunConfigurations.TestState.Yellow2
-    val NO_RECEIVER_ICON: Icon = AllIcons.RunConfigurations.TestState.Red2
-    val SENDER: Icon = AllIcons.Gutter.ReadAccess
+    val GO_TO_STATES: Icon = AllIcons.Actions.ArrowExpand
+    val STATE_USAGES: Icon = AllIcons.Hierarchy.Supertypes
 }
 
 private fun isLeafIdentifier(element: PsiElement) = element is LeafPsiElement && element.elementType == IDENTIFIER
