@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
-import com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataManager
+import com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
@@ -46,7 +46,7 @@ val Project.rootScenarios: List<Scenario>
 
 val Scenario.allAppends
     get() = nestedStates.flatMap { state -> state.appends.map { it.referenceToScenario to state } } +
-        TopLevelAppendDataManager.getInstance(project).getAppends().map { it.referenceToScenario to innerState }
+        TopLevelAppendDataService.getInstance(project).getAppends().map { it.referenceToScenario to innerState }
 
 private fun State.allStates(previousStates: MutableList<State> = mutableListOf()): List<State> {
     if (this in previousStates) return emptyList()
@@ -66,6 +66,6 @@ private fun State.allStates(previousStates: MutableList<State> = mutableListOf()
 val Scenario.appends: List<TopLevelAppend>
     get() {
         val resolver = ScenarioReferenceResolver.getInstance(project)
-        return TopLevelAppendDataManager.getInstance(project).getAppends()
+        return TopLevelAppendDataService.getInstance(project).getAppends()
             .filter { append -> append.receiverExpression?.let { resolver.resolve(it) } == this }
     }
