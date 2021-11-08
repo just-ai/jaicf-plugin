@@ -1,10 +1,10 @@
-package com.justai.jaicf.plugin.services.managers.dto
+package com.justai.jaicf.plugin.scenarios.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.CREATE_MODEL_METHOD_NAME
-import com.justai.jaicf.plugin.SCENARIO_METHOD_NAME
-import com.justai.jaicf.plugin.ScenarioPackageFqName
+import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
+import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
+import com.justai.jaicf.plugin.utils.ScenarioPackageFqName
 import com.justai.jaicf.plugin.isOverride
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClassOrObject

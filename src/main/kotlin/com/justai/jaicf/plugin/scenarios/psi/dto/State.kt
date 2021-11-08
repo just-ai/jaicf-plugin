@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin.services.managers.dto
+package com.justai.jaicf.plugin.scenarios.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement

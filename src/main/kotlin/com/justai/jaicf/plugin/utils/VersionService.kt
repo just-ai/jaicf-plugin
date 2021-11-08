@@ -1,17 +1,14 @@
-package com.justai.jaicf.plugin.services
+package com.justai.jaicf.plugin.utils
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.JAICF_CORE_ARTIFACT_ID
-import com.justai.jaicf.plugin.JAICF_GROUP_ID
 import com.justai.jaicf.plugin.isExist
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 
+class VersionService(project: Project) {
 
-class VersionService(project: Project) : Service(project) {
-
-    val jaicf by cached(LibraryModificationTracker.getInstance(project)) {
+    val jaicf by project.cached(LibraryModificationTracker.getInstance(project)) {
         libraries
             .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
             .mapNotNull { it.name?.split(":")?.last() }
@@ -19,11 +16,18 @@ class VersionService(project: Project) : Service(project) {
             ?.let(::Version)
     }
 
-    private val libraries by cached(LibraryModificationTracker.getInstance(project)) {
+    private val libraries by project.cached(LibraryModificationTracker.getInstance(project)) {
         LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
     }
 
     companion object {
+        fun getInstance(project: Project): VersionService =
+            project.getService(VersionService::class.java)
+
+        fun getInstance(element: PsiElement): VersionService? =
+            if (element.isExist) element.project.getService(VersionService::class.java)
+            else null
+
         operator fun get(project: Project): VersionService =
             project.getService(VersionService::class.java)
 
@@ -49,5 +53,8 @@ data class Version(val version: String) {
         }
 }
 
+val VersionService.isJaicfSupported: Boolean
+    get() = jaicf?.let { it >= Version("1.1.3") } == true
+
 val VersionService.isJaicfInclude: Boolean
-    get() = this.jaicf?.let { it >= Version("1.1.3") } == true
+    get() = jaicf != null

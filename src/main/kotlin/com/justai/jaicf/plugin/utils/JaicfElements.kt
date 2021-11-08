@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin
+package com.justai.jaicf.plugin.utils
 
 import org.jetbrains.kotlin.name.FqName
 
@@ -11,11 +11,8 @@ val rootBuilderClassFqName = FqName("$SCENARIO_PACKAGE.RootBuilder")
 const val SCENARIO_MODEL_FIELD_NAME = "model"
 
 const val STATE_NAME_ARGUMENT_NAME = "name"
-const val STATE_METHOD_NAME = "state"
-const val FALLBACK_METHOD_NAME = "fallback"
 const val CREATE_MODEL_METHOD_NAME = "createModel"
 const val SCENARIO_METHOD_NAME = "Scenario"
-const val STATE_BODY_ARGUMENT_NAME = "body"
 const val APPEND_METHOD_NAME = "append"
 const val APPEND_CONTEXT_ARGUMENT_NAME = "context"
 const val DO_APPEND_METHOD_NAME = "doAppend"

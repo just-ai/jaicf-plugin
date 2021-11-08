@@ -3,9 +3,10 @@ package com.justai.jaicf.plugin
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.StatePathExpression.OutBoundedExpression
-import com.justai.jaicf.plugin.services.VersionService
-import com.justai.jaicf.plugin.services.isJaicfInclude
-import com.justai.jaicf.plugin.services.managers.builders.getAnnotatedStringTemplatesInDeclaration
+import com.justai.jaicf.plugin.utils.VersionService
+import com.justai.jaicf.plugin.utils.isJaicfSupported
+import com.justai.jaicf.plugin.scenarios.psi.builders.getAnnotatedStringTemplatesInDeclaration
+import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -21,7 +22,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
 val KtCallExpression.innerPathExpressions: List<StatePathExpression>
     get() =
-        if (VersionService[project].isJaicfInclude) {
+        if (VersionService[project].isJaicfSupported) {
             val expressions =
                 argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
@@ -38,7 +39,7 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
 
 val KtBinaryExpression.innerPathExpressions: List<StatePathExpression>
     get() {
-        return if (VersionService[project].isJaicfInclude) {
+        return if (VersionService[project].isJaicfSupported) {
             val operation = getChildOfType<KtOperationReferenceExpression>() ?: return emptyList()
             val function = operation.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
@@ -92,7 +93,7 @@ val PsiElement.boundedPathExpression: StatePathExpression?
             }
 
             is KtValueArgument -> {
-                return if (VersionService[project].isJaicfInclude) {
+                return if (VersionService[project].isJaicfSupported) {
                     if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true) {
                         val bound = boundedElement.getBoundedCallExpressionOrNull() ?: return null
                         val argumentExpression = boundedElement.getArgumentExpression() ?: return null
@@ -120,7 +121,7 @@ val PsiElement.pathExpressionsOfBoundedBlock: List<StatePathExpression>
 
         return when (boundedElement) {
             is KtDotQualifiedExpression ->
-                if (VersionService[project].isJaicfInclude)
+                if (VersionService[project].isJaicfSupported)
                     boundedElement.getChildOfType<KtCallExpression>()?.let {
                         if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
                         else null

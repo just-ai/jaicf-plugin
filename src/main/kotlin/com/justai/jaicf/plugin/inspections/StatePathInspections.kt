@@ -2,24 +2,24 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.Lexeme.Transition
-import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.StatePathExpression
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.holderExpression
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.navigation.TransitionResult
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.NoState
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.OutOfStateBoundUsage
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.StateFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.StatesFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.UnresolvedPath
-import com.justai.jaicf.plugin.services.navigation.fullPath
-import com.justai.jaicf.plugin.services.navigation.states
-import com.justai.jaicf.plugin.services.navigation.transit
-import com.justai.jaicf.plugin.services.navigation.transitToState
+import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.OutOfStateBoundUsage
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
+import com.justai.jaicf.plugin.scenarios.transition.fullPath
+import com.justai.jaicf.plugin.scenarios.transition.states
+import com.justai.jaicf.plugin.scenarios.transition.transit
+import com.justai.jaicf.plugin.scenarios.transition.transitToState
 import com.justai.jaicf.plugin.stringValueOrNull
 
 class StatePathInspection : LocalInspectionTool() {

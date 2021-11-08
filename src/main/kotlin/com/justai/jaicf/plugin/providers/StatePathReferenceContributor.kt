@@ -12,19 +12,18 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.Lexeme
-import com.justai.jaicf.plugin.StatePath
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.isSimpleStringTemplate
-import com.justai.jaicf.plugin.plus
+import com.justai.jaicf.plugin.scenarios.transition.plus
 import com.justai.jaicf.plugin.rangeToEndOf
-import com.justai.jaicf.plugin.services.AvailabilityService
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
-import com.justai.jaicf.plugin.services.navigation.transit
+import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
+import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.stringValueOrNull
-import com.justai.jaicf.plugin.transitionsWithRanges
+import com.justai.jaicf.plugin.scenarios.transition.transitionsWithRanges
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 class StatePathReferenceContributor : PsiReferenceContributor() {
@@ -67,15 +66,15 @@ class StatePsiReference(
     textRange: TextRange = element.textRange,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
-    private val service = AvailabilityService[element]
+    private val service = ReferenceContributorsAvailabilityService.getInstance(element)
 
     override fun resolve() =
-        if (service?.referenceContributorAvailable == true)
+        if (service?.available == true)
             element.framingState?.transit(path)?.statesOrSuggestions()?.singleOrNull()?.stateExpression
         else null
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> =
-        if (service?.referenceContributorAvailable == true)
+        if (service?.available == true)
             element.framingState?.transit(path)?.statesOrSuggestions()
                 ?.map { it.stateExpression }
                 ?.map(::PsiElementResolveResult)?.toTypedArray()

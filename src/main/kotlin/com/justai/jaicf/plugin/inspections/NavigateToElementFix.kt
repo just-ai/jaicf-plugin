@@ -6,7 +6,7 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
-import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
 
 class NavigateToState(message: String, state: State) : NavigateToElementFix(
     message,

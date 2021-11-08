@@ -14,19 +14,18 @@ import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.providers.Icons.GO_TO_STATES
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
-import com.justai.jaicf.plugin.services.managers.dto.name
-import com.justai.jaicf.plugin.services.navigation.absolutePath
-import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
-import com.justai.jaicf.plugin.services.navigation.transitToState
-import com.justai.jaicf.plugin.services.usages
+import com.justai.jaicf.plugin.scenarios.linter.usages
+import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
+import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.transition.absolutePath
+import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
+import com.justai.jaicf.plugin.scenarios.transition.transitToState
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
-
 
 class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -64,7 +63,6 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setEmptyPopupText("No state declaration found")
             .createLineMarkerInfo(markerHolderLeaf)
 }
-
 
 class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 

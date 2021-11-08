@@ -7,23 +7,23 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.VersionService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.AvailabilityService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.trackers.FileModificationTrackerProvider"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.PathValueExpressionManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.PathValueMethodsManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.TopLevelAppendDataManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.ScenarioDataManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.linter.ScenarioReferenceResolver"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.navigation.Navigator"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.utils.VersionService"/>
+        <projectService
+                serviceImplementation="com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueMethodsService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataManager"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.linter.ScenarioReferenceResolver"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.transition.TransitionService"/>
+
+        <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
+                      order="first"/>
 
         <completion.contributor language="kotlin"
                                 id="StatePathCompletionContributor"
                                 implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionContributor"
                                 order="first, before KotlinCompletionContributor"/>
-
-        <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
-                      order="first"/>
 
         <completion.confidence language="kotlin"
                                implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionConfidenceProvider"
