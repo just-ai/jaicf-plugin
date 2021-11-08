@@ -1,9 +1,9 @@
-package com.justai.jaicf.plugin.services.locator
+package com.justai.jaicf.plugin.scenarios.locator
 
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.isRemoved
-import com.justai.jaicf.plugin.services.managers.ScenarioDataManager
-import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import org.jetbrains.kotlin.psi.KtFile
 
 val PsiElement.framingState: State?
@@ -12,7 +12,7 @@ val PsiElement.framingState: State?
             return null
 
         val file = this.containingFile as? KtFile ?: return null
-        val scenarios1 = ScenarioDataManager[this]?.getScenarios(file)
+        val scenarios1 = ScenarioDataService[this]?.getScenarios(file)
         val scenarios = scenarios1 ?: return null
 
         return scenarios

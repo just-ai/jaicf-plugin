@@ -1,28 +1,28 @@
-package com.justai.jaicf.plugin.services.managers
+package com.justai.jaicf.plugin.scenarios.psi
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.SearchScope
-import com.justai.jaicf.plugin.PATH_ARGUMENT_ANNOTATION_NAME
-import com.justai.jaicf.plugin.PLUGIN_PACKAGE
+import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.PLUGIN_PACKAGE
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
-import com.justai.jaicf.plugin.utils.LiveMap
-import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
+import com.justai.jaicf.plugin.scenarios.JaicfService
+import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
+import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.minus
 import org.jetbrains.kotlin.idea.search.projectScope
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
-class PathValueExpressionManager(project: Project) : Manager(project) {
+class PathValueExpressionsService(project: Project) : JaicfService(project) {
 
-    private val pathValueService = PathValueMethodsManager(project)
+    private val pathValueService = PathValueMethodsService(project)
 
-    private val expressionsMap = LiveMap(project) { file ->
+    private val expressionsMap = LiveMapByFiles(project) { file ->
         pathValueService.methods
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }
@@ -32,34 +32,39 @@ class PathValueExpressionManager(project: Project) : Manager(project) {
 
     fun getExpressions() = expressionsMap.getValues().flatten()
 
-    fun getExpressions(file: KtFile) = expressionsMap[file]
-
     companion object {
-        operator fun get(element: PsiElement): PathValueExpressionManager? =
+        fun getInstance(element: PsiElement): PathValueExpressionsService? =
+            if (element.isExist) getInstance(element.project)
+            else null
+
+        fun getInstance(project: Project): PathValueExpressionsService =
+            ServiceManager.getService(project, PathValueExpressionsService::class.java)
+
+        operator fun get(element: PsiElement): PathValueExpressionsService? =
             if (element.isExist) get(element.project)
             else null
 
-        operator fun get(project: Project): PathValueExpressionManager =
-            ServiceManager.getService(project, PathValueExpressionManager::class.java)
+        operator fun get(project: Project): PathValueExpressionsService =
+            ServiceManager.getService(project, PathValueExpressionsService::class.java)
     }
 }
 
-private class PathValueMethodsManager(project: Project) : Manager(project) {
+private class PathValueMethodsService(project: Project) : JaicfService(project) {
 
     val methods
         get() = (jaicfMethods + projectMethods.getValues().flatten()).filter { it.isExist }
 
-    private val jaicfMethods by cached(LibraryModificationTracker.getInstance(project)) {
+    private val jaicfMethods by cached(JaicfVersionTracker.getInstance(project)) {
         if (enabled) findUsages(project.allScope() - project.projectScope())
         else emptyList()
     }
 
-    private val projectMethods = LiveMap(project) {
+    private val projectMethods = LiveMapByFiles(project) {
         if (enabled) findUsages(it.fileScope())
         else emptyList()
     }
 
-    private val annotationClass by cachedIfEnabled(LibraryModificationTracker.getInstance(project)) {
+    private val annotationClass by cachedIfEnabled(JaicfVersionTracker.getInstance(project)) {
         findClass(PLUGIN_PACKAGE, PATH_ARGUMENT_ANNOTATION_NAME, project)
     }
 

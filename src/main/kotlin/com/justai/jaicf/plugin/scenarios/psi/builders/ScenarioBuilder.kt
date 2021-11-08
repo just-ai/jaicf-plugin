@@ -1,7 +1,7 @@
-package com.justai.jaicf.plugin.services.managers.builders
+package com.justai.jaicf.plugin.scenarios.psi.builders
 
 import com.justai.jaicf.plugin.isExist
-import com.justai.jaicf.plugin.services.managers.dto.Scenario
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import org.jetbrains.kotlin.psi.KtCallExpression
 
 fun buildScenario(body: KtCallExpression) =

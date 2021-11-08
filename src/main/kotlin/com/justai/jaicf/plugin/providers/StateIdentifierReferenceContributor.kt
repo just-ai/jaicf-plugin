@@ -12,15 +12,14 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.STATE_NAME_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
 import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
-import com.justai.jaicf.plugin.services.AvailabilityService
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
-import com.justai.jaicf.plugin.services.usages
+import com.justai.jaicf.plugin.scenarios.linter.usages
+import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 
@@ -31,7 +30,6 @@ class StateIdentifierReferenceContributor : PsiReferenceContributor() {
             StateIdentifierReferenceProvider()
         )
     }
-
 }
 
 class StateIdentifierReferenceProvider : PsiReferenceProvider() {
@@ -62,15 +60,15 @@ class MultiPsiReference(
     private val referencesProvider: () -> List<PsiElement>,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
-    private val service = AvailabilityService[element]
+    private val service = ReferenceContributorsAvailabilityService.getInstance(element)
 
     override fun resolve() =
-        if (service?.referenceContributorAvailable == true)
+        if (service?.available == true)
             referencesProvider().singleOrNull()
         else null
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return if (service?.referenceContributorAvailable == true)
+        return if (service?.available == true)
             referencesProvider().map(::PsiElementResolveResult).toTypedArray()
         else emptyArray()
     }
