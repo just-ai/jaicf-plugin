@@ -37,11 +37,11 @@ class TopLevelAppendDataManager(project: Project) : JaicfService(project) {
             ?: emptyList()
 
     companion object {
-        operator fun get(element: PsiElement): TopLevelAppendDataManager? =
-            if (element.isExist) get(element.project)
+        fun getInstance(element: PsiElement): TopLevelAppendDataManager? =
+            if (element.isExist) getInstance(element.project)
             else null
 
-        operator fun get(project: Project): TopLevelAppendDataManager =
+        fun getInstance(project: Project): TopLevelAppendDataManager =
             project.getService(TopLevelAppendDataManager::class.java)
     }
 }

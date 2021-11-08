@@ -19,7 +19,7 @@ import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.isSimpleStringTemplate
 import com.justai.jaicf.plugin.scenarios.transition.plus
 import com.justai.jaicf.plugin.rangeToEndOf
-import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.stringValueOrNull

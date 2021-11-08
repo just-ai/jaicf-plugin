@@ -17,6 +17,9 @@
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.linter.ScenarioReferenceResolver"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.transition.TransitionService"/>
 
+        <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfSourcesMissedValidator"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfUnsupportedValidator"/>
+
         <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
                       order="first"/>
 
@@ -86,5 +89,7 @@
         <defaultLiveTemplates file="/liveTemplates/state.xml"/>
 
         <liveTemplateContext implementation="com.justai.jaicf.plugin.contexts.StateContext"/>
+
+        <notificationGroup id="Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
     </extensions>
 </idea-plugin>

@@ -3,7 +3,6 @@ package com.justai.jaicf.plugin.scenarios.transition
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.linter.allStates
@@ -12,6 +11,7 @@ import com.justai.jaicf.plugin.scenarios.linter.rootScenarios
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
 import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
@@ -73,16 +73,16 @@ class TransitionService(project: Project) : JaicfService(project) {
     }
 
     companion object {
-        operator fun get(element: PsiElement): TransitionService? =
-            if (element.isExist) get(element.project)
+        fun getInstance(element: PsiElement): TransitionService? =
+            if (element.isExist) getInstance(element.project)
             else null
 
-        operator fun get(project: Project): TransitionService =
+        fun getInstance(project: Project): TransitionService =
             project.getService(TransitionService::class.java)
     }
 }
 
-fun State.transit(transition: Transition) = TransitionService[project].transit(this, transition)
+fun State.transit(transition: Transition) = TransitionService.getInstance(project).transit(this, transition)
 
 sealed class TransitionResult {
     object OutOfStateBoundUsage : TransitionResult()
