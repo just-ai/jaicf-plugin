@@ -1,32 +1,42 @@
-package com.justai.jaicf.plugin.services.linter
+package com.justai.jaicf.plugin.scenarios.linter
 
 import com.intellij.openapi.project.Project
 import com.justai.jaicf.plugin.isExist
-import com.justai.jaicf.plugin.services.managers.ScenarioDataManager
-import com.justai.jaicf.plugin.services.managers.TopLevelAppendDataManager
-import com.justai.jaicf.plugin.services.managers.dto.Scenario
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.TopLevelAppend
-import com.justai.jaicf.plugin.services.managers.dto.isRootState
-import com.justai.jaicf.plugin.services.managers.dto.nestedStates
-import com.justai.jaicf.plugin.services.managers.dto.receiverExpression
+import com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService
+import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
+import com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataManager
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
+import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
+import com.justai.jaicf.plugin.scenarios.psi.dto.nestedStates
+import com.justai.jaicf.plugin.scenarios.psi.dto.receiverExpression
+import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
+import com.justai.jaicf.plugin.scenarios.transition.transitToState
+import org.jetbrains.kotlin.psi.KtExpression
 
 val State.allStates
     get() = allStates()
 
+val State.usages: List<KtExpression>
+    get() {
+        val expressionsService = PathValueExpressionsService.getInstance(project)
+        return expressionsService.getExpressions()
+            .filter { this in transitToState(it).statesOrSuggestions() }
+    }
+
 val Scenario.appendingStates: List<State>
     get() {
         val resolver = ScenarioReferenceResolver[project]
-        return ScenarioDataManager[project].getScenarios().flatMap { it.allAppends }
+        return ScenarioDataService[project].getScenarios().flatMap { it.allAppends }
             .filter { (reference, state) -> reference != null && resolver.resolve(reference, state) == this }
             .map { it.second }
     }
 
-
 val Project.rootScenarios: List<Scenario>
     get() {
         val resolver = ScenarioReferenceResolver[this]
-        val scenarios = ScenarioDataManager[this].getScenarios()
+        val scenarios = ScenarioDataService[this].getScenarios()
         val appendingScenarios = scenarios
             .flatMap { it.allAppends }
             .mapNotNull { (reference, _) -> reference?.let { resolver.resolve(it) } }
@@ -36,13 +46,10 @@ val Project.rootScenarios: List<Scenario>
 
 val Scenario.allAppends
     get() = nestedStates.flatMap { state -> state.appends.map { it.referenceToScenario to state } } +
-            TopLevelAppendDataManager[project].getAppends().map { it.referenceToScenario to innerState }
-
+        TopLevelAppendDataManager[project].getAppends().map { it.referenceToScenario to innerState }
 
 private fun State.allStates(previousStates: MutableList<State> = mutableListOf()): List<State> {
-    if (this in previousStates) {
-        return emptyList()
-    }
+    if (this in previousStates) return emptyList()
 
     previousStates += this
 

@@ -1,16 +1,16 @@
-package com.justai.jaicf.plugin.services.managers.builders
+package com.justai.jaicf.plugin.scenarios.psi.builders
 
-import com.justai.jaicf.plugin.APPEND_CONTEXT_ARGUMENT_NAME
-import com.justai.jaicf.plugin.APPEND_METHOD_NAME
-import com.justai.jaicf.plugin.APPEND_OTHER_ARGUMENT_NAME
-import com.justai.jaicf.plugin.DO_APPEND_METHOD_NAME
+import com.justai.jaicf.plugin.utils.APPEND_CONTEXT_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.APPEND_METHOD_NAME
+import com.justai.jaicf.plugin.utils.APPEND_OTHER_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.DO_APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.argumentExpression
 import com.justai.jaicf.plugin.isOverride
 import com.justai.jaicf.plugin.isRemoved
-import com.justai.jaicf.plugin.rootBuilderClassFqName
-import com.justai.jaicf.plugin.scenarioGraphBuilderClassFqName
-import com.justai.jaicf.plugin.services.managers.dto.Append
-import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.utils.rootBuilderClassFqName
+import com.justai.jaicf.plugin.utils.scenarioGraphBuilderClassFqName
+import com.justai.jaicf.plugin.scenarios.psi.dto.Append
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.valueArgument
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression

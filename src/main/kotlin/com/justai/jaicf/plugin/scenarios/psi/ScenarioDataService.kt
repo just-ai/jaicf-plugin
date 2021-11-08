@@ -1,27 +1,28 @@
-package com.justai.jaicf.plugin.services.managers
+package com.justai.jaicf.plugin.scenarios.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.CREATE_MODEL_METHOD_NAME
-import com.justai.jaicf.plugin.SCENARIO_EXTENSIONS_CLASS_NAME
-import com.justai.jaicf.plugin.SCENARIO_METHOD_NAME
-import com.justai.jaicf.plugin.SCENARIO_PACKAGE
+import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
+import com.justai.jaicf.plugin.utils.SCENARIO_EXTENSIONS_CLASS_NAME
+import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
+import com.justai.jaicf.plugin.utils.SCENARIO_PACKAGE
 import com.justai.jaicf.plugin.isExist
-import com.justai.jaicf.plugin.services.managers.builders.buildScenario
-import com.justai.jaicf.plugin.utils.LiveMap
-import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
+import com.justai.jaicf.plugin.scenarios.JaicfService
+import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
+import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
+import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 
-class ScenarioDataManager(project: Project) : Manager(project) {
+class ScenarioDataService(project: Project) : JaicfService(project) {
 
-    private val scenariosBuildMethods by cachedIfEnabled(LibraryModificationTracker.getInstance(project)) {
+    private val scenariosBuildMethods by cachedIfEnabled(JaicfVersionTracker.getInstance(project)) {
         findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)
             ?.getMethods(SCENARIO_METHOD_NAME, CREATE_MODEL_METHOD_NAME)
     }
 
-    private val scenariosMap = LiveMap(project) { file ->
+    private val scenariosMap = LiveMapByFiles(project) { file ->
         scenariosBuildMethods
             ?.flatMap { it.search(file.fileScope()) }
             ?.map { it.element.parent }
@@ -39,11 +40,11 @@ class ScenarioDataManager(project: Project) : Manager(project) {
         else emptyList()
 
     companion object {
-        operator fun get(element: PsiElement): ScenarioDataManager? =
+        operator fun get(element: PsiElement): ScenarioDataService? =
             if (element.isExist) get(element.project)
             else null
 
-        operator fun get(project: Project): ScenarioDataManager =
-            project.getService(ScenarioDataManager::class.java)
+        operator fun get(project: Project): ScenarioDataService =
+            project.getService(ScenarioDataService::class.java)
     }
 }

@@ -1,9 +1,9 @@
-package com.justai.jaicf.plugin.services.managers.builders
+package com.justai.jaicf.plugin.scenarios.psi.builders
 
-import com.justai.jaicf.plugin.STATE_BODY_ANNOTATION_NAME
-import com.justai.jaicf.plugin.STATE_DECLARATION_ANNOTATION_NAME
-import com.justai.jaicf.plugin.STATE_NAME_ANNOTATION_ARGUMENT_NAME
-import com.justai.jaicf.plugin.STATE_NAME_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_BODY_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_DECLARATION_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_NAME
 import com.justai.jaicf.plugin.argumentExpression
 import com.justai.jaicf.plugin.argumentExpressionsByAnnotation
 import com.justai.jaicf.plugin.argumentExpressionsOrDefaultValuesByAnnotation
@@ -12,12 +12,12 @@ import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.findChildrenOfType
 import com.justai.jaicf.plugin.getMethodAnnotations
 import com.justai.jaicf.plugin.isRemoved
-import com.justai.jaicf.plugin.services.managers.dto.Scenario
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.StateIdentifier
-import com.justai.jaicf.plugin.services.managers.dto.StateIdentifier.ExpressionIdentifier
-import com.justai.jaicf.plugin.services.managers.dto.StateIdentifier.NoIdentifier
-import com.justai.jaicf.plugin.services.managers.dto.StateIdentifier.PredefinedIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.ExpressionIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.NoIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.PredefinedIdentifier
 import com.justai.jaicf.plugin.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtCallExpression

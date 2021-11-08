@@ -1,7 +1,7 @@
-package com.justai.jaicf.plugin.services.managers.dto
+package com.justai.jaicf.plugin.scenarios.psi.dto
 
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.APPEND_OTHER_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.APPEND_OTHER_ARGUMENT_NAME
 import com.justai.jaicf.plugin.argumentExpression
 import com.justai.jaicf.plugin.getRootDotReceiver
 import org.jetbrains.kotlin.psi.KtCallExpression

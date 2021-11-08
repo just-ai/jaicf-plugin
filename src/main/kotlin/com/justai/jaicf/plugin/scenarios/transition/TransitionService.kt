@@ -1,23 +1,23 @@
-package com.justai.jaicf.plugin.services.navigation
+package com.justai.jaicf.plugin.scenarios.transition
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.isExist
-import com.justai.jaicf.plugin.services.Service
-import com.justai.jaicf.plugin.services.linter.allStates
-import com.justai.jaicf.plugin.services.linter.appendingStates
-import com.justai.jaicf.plugin.services.linter.rootScenarios
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.isRootState
-import com.justai.jaicf.plugin.services.managers.dto.isTopState
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.NoState
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.StateFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.StatesFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.scenarios.JaicfService
+import com.justai.jaicf.plugin.scenarios.linter.allStates
+import com.justai.jaicf.plugin.scenarios.linter.appendingStates
+import com.justai.jaicf.plugin.scenarios.linter.rootScenarios
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
+import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
 
-class Navigator(project: Project) : Service(project) {
+class TransitionService(project: Project) : JaicfService(project) {
 
     private val cache by cached(PsiModificationTracker.MODIFICATION_COUNT) {
         mutableMapOf<Pair<State, Transition>, TransitionResult>()
@@ -73,13 +73,35 @@ class Navigator(project: Project) : Service(project) {
     }
 
     companion object {
-        operator fun get(element: PsiElement): Navigator? =
+        operator fun get(element: PsiElement): TransitionService? =
             if (element.isExist) get(element.project)
             else null
 
-        operator fun get(project: Project): Navigator =
-            project.getService(Navigator::class.java)
+        operator fun get(project: Project): TransitionService =
+            project.getService(TransitionService::class.java)
     }
 }
 
-fun State.transit(transition: Transition) = Navigator[project].transit(this, transition)
+fun State.transit(transition: Transition) = TransitionService[project].transit(this, transition)
+
+sealed class TransitionResult {
+    object OutOfStateBoundUsage : TransitionResult()
+    object UnresolvedPath : TransitionResult()
+    object NoState : TransitionResult()
+    data class StateFound(val state: State) : TransitionResult()
+    data class StatesFound(val states: List<State>) : TransitionResult()
+    data class SuggestionsFound(val suggestionsStates: List<State>) : TransitionResult()
+}
+
+fun TransitionResult.statesOrSuggestions() = when (this) {
+    is StateFound -> listOf(state)
+    is StatesFound -> states
+    is SuggestionsFound -> suggestionsStates
+    else -> emptyList()
+}
+
+fun TransitionResult.states() = when (this) {
+    is StateFound -> listOf(state)
+    is StatesFound -> states
+    else -> emptyList()
+}

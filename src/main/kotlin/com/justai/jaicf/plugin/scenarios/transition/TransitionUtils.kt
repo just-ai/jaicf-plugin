@@ -1,22 +1,19 @@
-package com.justai.jaicf.plugin.services.navigation
+package com.justai.jaicf.plugin.scenarios.transition
 
-import com.justai.jaicf.plugin.Lexeme.Transition
-import com.justai.jaicf.plugin.Lexeme.Transition.Root
-import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.plus
-import com.justai.jaicf.plugin.services.linter.appendingStates
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.name
-import com.justai.jaicf.plugin.services.managers.dto.root
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.NoState
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.OutOfStateBoundUsage
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.StateFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.StatesFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.SuggestionsFound
-import com.justai.jaicf.plugin.services.navigation.TransitionResult.UnresolvedPath
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
+import com.justai.jaicf.plugin.scenarios.linter.appendingStates
+import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.psi.dto.root
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.OutOfStateBoundUsage
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.stringValueOrNull
-import com.justai.jaicf.plugin.withoutLeadSlashes
 import org.jetbrains.kotlin.psi.KtExpression
 
 fun transitToState(pathExpression: KtExpression): TransitionResult {

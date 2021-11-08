@@ -1,20 +1,20 @@
-package com.justai.jaicf.plugin.services.linter
+package com.justai.jaicf.plugin.scenarios.linter
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.SCENARIO_MODEL_FIELD_NAME
+import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.isRemoved
-import com.justai.jaicf.plugin.services.Service
-import com.justai.jaicf.plugin.services.managers.ScenarioDataManager
-import com.justai.jaicf.plugin.services.managers.dto.Append
-import com.justai.jaicf.plugin.services.managers.dto.Scenario
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.TopLevelAppend
-import com.justai.jaicf.plugin.services.managers.dto.contains
+import com.justai.jaicf.plugin.scenarios.JaicfService
+import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
+import com.justai.jaicf.plugin.scenarios.psi.dto.Append
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
+import com.justai.jaicf.plugin.scenarios.psi.dto.contains
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -27,39 +27,32 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
-class ScenarioReferenceResolver(project: Project) : Service(project) {
+class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
 
-    private val appendWithResolve by cachedIfEnabled(PsiModificationTracker.MODIFICATION_COUNT) {
+    private val scenarioService = ScenarioDataService[project]
+
+    private val resolvedReferences by cached(PsiModificationTracker.MODIFICATION_COUNT) {
         mutableMapOf<KtReferenceExpression, Scenario?>()
     }
-    private val scenarioManager = ScenarioDataManager[project]
 
-    fun resolve(reference: KtReferenceExpression, state: State? = null): Scenario? {
-        if (reference.isRemoved) return null
+    fun resolve(scenarioReference: KtReferenceExpression, boundedState: State? = null): Scenario? {
+        if (scenarioReference.isRemoved || !enabled) return null
 
-        appendWithResolve?.get(reference)?.let { return it }
+        resolvedReferences?.get(scenarioReference)?.let { return it }
 
-        val resolvedReference = reference.resolve()
-        return if (resolvedReference is KtParameter) {
-            val parameterName = resolvedReference.name ?: return null
-            // TODO Maybe make a better search for value of parameter
-            val expression =
-                state?.stateExpression?.argumentExpressionOrDefaultValue(parameterName) as? KtReferenceExpression
-            expression?.let { resolveScenario(it) }
-        } else {
-            resolveScenario(reference)
-        }?.also {
-            appendWithResolve?.set(reference, it)
+        val body = getScenarioBody(scenarioReference, boundedState) ?: return null
+        return resolveScenario(body)?.also {
+            resolvedReferences?.set(scenarioReference, it)
         }
     }
 
-    private fun resolveScenario(expr: KtReferenceExpression) = getScenarioBody(expr)?.let { block ->
-        val file = block.containingFile as? KtFile ?: return null
-        scenarioManager.getScenarios(file)?.firstOrNull { contains(it.innerState, block) }
+    private fun resolveScenario(scenarioBody: KtExpression): Scenario? {
+        val file = scenarioBody.containingFile as? KtFile ?: return null
+        return scenarioService.getScenarios(file)?.firstOrNull { contains(it.innerState, scenarioBody) }
     }
 
-    private fun getScenarioBody(expr: KtReferenceExpression): KtExpression? {
-        when (val resolvedElement = expr.resolve()) {
+    private fun getScenarioBody(scenarioReference: KtReferenceExpression, boundedState: State? = null): KtExpression? {
+        when (val resolvedElement = scenarioReference.resolve()) {
             is KtObjectDeclaration ->
                 return resolvedElement.declarations
                     .filter { it.name == SCENARIO_MODEL_FIELD_NAME && it is KtProperty }
@@ -69,9 +62,18 @@ class ScenarioReferenceResolver(project: Project) : Service(project) {
 
             is KtProperty -> return resolvedElement.initializer
 
+            is KtParameter -> {
+                val parameterName = resolvedElement.name ?: return null
+                // TODO Maybe make a better search for value of parameter
+                val argumentExpression =
+                    boundedState?.stateExpression?.argumentExpressionOrDefaultValue(parameterName) as? KtReferenceExpression
+                return argumentExpression?.let { getScenarioBody(it) }
+            }
+
             else -> {
-                return if (expr is KtCallExpression) {
-                    val constructor = expr.findChildOfType<KtReferenceExpression>()?.resolve() ?: return null
+                return if (scenarioReference is KtCallExpression) {
+                    val constructor =
+                        scenarioReference.findChildOfType<KtReferenceExpression>()?.resolve() ?: return null
                     val ktClass = constructor.getParentOfType<KtClass>(true) ?: return null
                     val body = ktClass.findChildOfType<KtClassBody>() ?: return null
 
