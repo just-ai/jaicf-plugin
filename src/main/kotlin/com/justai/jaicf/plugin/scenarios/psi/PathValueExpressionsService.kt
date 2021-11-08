@@ -11,6 +11,7 @@ import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
+import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.minus
@@ -39,22 +40,15 @@ class PathValueExpressionsService(project: Project) : JaicfService(project) {
 
         fun getInstance(project: Project): PathValueExpressionsService =
             ServiceManager.getService(project, PathValueExpressionsService::class.java)
-
-        operator fun get(element: PsiElement): PathValueExpressionsService? =
-            if (element.isExist) get(element.project)
-            else null
-
-        operator fun get(project: Project): PathValueExpressionsService =
-            ServiceManager.getService(project, PathValueExpressionsService::class.java)
     }
 }
 
-private class PathValueMethodsService(project: Project) : JaicfService(project) {
+class PathValueMethodsService(project: Project) : JaicfService(project) {
 
     val methods
         get() = (jaicfMethods + projectMethods.getValues().flatten()).filter { it.isExist }
 
-    private val jaicfMethods by cached(JaicfVersionTracker.getInstance(project)) {
+    val jaicfMethods by cached(LibraryModificationTracker.getInstance(project)) {
         if (enabled) findUsages(project.allScope() - project.projectScope())
         else emptyList()
     }
@@ -72,5 +66,10 @@ private class PathValueMethodsService(project: Project) : JaicfService(project) 
         return annotationClass?.search(scope)
             ?.mapNotNull { it.element.getParentOfType<KtFunction>(true) }
             ?.distinct() ?: emptyList()
+    }
+
+    companion object {
+        fun getInstance(project: Project): PathValueMethodsService =
+            ServiceManager.getService(project, PathValueMethodsService::class.java)
     }
 }

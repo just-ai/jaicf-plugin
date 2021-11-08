@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
 
-    private val scenarioService = ScenarioDataService[project]
+    private val scenarioService = ScenarioDataService.getInstance(project)
 
     private val resolvedReferences by cached(PsiModificationTracker.MODIFICATION_COUNT) {
         mutableMapOf<KtReferenceExpression, Scenario?>()
@@ -90,17 +90,17 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
     }
 
     companion object {
-        operator fun get(element: PsiElement): ScenarioReferenceResolver? =
-            if (element.isExist) get(element.project)
+        fun getInstance(element: PsiElement): ScenarioReferenceResolver? =
+            if (element.isExist) getInstance(element.project)
             else null
 
-        operator fun get(project: Project): ScenarioReferenceResolver =
+        fun getInstance(project: Project): ScenarioReferenceResolver =
             ServiceManager.getService(project, ScenarioReferenceResolver::class.java)
     }
 }
 
 val Append.scenario
-    get() = ScenarioReferenceResolver[project].resolve(this.referenceToScenario, parentState)
+    get() = ScenarioReferenceResolver.getInstance(project).resolve(this.referenceToScenario, parentState)
 
 val TopLevelAppend.scenario
-    get() = this.referenceToScenario?.let { ScenarioReferenceResolver[project].resolve(it) }
+    get() = this.referenceToScenario?.let { ScenarioReferenceResolver.getInstance(project).resolve(it) }

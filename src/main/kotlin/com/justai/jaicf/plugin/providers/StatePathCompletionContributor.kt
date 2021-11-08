@@ -25,7 +25,7 @@ import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.isComplexStringTemplate
 import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.linter.allStates
-import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions

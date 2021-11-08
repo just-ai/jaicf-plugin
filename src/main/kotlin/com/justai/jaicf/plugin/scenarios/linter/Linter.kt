@@ -27,16 +27,16 @@ val State.usages: List<KtExpression>
 
 val Scenario.appendingStates: List<State>
     get() {
-        val resolver = ScenarioReferenceResolver[project]
-        return ScenarioDataService[project].getScenarios().flatMap { it.allAppends }
+        val resolver = ScenarioReferenceResolver.getInstance(project)
+        return ScenarioDataService.getInstance(project).getScenarios().flatMap { it.allAppends }
             .filter { (reference, state) -> reference != null && resolver.resolve(reference, state) == this }
             .map { it.second }
     }
 
 val Project.rootScenarios: List<Scenario>
     get() {
-        val resolver = ScenarioReferenceResolver[this]
-        val scenarios = ScenarioDataService[this].getScenarios()
+        val resolver = ScenarioReferenceResolver.getInstance(this)
+        val scenarios = ScenarioDataService.getInstance(this).getScenarios()
         val appendingScenarios = scenarios
             .flatMap { it.allAppends }
             .mapNotNull { (reference, _) -> reference?.let { resolver.resolve(it) } }
@@ -46,7 +46,7 @@ val Project.rootScenarios: List<Scenario>
 
 val Scenario.allAppends
     get() = nestedStates.flatMap { state -> state.appends.map { it.referenceToScenario to state } } +
-        TopLevelAppendDataManager[project].getAppends().map { it.referenceToScenario to innerState }
+        TopLevelAppendDataManager.getInstance(project).getAppends().map { it.referenceToScenario to innerState }
 
 private fun State.allStates(previousStates: MutableList<State> = mutableListOf()): List<State> {
     if (this in previousStates) return emptyList()
@@ -65,7 +65,7 @@ private fun State.allStates(previousStates: MutableList<State> = mutableListOf()
 
 val Scenario.appends: List<TopLevelAppend>
     get() {
-        val resolver = ScenarioReferenceResolver[project]
-        return TopLevelAppendDataManager[project].getAppends()
+        val resolver = ScenarioReferenceResolver.getInstance(project)
+        return TopLevelAppendDataManager.getInstance(project).getAppends()
             .filter { append -> append.receiverExpression?.let { resolver.resolve(it) } == this }
     }

@@ -7,7 +7,7 @@ import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.StatePathExpression
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.holderExpression
-import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState

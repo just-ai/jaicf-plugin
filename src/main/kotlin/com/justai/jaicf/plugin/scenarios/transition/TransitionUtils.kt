@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.scenarios.transition
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
 import com.justai.jaicf.plugin.scenarios.linter.appendingStates
-import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.psi.dto.root
