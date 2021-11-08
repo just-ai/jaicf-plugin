@@ -18,7 +18,7 @@ import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
 import com.justai.jaicf.plugin.scenarios.linter.usages
-import com.justai.jaicf.plugin.scenarios.locator.framingState
+import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument

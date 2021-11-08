@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin.scenarios.locator
+package com.justai.jaicf.plugin.scenarios.linter
 
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.isRemoved
@@ -12,8 +12,7 @@ val PsiElement.framingState: State?
             return null
 
         val file = this.containingFile as? KtFile ?: return null
-        val scenarios1 = ScenarioDataService[this]?.getScenarios(file)
-        val scenarios = scenarios1 ?: return null
+        val scenarios = ScenarioDataService.getInstance(this)?.getScenarios(file) ?: return null
 
         return scenarios
             .firstOrNull { contains(it.innerState, this) }

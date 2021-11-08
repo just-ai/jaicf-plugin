@@ -27,13 +27,6 @@ class VersionService(project: Project) {
         fun getInstance(element: PsiElement): VersionService? =
             if (element.isExist) element.project.getService(VersionService::class.java)
             else null
-
-        operator fun get(project: Project): VersionService =
-            project.getService(VersionService::class.java)
-
-        operator fun get(element: PsiElement): VersionService? =
-            if (element.isExist) element.project.getService(VersionService::class.java)
-            else null
     }
 }
 

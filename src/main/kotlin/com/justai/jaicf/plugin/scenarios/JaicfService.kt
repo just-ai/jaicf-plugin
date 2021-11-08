@@ -9,7 +9,7 @@ import com.justai.jaicf.plugin.utils.isJaicfSupported
 abstract class JaicfService(protected val project: Project) {
 
     protected val enabled: Boolean by cached(JaicfVersionTracker.getInstance(project)) {
-        VersionService[project].isJaicfSupported
+        VersionService.getInstance(project).isJaicfSupported
     }
 
     fun <T> cached(vararg dependencies: Any, valueProvider: () -> (T)) =

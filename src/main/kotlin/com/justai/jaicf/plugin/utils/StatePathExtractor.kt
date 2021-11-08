@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
 val KtCallExpression.innerPathExpressions: List<StatePathExpression>
     get() =
-        if (VersionService[project].isJaicfSupported) {
+        if (VersionService.getInstance(project).isJaicfSupported) {
             val expressions =
                 argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
@@ -39,7 +39,7 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
 
 val KtBinaryExpression.innerPathExpressions: List<StatePathExpression>
     get() {
-        return if (VersionService[project].isJaicfSupported) {
+        return if (VersionService.getInstance(project).isJaicfSupported) {
             val operation = getChildOfType<KtOperationReferenceExpression>() ?: return emptyList()
             val function = operation.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
@@ -93,7 +93,7 @@ val PsiElement.boundedPathExpression: StatePathExpression?
             }
 
             is KtValueArgument -> {
-                return if (VersionService[project].isJaicfSupported) {
+                return if (VersionService.getInstance(project).isJaicfSupported) {
                     if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true) {
                         val bound = boundedElement.getBoundedCallExpressionOrNull() ?: return null
                         val argumentExpression = boundedElement.getArgumentExpression() ?: return null
@@ -121,7 +121,7 @@ val PsiElement.pathExpressionsOfBoundedBlock: List<StatePathExpression>
 
         return when (boundedElement) {
             is KtDotQualifiedExpression ->
-                if (VersionService[project].isJaicfSupported)
+                if (VersionService.getInstance(project).isJaicfSupported)
                     boundedElement.getChildOfType<KtCallExpression>()?.let {
                         if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
                         else null

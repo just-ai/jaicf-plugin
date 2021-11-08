@@ -7,7 +7,7 @@ import com.justai.jaicf.plugin.utils.VersionService
 
 class JaicfVersionTracker(project: Project) : SimpleModificationTracker() {
 
-    private val versionService = VersionService[project]
+    private val versionService = VersionService.getInstance(project)
 
     private var lastVersion: Version? = null
 
