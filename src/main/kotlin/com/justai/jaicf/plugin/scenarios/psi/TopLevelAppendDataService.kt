@@ -15,7 +15,7 @@ import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 
-class TopLevelAppendDataManager(project: Project) : JaicfService(project) {
+class TopLevelAppendDataService(project: Project) : JaicfService(project) {
 
     private val appendMethod by cachedIfEnabled(JaicfVersionTracker.getInstance(project)) {
         findClass(SCENARIO_PACKAGE, SCENARIO_EXTENSIONS_CLASS_NAME, project)
@@ -38,11 +38,11 @@ class TopLevelAppendDataManager(project: Project) : JaicfService(project) {
             ?: emptyList()
 
     companion object {
-        fun getInstance(element: PsiElement): TopLevelAppendDataManager? =
+        fun getInstance(element: PsiElement): TopLevelAppendDataService? =
             if (element.isExist) getInstance(element.project)
             else null
 
-        fun getInstance(project: Project): TopLevelAppendDataManager =
-            ServiceManager.getService(project, TopLevelAppendDataManager::class.java)
+        fun getInstance(project: Project): TopLevelAppendDataService =
+            ServiceManager.getService(project, TopLevelAppendDataService::class.java)
     }
 }
