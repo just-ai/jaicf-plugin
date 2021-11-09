@@ -80,7 +80,7 @@ val State.absolutePath: StatePath?
 
         val parentPath = parent.absolutePath ?: return null
         val currentName = name ?: return null
-        return parentPath + Transition.GoState(currentName.withoutLeadSlashes())
+        return parentPath + Transition.StateId(currentName.withoutLeadSlashes())
     }
 
 val State.fullPath: String

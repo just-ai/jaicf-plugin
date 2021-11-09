@@ -40,7 +40,7 @@ sealed class Lexeme(open val identifier: String) {
 
         object Current : Transition(".")
 
-        data class GoState(override val identifier: String) : Transition(identifier) {
+        data class StateId(override val identifier: String) : Transition(identifier) {
             fun transitToOneOf(states: List<State>) =
                 states.firstOrNull { canTransitTo(it) }
 
@@ -61,7 +61,7 @@ sealed class Lexeme(open val identifier: String) {
                 path == Transition.Revert.identifier -> Transition.Revert
             path.startsWith(Transition.Current.identifier + Slash.identifier) ||
                 path == Transition.Current.identifier -> Transition.Current
-            else -> Transition.GoState(path.substringBefore(Slash.identifier))
+            else -> Transition.StateId(path.substringBefore(Slash.identifier))
         }
     }
 }

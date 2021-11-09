@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.psi.KtFile
 
 abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
 
-    abstract fun visitState(visitedState: State)
+    abstract fun visitState(state: State)
 
     override fun visitFile(file: PsiFile) {
         if (!checkAndNotifyVersion(file))

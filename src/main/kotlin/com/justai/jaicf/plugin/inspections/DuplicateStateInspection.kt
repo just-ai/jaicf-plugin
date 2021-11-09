@@ -6,7 +6,7 @@ import com.justai.jaicf.plugin.nameReferenceExpression
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.GoState
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.StateId
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
 import com.justai.jaicf.plugin.scenarios.transition.fullPath
 import com.justai.jaicf.plugin.scenarios.transition.states
@@ -21,14 +21,14 @@ class DuplicateStateInspection : LocalInspectionTool() {
 
     class DuplicateStateVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
 
-        override fun visitState(visitedState: State) {
-            val stateName = visitedState.name ?: return
-            val parents = visitedState.transit(Revert).states().filter { it !== visitedState }
+        override fun visitState(state: State) {
+            val stateName = state.name ?: return
+            val parents = state.transit(Revert).states().filter { it !== state }
 
             parents
                 .flatMap { it.allStates }
-                .filter { it !== visitedState && it.name == stateName }
-                .ifNotEmpty { registerGenericError(visitedState, this) }
+                .filter { it !== state && it.name == stateName }
+                .ifNotEmpty { registerGenericError(state, this) }
         }
 
         private fun registerGenericError(state: State, duplicates: List<State>) {
@@ -44,5 +44,3 @@ class DuplicateStateInspection : LocalInspectionTool() {
         }
     }
 }
-
-private fun State.transitTo(stateName: String) = transit(GoState(stateName))
