@@ -3,7 +3,6 @@ package com.justai.jaicf.plugin.scenarios.linter
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.findChildOfType
 import com.justai.jaicf.plugin.isExist
@@ -15,6 +14,7 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
 import com.justai.jaicf.plugin.scenarios.psi.dto.contains
+import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass

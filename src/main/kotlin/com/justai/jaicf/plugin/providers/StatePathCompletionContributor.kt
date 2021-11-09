@@ -18,20 +18,20 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme
-import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
 import com.justai.jaicf.plugin.isComplexStringTemplate
-import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
+import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
-import com.justai.jaicf.plugin.stringValueOrNull
 import com.justai.jaicf.plugin.scenarios.transition.withoutLeadSlashes
+import com.justai.jaicf.plugin.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -90,10 +90,10 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
         !(
-                path.lexemes.isNotEmpty() &&
-                        path.lexemes.last() is Lexeme.Transition &&
-                        path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
-                )
+            path.lexemes.isNotEmpty() &&
+                path.lexemes.last() is Lexeme.Transition &&
+                path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
+            )
 
     private fun String.substringBeforeCaret() = substringBefore("IntellijIdeaRulezzz")
 

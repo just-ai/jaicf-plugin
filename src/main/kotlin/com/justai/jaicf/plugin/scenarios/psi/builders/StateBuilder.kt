@@ -1,9 +1,5 @@
 package com.justai.jaicf.plugin.scenarios.psi.builders
 
-import com.justai.jaicf.plugin.utils.STATE_BODY_ANNOTATION_NAME
-import com.justai.jaicf.plugin.utils.STATE_DECLARATION_ANNOTATION_NAME
-import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_ARGUMENT_NAME
-import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_NAME
 import com.justai.jaicf.plugin.argumentExpression
 import com.justai.jaicf.plugin.argumentExpressionsByAnnotation
 import com.justai.jaicf.plugin.argumentExpressionsOrDefaultValuesByAnnotation
@@ -19,6 +15,10 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.ExpressionIdent
 import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.NoIdentifier
 import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.PredefinedIdentifier
 import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.STATE_BODY_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_DECLARATION_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_NAME
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression

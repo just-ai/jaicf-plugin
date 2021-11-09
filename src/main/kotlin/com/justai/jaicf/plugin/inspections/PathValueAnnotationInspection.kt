@@ -2,9 +2,9 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import com.justai.jaicf.plugin.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtParameter
@@ -35,7 +35,7 @@ class PathValueAnnotationInspection : LocalInspectionTool() {
         private fun notAnnotatedPathValueWithFlag(annotatedElement: KtAnnotated) =
             annotatedElement.annotationEntries.none {
                 it.shortName?.identifier == PATH_ARGUMENT_ANNOTATION_NAME &&
-                        it.argumentExpressionOrDefaultValue("shouldUseLiterals")?.text != "false"
+                    it.argumentExpressionOrDefaultValue("shouldUseLiterals")?.text != "false"
             }
 
         companion object {
