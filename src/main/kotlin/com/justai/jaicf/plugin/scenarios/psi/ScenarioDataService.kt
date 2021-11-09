@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.scenarios.psi
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.isExist
+import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker

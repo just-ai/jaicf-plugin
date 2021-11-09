@@ -5,7 +5,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
-import com.justai.jaicf.plugin.isRemoved
+import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.psi.KtFile
 
 class FileModificationTracker(project: Project, val originalFile: KtFile) : SimpleModificationTracker() {

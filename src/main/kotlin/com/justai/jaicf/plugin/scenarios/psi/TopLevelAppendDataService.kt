@@ -4,7 +4,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import com.justai.jaicf.plugin.isExist
+import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildTopLevelAppend
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker

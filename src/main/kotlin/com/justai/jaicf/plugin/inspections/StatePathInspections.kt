@@ -20,7 +20,7 @@ import com.justai.jaicf.plugin.scenarios.transition.fullPath
 import com.justai.jaicf.plugin.scenarios.transition.states
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.scenarios.transition.transitToState
-import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.stringValueOrNull
 
 class StatePathInspection : LocalInspectionTool() {
 

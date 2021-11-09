@@ -2,8 +2,8 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.argumentExpressionOrDefaultValue
-import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
+import com.justai.jaicf.plugin.utils.stringValueOrNull
 import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression

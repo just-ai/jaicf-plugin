@@ -8,9 +8,9 @@ import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.justai.jaicf.plugin.asLeaf
-import com.justai.jaicf.plugin.findChildOfType
-import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
+import com.justai.jaicf.plugin.utils.asLeaf
+import com.justai.jaicf.plugin.utils.findChildOfType
+import com.justai.jaicf.plugin.utils.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.providers.Icons.GO_TO_STATES

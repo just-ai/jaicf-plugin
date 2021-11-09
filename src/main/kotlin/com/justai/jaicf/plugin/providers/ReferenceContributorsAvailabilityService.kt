@@ -2,7 +2,7 @@ package com.justai.jaicf.plugin.providers
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.isExist
+import com.justai.jaicf.plugin.utils.isExist
 
 class ReferenceContributorsAvailabilityService {
 

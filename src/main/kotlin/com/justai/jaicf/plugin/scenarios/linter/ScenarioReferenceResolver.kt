@@ -4,10 +4,10 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.argumentExpressionOrDefaultValue
-import com.justai.jaicf.plugin.findChildOfType
-import com.justai.jaicf.plugin.isExist
-import com.justai.jaicf.plugin.isRemoved
+import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
+import com.justai.jaicf.plugin.utils.findChildOfType
+import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.isRemoved
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.Append
