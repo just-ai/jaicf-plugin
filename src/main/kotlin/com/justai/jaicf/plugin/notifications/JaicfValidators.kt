@@ -7,7 +7,8 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.justai.jaicf.plugin.scenarios.psi.PathValueMethodsService
 import com.justai.jaicf.plugin.utils.VersionService
-import com.justai.jaicf.plugin.utils.isJaicfSupported
+import com.justai.jaicf.plugin.utils.isJaicfInclude
+import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
 
 class JaicfUnsupportedValidator(private val project: Project) {
 
@@ -19,20 +20,19 @@ class JaicfUnsupportedValidator(private val project: Project) {
     private val versionService = VersionService.getInstance(project)
 
     fun validateAndNotify(): Boolean {
-        if (versionService.isJaicfSupported) {
-            clear()
-            return true
+        if (versionService.isJaicfInclude && !versionService.isSupportedJaicfInclude) {
+            showIfNotShowed()
+            return false
         }
 
-        if (!showed) {
-            show()
-            showed = true
-        }
-
-        return false
+        clear()
+        return true
     }
 
-    private fun show() {
+    private fun showIfNotShowed() {
+        if (showed)
+            return
+
         notificationGroup
             .createNotification(
                 "Incompatible version of Jaicf",
@@ -41,6 +41,7 @@ class JaicfUnsupportedValidator(private val project: Project) {
                 NotificationType.WARNING
             )
             .notify(project)
+        showed = true
     }
 
     private fun clear() {
@@ -60,23 +61,22 @@ class JaicfSourcesMissedValidator(private val project: Project) {
 
     private var showed = false
 
-    private val service = PathValueMethodsService.getInstance(project)
+    private val versionService = VersionService.getInstance(project)
+    private val valueMethodsService = PathValueMethodsService.getInstance(project)
 
     fun validateAndNotify(): Boolean {
-        if (service.jaicfMethods.isNotEmpty()) {
-            clear()
-            return true
+        if (versionService.isSupportedJaicfInclude && valueMethodsService.jaicfMethods.isEmpty()) {
+            showIfNotShowed()
+            return false
         }
 
-        if (!showed) {
-            show()
-            showed = true
-        }
-
-        return false
+        clear()
+        return true
     }
 
-    private fun show() {
+    private fun showIfNotShowed() {
+        if (showed) return
+
         notificationGroup
             .createNotification(
                 "Missed Jaicf sources",
@@ -85,6 +85,7 @@ class JaicfSourcesMissedValidator(private val project: Project) {
                 NotificationType.ERROR
             )
             .notify(project)
+        showed = true
     }
 
     private fun clear() {

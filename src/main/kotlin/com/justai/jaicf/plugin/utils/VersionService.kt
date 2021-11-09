@@ -47,7 +47,7 @@ data class Version(val version: String) {
         }
 }
 
-val VersionService.isJaicfSupported: Boolean
+val VersionService.isSupportedJaicfInclude: Boolean
     get() = jaicf?.let { it >= Version("1.1.3") } == true
 
 val VersionService.isJaicfInclude: Boolean

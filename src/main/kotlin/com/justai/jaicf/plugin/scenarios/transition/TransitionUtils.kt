@@ -1,12 +1,12 @@
 package com.justai.jaicf.plugin.scenarios.transition
 
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
 import com.justai.jaicf.plugin.scenarios.linter.appendingStates
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.psi.dto.root
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.OutOfStateBoundUsage
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
@@ -63,7 +63,6 @@ fun State.transit(path: StatePath) = path.transitions
             UnresolvedPath -> return NoState
         }
     }
-
 
 val State.roots: List<State>
     get() {

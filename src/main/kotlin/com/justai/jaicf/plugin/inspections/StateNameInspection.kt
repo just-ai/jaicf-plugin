@@ -3,17 +3,17 @@ package com.justai.jaicf.plugin.inspections
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Current
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
-import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier
 import com.justai.jaicf.plugin.scenarios.psi.dto.identifierReference
 import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
 import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Current
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
 
 class StateNameInspection : LocalInspectionTool() {
 

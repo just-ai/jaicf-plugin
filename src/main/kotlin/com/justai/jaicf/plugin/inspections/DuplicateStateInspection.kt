@@ -2,12 +2,12 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.GoState
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
 import com.justai.jaicf.plugin.nameReferenceExpression
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.GoState
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
 import com.justai.jaicf.plugin.scenarios.transition.fullPath
 import com.justai.jaicf.plugin.scenarios.transition.states
 import com.justai.jaicf.plugin.scenarios.transition.transit
