@@ -14,8 +14,8 @@ import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.providers.Icons.GO_TO_STATES
-import com.justai.jaicf.plugin.scenarios.linter.usages
 import com.justai.jaicf.plugin.scenarios.linter.framingState
+import com.justai.jaicf.plugin.scenarios.linter.usages
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.absolutePath

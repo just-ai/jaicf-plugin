@@ -4,6 +4,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import java.lang.Integer.min
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
 import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
@@ -31,7 +32,6 @@ import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.ifEmpty
-import java.lang.Integer.min
 
 fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
@@ -122,19 +122,18 @@ inline fun <reified T : PsiElement> PsiElement.findChildrenOfType(): Collection<
     return PsiTreeUtil.findChildrenOfType(this, T::class.java)
 }
 
-
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
     try {
         isExist && callName() == funName
-                && isReceiverInheritedOf(receiver)
-                && (parameters?.let { it == parametersTypes } ?: true)
+            && isReceiverInheritedOf(receiver)
+            && (parameters?.let { it == parametersTypes } ?: true)
     } catch (e: NullPointerException) {
         false
     }
 
 fun KtCallExpression.isReceiverInheritedOf(baseClass: FqName) =
     receiverFqName == baseClass ||
-            receiverType()?.supertypes()?.any { it.fqName == baseClass } ?: false
+        receiverType()?.supertypes()?.any { it.fqName == baseClass } ?: false
 
 val KtCallExpression.receiverFqName: FqName?
     get() = receiverType()?.fqName ?: declaration?.fqName?.parent()
@@ -213,7 +212,8 @@ fun KtValueArgument.parameter(): KtParameter? {
 val KtValueArgument.definedIdentifier: String?
     get() = getArgumentName()?.asName?.identifier
 
-fun KtValueArgument.getBoundedCallExpressionOrNull() = getParentOfType<KtCallExpression>(true)
+val KtValueArgument.boundedCallExpressionOrNull
+    get() = getParentOfType<KtCallExpression>(true)
 
 val PsiElement.isRemoved: Boolean
     get() = !this.isValid || containingFile == null

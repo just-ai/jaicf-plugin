@@ -2,13 +2,13 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
-import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.StatePathExpression
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.holderExpression
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.OutOfStateBoundUsage

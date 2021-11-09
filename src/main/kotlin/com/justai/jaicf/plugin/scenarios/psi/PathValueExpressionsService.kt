@@ -3,13 +3,13 @@ package com.justai.jaicf.plugin.scenarios.psi
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.SearchScope
-import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
-import com.justai.jaicf.plugin.utils.PLUGIN_PACKAGE
 import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
+import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.PLUGIN_PACKAGE
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.search.fileScope

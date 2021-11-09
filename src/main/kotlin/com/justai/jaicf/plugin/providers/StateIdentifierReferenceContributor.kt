@@ -12,14 +12,14 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
-import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
+import com.justai.jaicf.plugin.boundedCallExpressionOrNull
 import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.identifier
 import com.justai.jaicf.plugin.rangeToEndOf
-import com.justai.jaicf.plugin.scenarios.linter.usages
 import com.justai.jaicf.plugin.scenarios.linter.framingState
+import com.justai.jaicf.plugin.scenarios.linter.usages
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
+import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 
@@ -50,8 +50,6 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
             }
         )
     }
-
-
 }
 
 class MultiPsiReference(
@@ -79,4 +77,4 @@ class MultiPsiReference(
 }
 
 val KtValueArgument.isNameOfStateDeclaration: Boolean
-    get() = getBoundedCallExpressionOrNull()?.isStateDeclaration == true && identifier == STATE_NAME_ARGUMENT_NAME
+    get() = boundedCallExpressionOrNull?.isStateDeclaration == true && identifier == STATE_NAME_ARGUMENT_NAME
