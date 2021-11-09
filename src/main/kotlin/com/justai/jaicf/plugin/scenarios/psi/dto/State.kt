@@ -37,7 +37,7 @@ sealed class StateIdentifier {
 
     data class NoIdentifier(
         val parentCallExpression: KtCallExpression,
-        val errorMessage: String = "",
+        val errorCauseMessage: String = "",
     ) : StateIdentifier() {
         override fun resolveText(): String? = null
     }
@@ -58,6 +58,9 @@ val State.root: State
 val State.isTopState: Boolean
     get() = parent === scenario.innerState
 
+/**
+ * A value indicating that the stack is root. For example, the internal scenario state.
+ */
 val State.isRootState: Boolean
     get() = this === scenario.innerState
 
