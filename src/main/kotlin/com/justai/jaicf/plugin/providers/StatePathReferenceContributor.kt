@@ -14,8 +14,8 @@ import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.isSimpleStringTemplate
-import com.justai.jaicf.plugin.rangeToEndOf
+import com.justai.jaicf.plugin.utils.isSimpleStringTemplate
+import com.justai.jaicf.plugin.utils.rangeToEndOf
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme
 import com.justai.jaicf.plugin.scenarios.transition.StatePath
@@ -23,7 +23,7 @@ import com.justai.jaicf.plugin.scenarios.transition.plus
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.scenarios.transition.transitionsWithRanges
-import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 class StatePathReferenceContributor : PsiReferenceContributor() {

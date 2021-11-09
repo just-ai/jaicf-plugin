@@ -13,7 +13,7 @@ import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
-import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 
 fun transitToState(pathExpression: KtExpression): TransitionResult {

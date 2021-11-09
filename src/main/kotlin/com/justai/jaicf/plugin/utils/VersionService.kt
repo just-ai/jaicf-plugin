@@ -3,7 +3,6 @@ package com.justai.jaicf.plugin.utils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.isExist
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 
 class VersionService(project: Project) {
