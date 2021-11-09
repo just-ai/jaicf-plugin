@@ -158,6 +158,14 @@ fun PsiElement.getBoundedValueArgumentOrNull() =
 fun PsiElement.getBoundedCallExpressionOrNull(vararg stopAt: Class<out PsiElement>) =
     getParentOfType<KtCallExpression>(true, *stopAt)
 
+/**
+ * Returns first parent of type [KtLambdaArgument] within this [PsiElement] or null.
+ *
+ * @return null if we stopped by finding any of [stopAt] classes or parent stack exceeded.
+ * */
+fun PsiElement.getBoundedLambdaArgumentOrNull(vararg stopAt: Class<out PsiElement>) =
+    getParentOfType<KtLambdaArgument>(true, *stopAt)
+
 fun PsiElement.getFirstBoundedElement(vararg elements: Class<out PsiElement>): PsiElement? {
     var currentParent = parent
     while (currentParent != null) {
