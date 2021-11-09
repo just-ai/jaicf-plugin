@@ -50,7 +50,7 @@ class TransitionService(project: Project) : JaicfService(project) {
                 else StatesFound(it)
             }
 
-            is Transition.GoState -> {
+            is Transition.StateId -> {
                 transition.transitToOneOf(state.allStates)
                     ?.let { StateFound(it) }
                     ?: if (state.isRootState) {
