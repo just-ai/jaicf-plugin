@@ -20,6 +20,8 @@
         <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfSourcesMissedValidator"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfUnsupportedValidator"/>
 
+        <projectService serviceImplementation="com.justai.jaicf.plugin.utils.ConstantResolver"/>
+
         <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
                       order="first"/>
 

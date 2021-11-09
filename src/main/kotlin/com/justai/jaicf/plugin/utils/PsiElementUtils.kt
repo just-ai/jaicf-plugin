@@ -7,10 +7,10 @@ import com.intellij.psi.util.PsiTreeUtil
 import java.lang.Integer.min
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
-import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.nj2k.postProcessing.type
+import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -25,8 +25,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
-import org.jetbrains.kotlin.psi.psiUtil.isPlain
-import org.jetbrains.kotlin.psi.psiUtil.plainContent
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
@@ -37,9 +35,7 @@ fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
 
 val KtExpression.stringValueOrNull: String?
-    get() =
-        if (this is KtStringTemplateExpression && this.isPlain()) this.plainContent
-        else constantValueOrNull()?.value?.toString()
+    get() = ConstantResolver.getInstance(this)?.resolveExpression(this)
 
 val KtExpression.isSimpleStringTemplate: Boolean
     get() = this is KtStringTemplateExpression && children.size <= 1
@@ -231,3 +227,5 @@ fun PsiElement.rangeToEndOf(parent: PsiElement): TextRange {
     if (this === parent) return TextRange(0, textLength)
     return TextRange(0, parent.textLength - textRangeInParent.startOffset)
 }
+
+val KtBinaryExpression.operands get() = listOf(children[0], children[2])
