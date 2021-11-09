@@ -1,6 +1,7 @@
 package com.justai.jaicf.plugin.utils
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker.NEVER_CHANGED
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
@@ -24,14 +25,14 @@ class CachedValueDelegate<T>(private val cachedValue: CachedValue<T>) {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T = cachedValue.value
 }
 
-class LiveMapByFiles<T>(val project: Project, private val lambda: (KtFile) -> (T)) {
+class LiveMapByFiles<T>(val project: Project, private val valueProvider: (KtFile) -> (T)) {
 
     private val cachedMap by project.cached(KtFilesModificationTracker(project)) {
         val allFiles =
             FileTypeIndex.getFiles(KotlinFileType.INSTANCE, project.projectScope()).mapNotNull { project.getKtFile(it) }
                 .mapNotNull { it.originalFile as? KtFile }
         val mapSnapshot = mapOfCachedValue
-        val newMap = allFiles.associateWith { mapSnapshot[it] ?: cachedVal(it) }
+        val newMap = allFiles.associateWith { mapSnapshot[it] ?: createCachedValue(it) }
         mapOfCachedValue = newMap
         newMap
     }
@@ -43,10 +44,10 @@ class LiveMapByFiles<T>(val project: Project, private val lambda: (KtFile) -> (T
 
     fun getValues() = cachedMap.values.map { it.value }
 
-    private fun cachedVal(file: KtFile) =
+    private fun createCachedValue(file: KtFile) =
         CachedValuesManager.getManager(project).createCachedValue {
-            val value = if (file.isExist) lambda(file) else null
-            val tracker = FileModificationTracker.getInstance(file)
+            val value = if (file.isExist) valueProvider(file) else null
+            val tracker = FileModificationTracker.getInstance(file) ?: NEVER_CHANGED
             Result.create(value, tracker)
         }
 }
