@@ -20,7 +20,7 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
 import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.isComplexStringTemplate
+import com.justai.jaicf.plugin.utils.isComplexStringTemplate
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
@@ -31,7 +31,7 @@ import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.scenarios.transition.withoutLeadSlashes
-import com.justai.jaicf.plugin.stringValueOrNull
+import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 

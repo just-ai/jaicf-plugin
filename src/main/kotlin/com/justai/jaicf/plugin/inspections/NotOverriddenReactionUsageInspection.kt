@@ -3,9 +3,9 @@ package com.justai.jaicf.plugin.inspections
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.Logger
-import com.justai.jaicf.plugin.argumentConstantValue
-import com.justai.jaicf.plugin.declaration
-import com.justai.jaicf.plugin.getMethodAnnotations
+import com.justai.jaicf.plugin.utils.argumentConstantValue
+import com.justai.jaicf.plugin.utils.declaration
+import com.justai.jaicf.plugin.utils.getMethodAnnotations
 import com.justai.jaicf.plugin.utils.USES_REACTION_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.USES_REACTION_METHOD_ARGUMENT_NAME
 import com.justai.jaicf.plugin.utils.reactionsClassFqName

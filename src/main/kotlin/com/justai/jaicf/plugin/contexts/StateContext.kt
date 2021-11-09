@@ -2,8 +2,8 @@ package com.justai.jaicf.plugin.contexts
 
 import com.intellij.codeInsight.template.TemplateActionContext
 import com.intellij.codeInsight.template.TemplateContextType
-import com.justai.jaicf.plugin.boundedCallExpressionOrNull
-import com.justai.jaicf.plugin.getBoundedLambdaArgumentOrNull
+import com.justai.jaicf.plugin.utils.boundedCallExpressionOrNull
+import com.justai.jaicf.plugin.utils.getBoundedLambdaArgumentOrNull
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import org.jetbrains.kotlin.psi.KtCallExpression
 

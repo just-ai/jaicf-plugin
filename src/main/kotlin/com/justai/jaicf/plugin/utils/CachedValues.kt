@@ -6,7 +6,6 @@ import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
-import com.justai.jaicf.plugin.isExist
 import com.justai.jaicf.plugin.trackers.FileModificationTracker
 import com.justai.jaicf.plugin.trackers.KtFilesModificationTracker
 import kotlin.reflect.KProperty

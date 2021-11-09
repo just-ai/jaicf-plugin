@@ -9,7 +9,7 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.justai.jaicf.plugin.StatePathExpression
 import com.justai.jaicf.plugin.innerPathExpressions
-import com.justai.jaicf.plugin.isExist
+import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.notifications.checkAndNotify
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.State

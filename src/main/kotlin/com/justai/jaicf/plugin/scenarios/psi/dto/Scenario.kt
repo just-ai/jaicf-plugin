@@ -2,7 +2,7 @@ package com.justai.jaicf.plugin.scenarios.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.isOverride
+import com.justai.jaicf.plugin.utils.isOverride
 import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
 import com.justai.jaicf.plugin.utils.ScenarioPackageFqName
