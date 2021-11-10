@@ -2,7 +2,6 @@ package com.justai.jaicf.plugin.scenarios.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
@@ -11,6 +10,7 @@ import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import com.justai.jaicf.plugin.utils.SCENARIO_EXTENSIONS_CLASS_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_PACKAGE
+import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile

@@ -1,7 +1,6 @@
 package com.justai.jaicf.plugin.scenarios.linter
 
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService
@@ -13,6 +12,7 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.nestedStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.receiverExpression
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transitToState
+import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.psi.KtExpression
 
 val State.allStates
