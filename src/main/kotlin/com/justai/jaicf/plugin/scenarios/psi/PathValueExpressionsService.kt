@@ -3,13 +3,13 @@ package com.justai.jaicf.plugin.scenarios.psi
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.SearchScope
-import com.justai.jaicf.plugin.utils.isExist
-import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.PLUGIN_PACKAGE
+import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.pathExpressionsOfBoundedBlock
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.search.fileScope
@@ -27,7 +27,7 @@ class PathValueExpressionsService(project: Project) : JaicfService(project) {
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }
             .flatMap { it.pathExpressionsOfBoundedBlock }
-            .map { it.pathExpression }
+            .map { it.declaration }
     }
 
     fun getExpressions() = expressionsMap.getValues().flatten()
@@ -47,7 +47,7 @@ class PathValueMethodsService(project: Project) : JaicfService(project) {
     val methods
         get() = (jaicfMethods + projectMethods.getValues().flatten()).filter { it.isExist }
 
-    val jaicfMethods by cached(LibraryModificationTracker.getInstance(project)) {
+    val jaicfMethods: List<KtFunction> by cached(LibraryModificationTracker.getInstance(project)) {
         if (enabled) findUsages(project.allScope() - project.projectScope())
         else emptyList()
     }

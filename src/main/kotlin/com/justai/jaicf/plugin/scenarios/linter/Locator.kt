@@ -1,9 +1,9 @@
 package com.justai.jaicf.plugin.scenarios.linter
 
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.utils.isRemoved
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.psi.KtFile
 
 val PsiElement.framingState: State?

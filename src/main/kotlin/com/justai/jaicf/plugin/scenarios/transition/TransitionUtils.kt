@@ -16,11 +16,7 @@ import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedP
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 
-fun transitToState(pathExpression: KtExpression): TransitionResult {
-    val framingState = pathExpression.framingState ?: return OutOfStateBoundUsage
-    val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return UnresolvedPath
-    return framingState.transit(statePath)
-}
+fun transitToState(pathExpression: KtExpression) = transitToState(pathExpression, pathExpression)
 
 fun transitToState(boundExpression: KtExpression, pathExpression: KtExpression): TransitionResult {
     val framingState = boundExpression.framingState ?: return OutOfStateBoundUsage

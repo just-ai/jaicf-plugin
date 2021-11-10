@@ -8,7 +8,7 @@ import com.intellij.psi.PsiTreeChangeEvent
 import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.psi.KtFile
 
-class FileModificationTracker(project: Project, val originalFile: KtFile) : SimpleModificationTracker() {
+class FileModificationTracker(project: Project, val file: KtFile) : SimpleModificationTracker() {
 
     init {
         PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener()) { }
@@ -16,8 +16,8 @@ class FileModificationTracker(project: Project, val originalFile: KtFile) : Simp
 
     private inner class PsiChangeListener : PsiTreeChangeAdapter() {
         override fun childrenChanged(event: PsiTreeChangeEvent) {
-            val file = event.file?.originalFile as? KtFile ?: return
-            if (file == originalFile) incModificationCount()
+            val changedFile = event.file?.originalFile as? KtFile ?: return
+            if (changedFile == file) incModificationCount()
         }
     }
 

@@ -12,10 +12,6 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
-import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.utils.isSimpleStringTemplate
-import com.justai.jaicf.plugin.utils.rangeToEndOf
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme
 import com.justai.jaicf.plugin.scenarios.transition.StatePath
@@ -23,6 +19,10 @@ import com.justai.jaicf.plugin.scenarios.transition.plus
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.scenarios.transition.transitionsWithRanges
+import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
+import com.justai.jaicf.plugin.utils.boundedPathExpression
+import com.justai.jaicf.plugin.utils.isSimpleStringTemplate
+import com.justai.jaicf.plugin.utils.rangeToEndOf
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
@@ -39,8 +39,8 @@ class StatePathReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
 
-        val statePathExpression = element.boundedPathExpression as? BoundedExpression ?: return emptyArray()
-        val pathExpression = statePathExpression.pathExpression
+        val statePathExpression = element.boundedPathExpression as? Joined ?: return emptyArray()
+        val pathExpression = statePathExpression.declaration
         val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return emptyArray()
 
         return if (pathExpression.isSimpleStringTemplate) {
