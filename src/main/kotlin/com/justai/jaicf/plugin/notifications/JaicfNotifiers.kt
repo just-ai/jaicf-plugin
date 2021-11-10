@@ -8,26 +8,13 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
 
-class JaicfUnsupportedNotifier(private val project: Project) {
-
-    private var showed = false
+class JaicfUnsupportedNotifier(private val project: Project) : ValidatingNotifier() {
 
     private val versionService = VersionService.getInstance(project)
 
-    fun notifyIfInvalid(): Boolean {
-        if (versionService.isJaicfInclude && !versionService.isSupportedJaicfInclude) {
-            showIfNotShowed()
-            return false
-        }
+    override fun isValid() = versionService.isSupportedJaicfInclude || !versionService.isJaicfInclude
 
-        clear()
-        return true
-    }
-
-    private fun showIfNotShowed() {
-        if (showed)
-            return
-
+    override fun showNotification() {
         NotificationGroupManager.getInstance()
             .getNotificationGroup("Incompatible Versions Jaicf Plugin Group")
             .createNotification(
@@ -36,11 +23,6 @@ class JaicfUnsupportedNotifier(private val project: Project) {
                 NotificationType.WARNING
             )
             .notify(project)
-        showed = true
-    }
-
-    private fun clear() {
-        showed = false
     }
 
     companion object {
@@ -49,26 +31,14 @@ class JaicfUnsupportedNotifier(private val project: Project) {
     }
 }
 
-class JaicfSourcesMissedNotifier(private val project: Project) {
-
-    private var showed = false
+class JaicfSourcesMissedNotifier(private val project: Project) : ValidatingNotifier() {
 
     private val versionService = VersionService.getInstance(project)
     private val valueMethodsService = PathValueMethodsService.getInstance(project)
 
-    fun notifyIfInvalid(): Boolean {
-        if (versionService.isSupportedJaicfInclude && valueMethodsService.jaicfMethods.isEmpty()) {
-            showIfNotShowed()
-            return false
-        }
+    override fun isValid() = valueMethodsService.jaicfMethods.isNotEmpty() || !versionService.isSupportedJaicfInclude
 
-        clear()
-        return true
-    }
-
-    private fun showIfNotShowed() {
-        if (showed) return
-
+    override fun showNotification() {
         NotificationGroupManager.getInstance()
             .getNotificationGroup("Missed Sources Jaicf Plugin Group")
             .createNotification(
@@ -77,11 +47,6 @@ class JaicfSourcesMissedNotifier(private val project: Project) {
                 NotificationType.ERROR
             )
             .notify(project)
-        showed = true
-    }
-
-    private fun clear() {
-        showed = false
     }
 
     companion object {
@@ -90,7 +55,30 @@ class JaicfSourcesMissedNotifier(private val project: Project) {
     }
 }
 
+abstract class ValidatingNotifier {
+
+    private var notified = false
+
+    fun checkAndNotifyIfInvalid() = isValid().also { if (it) clear() else notifyOnce() }
+
+    abstract fun isValid(): Boolean
+
+    abstract fun showNotification()
+
+    private fun notifyOnce() {
+        synchronized(this) {
+            if (notified) return
+            showNotification()
+            notified = true
+        }
+    }
+
+    private fun clear() {
+        notified = false
+    }
+}
+
 fun checkEnvironmentAndNotify(project: Project): Boolean {
-    return JaicfUnsupportedNotifier.getInstance(project).notifyIfInvalid() &&
-        JaicfSourcesMissedNotifier.getInstance(project).notifyIfInvalid()
+    return JaicfUnsupportedNotifier.getInstance(project).checkAndNotifyIfInvalid() &&
+        JaicfSourcesMissedNotifier.getInstance(project).checkAndNotifyIfInvalid()
 }
