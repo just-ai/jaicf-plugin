@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
+import org.jetbrains.kotlin.psi.KtDeclarationContainer
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
@@ -54,14 +55,13 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
 
     private fun getScenarioBody(scenarioReference: KtReferenceExpression, boundedState: State? = null): KtExpression? {
         when (val resolvedElement = scenarioReference.resolve()) {
-            is KtObjectDeclaration ->
-                return resolvedElement.declarations
-                    .filter { it.name == SCENARIO_MODEL_FIELD_NAME && it is KtProperty }
-                    .map { it as KtProperty }
-                    .mapNotNull { it.initializer ?: it.delegateExpression }
-                    .firstOrNull()
+            is KtObjectDeclaration -> {
+                return resolvedElement.scenarioBody
+            }
 
-            is KtProperty -> return resolvedElement.initializer
+            is KtProperty -> {
+                return resolvedElement.initializer
+            }
 
             is KtParameter -> {
                 val parameterName = resolvedElement.name ?: return null
@@ -72,22 +72,26 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
             }
 
             else -> {
-                return if (scenarioReference is KtCallExpression) {
+                return if (scenarioReference.isConstructorCall) {
                     val constructor =
                         scenarioReference.findChildOfType<KtReferenceExpression>()?.resolve() ?: return null
                     val ktClass = constructor.getParentOfType<KtClass>(true) ?: return null
                     val body = ktClass.findChildOfType<KtClassBody>() ?: return null
 
-                    body.declarations
-                        .filter { it.name == SCENARIO_MODEL_FIELD_NAME && it is KtProperty }
-                        .mapNotNull { (it as KtProperty).initializer }
-                        .firstOrNull()
+                    body.scenarioBody
                 } else {
                     null
                 }
             }
         }
     }
+
+    private val KtDeclarationContainer.scenarioBody: KtExpression?
+        get() = declarations
+            .filter { it.name == SCENARIO_MODEL_FIELD_NAME && it is KtProperty }
+            .map { it as KtProperty }
+            .mapNotNull { it.delegateExpressionOrInitializer ?: it.getter?.initializer }
+            .firstOrNull()
 
     companion object {
         fun getInstance(element: PsiElement): ScenarioReferenceResolver? =
@@ -104,3 +108,6 @@ val Append.scenario
 
 val TopLevelAppend.scenario
     get() = this.referenceToScenario?.let { ScenarioReferenceResolver.getInstance(project).resolve(it) }
+
+private val KtReferenceExpression.isConstructorCall
+    get() = this is KtCallExpression && findChildOfType<KtReferenceExpression>() != null
