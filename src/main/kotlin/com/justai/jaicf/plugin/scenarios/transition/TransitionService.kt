@@ -4,7 +4,6 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.linter.appendingStates
@@ -17,6 +16,7 @@ import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.utils.isExist
 
 class TransitionService(project: Project) : JaicfService(project) {
 

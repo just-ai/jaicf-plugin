@@ -10,16 +10,16 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
 
-class JaicfUnsupportedValidator(private val project: Project) {
+class JaicfUnsupportedNotifier(private val project: Project) {
 
     private val notificationGroup =
-        NotificationGroup("Jaicf Plugin Group", NotificationDisplayType.BALLOON, true)
+        NotificationGroup("Jaicf Plugin Group", NotificationDisplayType.STICKY_BALLOON, true)
 
     private var showed = false
 
     private val versionService = VersionService.getInstance(project)
 
-    fun validateAndNotify(): Boolean {
+    fun notifyIfInvalid(): Boolean {
         if (versionService.isJaicfInclude && !versionService.isSupportedJaicfInclude) {
             showIfNotShowed()
             return false
@@ -35,9 +35,9 @@ class JaicfUnsupportedValidator(private val project: Project) {
 
         notificationGroup
             .createNotification(
-                "Incompatible version of Jaicf",
+                "Incompatible version of JAICF",
                 null,
-                "Plugin 'Jaicf' is incompatible with old versions of Jaicf. Use version 1.1.3 or newer",
+                "JAICF Plugin is incompatible with old versions of JAICF. Use version 1.1.3 or newer",
                 NotificationType.WARNING
             )
             .notify(project)
@@ -49,22 +49,22 @@ class JaicfUnsupportedValidator(private val project: Project) {
     }
 
     companion object {
-        fun getInstance(project: Project): JaicfUnsupportedValidator =
-            ServiceManager.getService(project, JaicfUnsupportedValidator::class.java)
+        fun getInstance(project: Project): JaicfUnsupportedNotifier =
+            ServiceManager.getService(project, JaicfUnsupportedNotifier::class.java)
     }
 }
 
-class JaicfSourcesMissedValidator(private val project: Project) {
+class JaicfSourcesMissedNotifier(private val project: Project) {
 
     private val notificationGroup =
-        NotificationGroup("Jaicf Plugin Group", NotificationDisplayType.BALLOON, true)
+        NotificationGroup("Jaicf Plugin Group", NotificationDisplayType.STICKY_BALLOON, true)
 
     private var showed = false
 
     private val versionService = VersionService.getInstance(project)
     private val valueMethodsService = PathValueMethodsService.getInstance(project)
 
-    fun validateAndNotify(): Boolean {
+    fun notifyIfInvalid(): Boolean {
         if (versionService.isSupportedJaicfInclude && valueMethodsService.jaicfMethods.isEmpty()) {
             showIfNotShowed()
             return false
@@ -79,9 +79,9 @@ class JaicfSourcesMissedValidator(private val project: Project) {
 
         notificationGroup
             .createNotification(
-                "Missed Jaicf sources",
+                "Missed JAICF sources",
                 null,
-                "Plugin 'Jaicf' cannot find sources of Jaicf. Download sources of Jaicf",
+                "JAICF Plugin cannot find JAICF sources. Download JAICF sources manually",
                 NotificationType.ERROR
             )
             .notify(project)
@@ -93,12 +93,12 @@ class JaicfSourcesMissedValidator(private val project: Project) {
     }
 
     companion object {
-        fun getInstance(project: Project): JaicfSourcesMissedValidator =
-            ServiceManager.getService(project, JaicfSourcesMissedValidator::class.java)
+        fun getInstance(project: Project): JaicfSourcesMissedNotifier =
+            ServiceManager.getService(project, JaicfSourcesMissedNotifier::class.java)
     }
 }
 
-fun checkAndNotify(project: Project): Boolean {
-    return JaicfUnsupportedValidator.getInstance(project).validateAndNotify() &&
-        JaicfSourcesMissedValidator.getInstance(project).validateAndNotify()
+fun checkEnvironmentAndNotify(project: Project): Boolean {
+    return JaicfUnsupportedNotifier.getInstance(project).notifyIfInvalid() &&
+        JaicfSourcesMissedNotifier.getInstance(project).notifyIfInvalid()
 }

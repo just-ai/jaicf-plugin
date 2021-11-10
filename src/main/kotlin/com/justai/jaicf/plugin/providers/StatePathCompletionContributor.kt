@@ -18,9 +18,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
-import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.utils.isComplexStringTemplate
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
@@ -31,6 +28,9 @@ import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.scenarios.transition.withoutLeadSlashes
+import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
+import com.justai.jaicf.plugin.utils.boundedPathExpression
+import com.justai.jaicf.plugin.utils.isComplexStringTemplate
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -48,8 +48,8 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         context: ProcessingContext,
         resultSet: CompletionResultSet,
     ) {
-        val statePathExpression = parameters.position.boundedPathExpression as? BoundedExpression ?: return
-        val pathExpression = statePathExpression.pathExpression
+        val statePathExpression = parameters.position.boundedPathExpression as? Joined ?: return
+        val pathExpression = statePathExpression.declaration
         val pathBeforeCaret = pathExpression.stringValueOrNull?.substringBeforeCaret() ?: return
         val statePath = StatePath.parse(pathBeforeCaret)
         val statesSuggestions: List<State> = getStatesSuggestions(pathExpression, statePath) ?: return

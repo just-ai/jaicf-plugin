@@ -1,5 +1,15 @@
 package com.justai.jaicf.plugin.scenarios.psi.builders
 
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.ExpressionIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.NoIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.PredefinedIdentifier
+import com.justai.jaicf.plugin.utils.STATE_BODY_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_DECLARATION_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.argumentExpression
 import com.justai.jaicf.plugin.utils.argumentExpressionsByAnnotation
 import com.justai.jaicf.plugin.utils.argumentExpressionsOrDefaultValuesByAnnotation
@@ -8,17 +18,7 @@ import com.justai.jaicf.plugin.utils.findChildOfType
 import com.justai.jaicf.plugin.utils.findChildrenOfType
 import com.justai.jaicf.plugin.utils.getMethodAnnotations
 import com.justai.jaicf.plugin.utils.isRemoved
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.ExpressionIdentifier
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.NoIdentifier
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.PredefinedIdentifier
 import com.justai.jaicf.plugin.utils.stringValueOrNull
-import com.justai.jaicf.plugin.utils.STATE_BODY_ANNOTATION_NAME
-import com.justai.jaicf.plugin.utils.STATE_DECLARATION_ANNOTATION_NAME
-import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_ARGUMENT_NAME
-import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_NAME
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression

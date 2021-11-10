@@ -4,7 +4,6 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildTopLevelAppend
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
@@ -12,6 +11,7 @@ import com.justai.jaicf.plugin.utils.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import com.justai.jaicf.plugin.utils.SCENARIO_EXTENSIONS_CLASS_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_PACKAGE
+import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 

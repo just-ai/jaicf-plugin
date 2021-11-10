@@ -2,10 +2,10 @@ package com.justai.jaicf.plugin.scenarios.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.utils.isOverride
 import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
 import com.justai.jaicf.plugin.utils.ScenarioPackageFqName
+import com.justai.jaicf.plugin.utils.isOverride
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -40,9 +40,6 @@ class Scenario(
         return result
     }
 }
-
-val Scenario.nestedAppends: List<Pair<Append, State>>
-    get() = nestedStates.flatMap { state -> state.appends.map { it to state } }
 
 val Scenario.nestedStates: List<State>
     get() = innerState.nestedStates + innerState

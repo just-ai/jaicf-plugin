@@ -4,10 +4,6 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
-import com.justai.jaicf.plugin.utils.findChildOfType
-import com.justai.jaicf.plugin.utils.isExist
-import com.justai.jaicf.plugin.utils.isRemoved
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.Append
@@ -16,6 +12,10 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
 import com.justai.jaicf.plugin.scenarios.psi.dto.contains
 import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
+import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
+import com.justai.jaicf.plugin.utils.findChildOfType
+import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
