@@ -182,14 +182,19 @@ val PsiElement.asLeaf: LeafPsiElement?
 val KtValueArgument.identifier: String?
     get() = definedIdentifier ?: parameter()?.name
 
-fun KtDotQualifiedExpression.getRootDotReceiver(): KtNameReferenceExpression? =
-    when (val receiver = getDotReceiver()) {
-        is KtDotQualifiedExpression -> receiver.getRootDotReceiver()
+val KtDotQualifiedExpression.rootReceiverExpression: KtNameReferenceExpression?
+    get() = when (val receiver = receiverExpression) {
+        is KtDotQualifiedExpression -> receiver.rootReceiverExpression
         is KtNameReferenceExpression -> receiver
         else -> receiver.findChildOfType()
     }
 
-fun KtDotQualifiedExpression.getDotReceiver(): PsiElement = children[0]
+val KtDotQualifiedExpression.edgeSelectorExpression: KtNameReferenceExpression?
+    get() = when (val selector = selectorExpression) {
+        is KtDotQualifiedExpression -> selector.edgeSelectorExpression
+        is KtNameReferenceExpression -> selector
+        else -> selector?.findChildOfType()
+    }
 
 fun KtValueArgument.parameter(): KtParameter? {
     val callElement = getParentOfType<KtCallElement>(true) ?: return null
