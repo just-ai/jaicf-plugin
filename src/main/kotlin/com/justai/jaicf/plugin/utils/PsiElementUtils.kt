@@ -4,6 +4,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.SlowOperations.allowSlowOperations
 import java.lang.Integer.min
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
@@ -81,7 +82,7 @@ fun KtFunction.getMethodAnnotations(name: String) =
 
 val KtFunction.isBinary get() = isExist && containingFile.name.endsWith(".class")
 
-val KtFunction.source get() = if (canNavigateToSource()) navigationElement as? KtFunction else null
+val KtFunction.source: KtFunction? get() = allowSlowOperations<KtFunction?, Throwable> { if (canNavigateToSource()) navigationElement as? KtFunction else null }
 
 val KtFunction.receiverName get() = fqName?.parent()?.asString()
 
