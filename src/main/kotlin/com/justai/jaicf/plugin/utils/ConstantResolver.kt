@@ -3,7 +3,6 @@ package com.justai.jaicf.plugin.utils
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import org.jetbrains.kotlin.idea.injection.isConcatenationExpression
 import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -34,8 +33,8 @@ class ConstantResolver(project: Project) {
             element.isRemoved ->
                 null
 
-            element is KtBinaryExpression && element.isConcatenationExpression() ->
-                element.operands.fold("" as String?) { acc, operand ->
+            element is KtBinaryExpression && element.isStringConcatenationExpression ->
+                element.operands?.fold("" as String?) { acc, operand ->
                     resolve(operand)?.let { acc?.plus(it) }
                 } ?: element.constantValueOrNull()?.value?.toString()
 

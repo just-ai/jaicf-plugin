@@ -83,6 +83,10 @@ val KtFunction.isBinary get() = isExist && containingFile.name.endsWith(".class"
 
 val KtFunction.source get() = if (canNavigateToSource()) navigationElement as? KtFunction else null
 
+val KtFunction.receiverName get() = fqName?.parent()?.asString()
+
+val KtFunction.parametersTypes get() = valueParameters.map { it.type()?.fqName?.asString() }
+
 fun KtCallElement.valueArgument(identifier: String) =
     valueArguments.firstOrNull { it is KtValueArgument && it.identifier == identifier }
 
@@ -228,4 +232,11 @@ fun PsiElement.rangeToEndOf(parent: PsiElement): TextRange {
     return TextRange(0, parent.textLength - textRangeInParent.startOffset)
 }
 
-val KtBinaryExpression.operands get() = listOf(children[0], children[2])
+val KtBinaryExpression.operands get() = left?.let { l -> right?.let { r -> listOf(l, r) } }
+
+val KtBinaryExpression.isStringConcatenationExpression
+    get() = (operationReference.resolve() as? KtFunction)?.let { declaration ->
+        declaration.name == "plus" &&
+            declaration.receiverName == "kotlin.String" &&
+            declaration.parametersTypes.singleOrNull() == "kotlin.Any"
+    } ?: false
