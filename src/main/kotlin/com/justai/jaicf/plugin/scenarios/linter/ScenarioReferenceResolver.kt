@@ -11,7 +11,6 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.Append
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
-import com.justai.jaicf.plugin.scenarios.psi.dto.contains
 import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.utils.isExist
@@ -51,7 +50,7 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
 
     private fun resolveScenario(scenarioBody: KtExpression): Scenario? {
         val file = scenarioBody.containingFile as? KtFile ?: return null
-        return scenarioService.getScenarios(file)?.firstOrNull { contains(it.innerState, scenarioBody) }
+        return scenarioService.getScenarios(file)?.findBoundingScenario(scenarioBody)
     }
 
     private fun getScenarioBody(scenarioReference: KtReferenceExpression, boundedState: State? = null): KtExpression? {
