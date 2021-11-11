@@ -21,13 +21,12 @@ import com.intellij.util.ThreeState
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme
 import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
-import com.justai.jaicf.plugin.scenarios.transition.withoutLeadSlashes
 import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
 import com.justai.jaicf.plugin.utils.boundedPathExpression
 import com.justai.jaicf.plugin.utils.isComplexStringTemplate
@@ -56,7 +55,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         if (isLastTransitionFitIntoElement(statePath, parameters)) {
             statesSuggestions
-                .mapNotNull { it.name?.withoutLeadSlashes() }
+                .mapNotNull { it.nameWithoutLeadSlashes }
                 .onEach {
                     resultSet
                         .withPrefixMatcherIfComplexExpression(pathExpression, statePath)
@@ -68,7 +67,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
             statesSuggestions
                 .asSequence()
-                .mapNotNull { it.name?.withoutLeadSlashes() }
+                .mapNotNull { it.nameWithoutLeadSlashes }
                 .filter { it.startsWith(prefix) }
                 .map { it.substringAfter(prefix) }
                 .filter { it.isNotBlank() }

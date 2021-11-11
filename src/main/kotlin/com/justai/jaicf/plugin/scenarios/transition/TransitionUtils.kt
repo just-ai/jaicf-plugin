@@ -4,6 +4,7 @@ import com.justai.jaicf.plugin.scenarios.linter.appendingStates
 import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
 import com.justai.jaicf.plugin.scenarios.psi.dto.root
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
@@ -70,13 +71,11 @@ val State.roots: List<State>
 
 val State.absolutePath: StatePath?
     get() {
-        if (parent == null) {
-            return StatePath(listOf(Root))
-        }
+        if (parent == null) return StatePath(listOf(Root))
 
         val parentPath = parent.absolutePath ?: return null
-        val currentName = name ?: return null
-        return parentPath + Transition.StateId(currentName.withoutLeadSlashes())
+        val currentName = nameWithoutLeadSlashes ?: return null
+        return parentPath + Transition.StateId(currentName)
     }
 
 val State.fullPath: String
