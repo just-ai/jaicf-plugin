@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
-class PathValueExpressionsService(project: Project) : JaicfService(project) {
+class StatePathExpressionsService(project: Project) : JaicfService(project) {
 
     private val pathValueService = PathValueMethodsService(project)
 
@@ -27,18 +27,17 @@ class PathValueExpressionsService(project: Project) : JaicfService(project) {
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }
             .flatMap { it.pathExpressionsOfBoundedBlock }
-            .map { it.declaration }
     }
 
     fun getExpressions() = expressionsMap.getValues().flatten()
 
     companion object {
-        fun getInstance(element: PsiElement): PathValueExpressionsService? =
+        fun getInstance(element: PsiElement): StatePathExpressionsService? =
             if (element.isExist) getInstance(element.project)
             else null
 
-        fun getInstance(project: Project): PathValueExpressionsService =
-            project.getService(PathValueExpressionsService::class.java)
+        fun getInstance(project: Project): StatePathExpressionsService =
+            project.getService(StatePathExpressionsService::class.java)
     }
 }
 

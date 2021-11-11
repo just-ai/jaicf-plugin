@@ -12,7 +12,7 @@
         <projectService serviceImplementation="com.justai.jaicf.plugin.utils.VersionService"/>
         <projectService
                 serviceImplementation="com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.StatePathExpressionsService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueMethodsService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService"/>

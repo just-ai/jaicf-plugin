@@ -16,8 +16,10 @@ import com.justai.jaicf.plugin.scenarios.linter.framingState
 import com.justai.jaicf.plugin.scenarios.linter.usages
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.StatePathExpression
 import com.justai.jaicf.plugin.utils.boundedCallExpressionOrNull
 import com.justai.jaicf.plugin.utils.getBoundedValueArgumentOrNull
+import com.justai.jaicf.plugin.utils.holderExpression
 import com.justai.jaicf.plugin.utils.identifier
 import com.justai.jaicf.plugin.utils.rangeToEndOf
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -39,9 +41,7 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
 
-        if (!argument.isNameOfStateDeclaration) {
-            return emptyArray()
-        }
+        if (!argument.isNameOfStateDeclaration) return emptyArray()
 
         return arrayOf(
             MultiPsiReference(element, element.rangeToEndOf(argument)) {
@@ -55,19 +55,19 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 class MultiPsiReference(
     element: PsiElement,
     textRange: TextRange = element.textRange,
-    private val referencesProvider: () -> List<PsiElement>,
+    private val referencesProvider: () -> List<StatePathExpression>,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
     private val service = ReferenceContributorsAvailabilityService.getInstance(element)
 
     override fun resolve() =
         if (service?.available == true)
-            referencesProvider().singleOrNull()
+            referencesProvider().singleOrNull()?.holderExpression
         else null
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
         return if (service?.available == true)
-            referencesProvider().map(::PsiElementResolveResult).toTypedArray()
+            referencesProvider().map { it.holderExpression }.map(::PsiElementResolveResult).toTypedArray()
         else emptyArray()
     }
 
