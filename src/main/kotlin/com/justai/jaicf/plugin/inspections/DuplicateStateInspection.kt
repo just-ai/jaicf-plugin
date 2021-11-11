@@ -4,7 +4,7 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.justai.jaicf.plugin.scenarios.linter.allStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
 import com.justai.jaicf.plugin.scenarios.transition.fullPath
 import com.justai.jaicf.plugin.scenarios.transition.states
@@ -21,12 +21,12 @@ class DuplicateStateInspection : LocalInspectionTool() {
     class DuplicateStateVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
 
         override fun visitState(state: State) {
-            val stateName = state.name ?: return
+            val stateName = state.nameWithoutLeadSlashes ?: return
             val parents = state.transit(Revert).states().filter { it !== state }
 
             parents
                 .flatMap { it.allStates }
-                .filter { it !== state && it.name == stateName }
+                .filter { it !== state && it.nameWithoutLeadSlashes == stateName }
                 .ifNotEmpty { registerGenericError(state, this) }
         }
 
