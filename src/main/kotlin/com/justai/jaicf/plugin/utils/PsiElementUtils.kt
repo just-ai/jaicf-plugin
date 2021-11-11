@@ -82,7 +82,10 @@ fun KtFunction.getMethodAnnotations(name: String) =
 
 val KtFunction.isBinary get() = isExist && containingFile.name.endsWith(".class")
 
-val KtFunction.source: KtFunction? get() = allowSlowOperations<KtFunction?, Throwable> { if (canNavigateToSource()) navigationElement as? KtFunction else null }
+val KtFunction.source: KtFunction?
+    get() = allowSlowOperations<KtFunction?, Throwable> {
+        if (canNavigateToSource()) navigationElement as? KtFunction else null
+    }
 
 val KtFunction.receiverName get() = fqName?.parent()?.asString()
 
@@ -104,7 +107,9 @@ val KtParameter.annotationNames: List<String>
     get() = annotationEntries.mapNotNull { it.shortName?.asString() }
 
 val KtCallElement.declaration: KtFunction?
-    get() = if (isExist) referenceExpression?.resolveToSource else null
+    get() = allowSlowOperations<KtFunction?, Throwable> {
+        if (isExist) referenceExpression?.resolveToSource else null
+    }
 
 val KtCallElement.referenceExpression: KtReferenceExpression?
     get() = findChildOfType<KtNameReferenceExpression>()
@@ -132,9 +137,9 @@ fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: L
         false
     }
 
-fun KtCallExpression.isReceiverInheritedOf(baseClass: FqName) =
-    receiverFqName == baseClass ||
-        receiverType()?.supertypes()?.any { it.fqName == baseClass } ?: false
+fun KtCallExpression.isReceiverInheritedOf(baseClass: FqName): Boolean = allowSlowOperations<Boolean, Throwable> {
+    receiverFqName == baseClass || receiverType()?.supertypes()?.any { it.fqName == baseClass } ?: false
+}
 
 val KtCallExpression.receiverFqName: FqName?
     get() = receiverType()?.fqName ?: declaration?.fqName?.parent()
