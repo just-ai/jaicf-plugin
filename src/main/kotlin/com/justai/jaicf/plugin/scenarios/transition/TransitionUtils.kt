@@ -19,8 +19,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 
 fun transitToState(pathExpression: KtExpression) = transitToState(pathExpression, pathExpression)
 
-fun transitToState(boundExpression: KtExpression, pathExpression: KtExpression): TransitionResult {
-    val framingState = boundExpression.framingState ?: return OutOfStateBoundUsage
+fun transitToState(usePointExpression: KtExpression, pathExpression: KtExpression): TransitionResult {
+    val framingState = usePointExpression.framingState ?: return OutOfStateBoundUsage
     val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return UnresolvedPath
     return framingState.transit(statePath)
 }

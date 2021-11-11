@@ -85,7 +85,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             ?: return null
 
         val usages = framingState.usages
-            .mapNotNull { it.asLeaf }
+            .mapNotNull { it.holderExpression.asLeaf }
             .mapNotNull {
                 it.framingState ?: return@mapNotNull null
                 it

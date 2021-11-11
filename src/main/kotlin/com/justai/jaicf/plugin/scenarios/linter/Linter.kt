@@ -1,7 +1,7 @@
 package com.justai.jaicf.plugin.scenarios.linter
 
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService
+import com.justai.jaicf.plugin.scenarios.psi.StatePathExpressionsService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
@@ -12,17 +12,18 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.nestedStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.receiverExpression
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transitToState
+import com.justai.jaicf.plugin.utils.StatePathExpression
 import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.psi.KtExpression
 
 val State.allStates
     get() = allStates()
 
-val State.usages: List<KtExpression>
+val State.usages: List<StatePathExpression>
     get() {
-        val expressionsService = PathValueExpressionsService.getInstance(project)
+        val expressionsService = StatePathExpressionsService.getInstance(project)
         return expressionsService.getExpressions()
-            .filter { this in transitToState(it).statesOrSuggestions() }
+            .filter { this in transitToState(it.usePoint, it.declaration).statesOrSuggestions() }
     }
 
 val Scenario.appendingStates: List<State>
