@@ -67,7 +67,5 @@ val State.isTopState: Boolean
 val State.isRootState: Boolean
     get() = this === scenario.innerState
 
-fun contains(state: State, element: PsiElement) = element.textRange.startOffset in state.stateExpression.textRange
-
 val State.nestedStates: List<State>
     get() = states + states.flatMap(State::nestedStates)
