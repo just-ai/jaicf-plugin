@@ -4,10 +4,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker.NEVER_CHANGED
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.justai.jaicf.plugin.trackers.FileModificationTracker
 import com.justai.jaicf.plugin.trackers.KtFilesModificationTracker
 import kotlin.reflect.KProperty
@@ -15,6 +17,16 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtFile
+
+// There can be Service for storage for all PsiElements CachedValues
+fun <C : PsiElement, T> cached(
+    element: C,
+    vararg dependencies: Any = arrayOf(PsiModificationTracker.MODIFICATION_COUNT),
+    valueProvider: C.() -> (T)
+) = CachedValueDelegate(
+    CachedValuesManager.getManager(element.project)
+        .createCachedValue { Result.create(valueProvider(element), *dependencies) }
+)
 
 fun <T> Project.cached(vararg dependencies: Any, valueProvider: () -> (T)) = CachedValueDelegate(
     CachedValuesManager.getManager(this).createCachedValue { Result.create(valueProvider(), *dependencies) }
