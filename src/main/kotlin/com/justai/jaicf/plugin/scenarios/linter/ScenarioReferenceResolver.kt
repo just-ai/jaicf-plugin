@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
+import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.scenarios.psi.dto.Append
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
@@ -12,21 +13,21 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
 import com.justai.jaicf.plugin.scenarios.psi.dto.contains
 import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
-import com.justai.jaicf.plugin.utils.findChildOfType
 import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtDeclarationContainer
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 
 class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
 
@@ -59,7 +60,7 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
             }
 
             is KtProperty -> {
-                return resolvedElement.initializer
+                return resolvedElement.delegateExpressionOrInitializer ?: resolvedElement.getter?.initializer
             }
 
             is KtParameter -> {
@@ -70,16 +71,26 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
                 return argumentExpression?.let { getScenarioBody(it) }
             }
 
-            else -> {
-                return if (scenarioReference.isConstructorCall) {
-                    val constructor =
-                        scenarioReference.findChildOfType<KtReferenceExpression>()?.resolve() ?: return null
-                    val ktClass = constructor.getParentOfType<KtClass>(true) ?: return null
-                    val body = ktClass.findChildOfType<KtClassBody>() ?: return null
+            is KtCallExpression -> {
+                return if (resolvedElement.isStateDeclaration) scenarioReference else null
+            }
 
-                    body.scenarioBody
-                } else {
-                    null
+            else -> {
+                if (scenarioReference !is KtCallExpression) return null
+
+                if (scenarioReference.isStateDeclaration) return scenarioReference
+
+                return when (val resolved = scenarioReference.referenceExpression()?.resolve()) {
+                    is KtNamedFunction -> (resolved.initializer as? KtCallExpression)?.let {
+                        if (it.isStateDeclaration) it else null
+                    }
+
+                    is KtClass -> resolved.body?.scenarioBody
+
+                    is KtPrimaryConstructor ->
+                        scenarioReference.argumentExpressionOrDefaultValue(SCENARIO_MODEL_FIELD_NAME)
+
+                    else -> null
                 }
             }
         }
@@ -107,6 +118,3 @@ val Append.scenario
 
 val TopLevelAppend.scenario
     get() = this.referenceToScenario?.let { ScenarioReferenceResolver.getInstance(project).resolve(it) }
-
-private val KtReferenceExpression.isConstructorCall
-    get() = this is KtCallExpression && findChildOfType<KtReferenceExpression>() != null
