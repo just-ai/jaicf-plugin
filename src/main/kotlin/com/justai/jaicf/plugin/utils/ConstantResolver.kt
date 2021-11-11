@@ -28,44 +28,7 @@ class ConstantResolver(project: Project) {
             else resolve(expression).also { res -> resolvedExpressions[expression] = res }
         }
 
-    private fun resolve(element: PsiElement): String? {
-        return when {
-            element.isRemoved ->
-                null
-
-            element is KtBinaryExpression && element.isStringConcatenationExpression ->
-                element.operands?.fold("" as String?) { acc, operand ->
-                    resolve(operand)?.let { acc?.plus(it) }
-                } ?: element.constantValueOrNull()?.value?.toString()
-
-            element is KtStringTemplateExpression && element.isPlain() ->
-                element.plainContent
-
-            element is KtStringTemplateExpression && element.hasInterpolation() ->
-                element.children.fold("" as String?) { acc, operand ->
-                    resolve(operand)?.let { acc?.plus(it) }
-                } ?: element.constantValueOrNull()?.value?.toString()
-
-            element is KtLiteralStringTemplateEntry ->
-                element.text
-
-            element is KtSimpleNameStringTemplateEntry ->
-                element.expression?.let { resolve(it) }
-
-            element is KtBlockStringTemplateEntry ->
-                element.expression?.let { resolve(it) }
-
-            element is KtNameReferenceExpression ->
-                (element.resolve() as? KtProperty)?.initializer?.let { resolve(it) }
-                    ?: element.constantValueOrNull()?.value?.toString()
-
-            element is KtExpression ->
-                element.constantValueOrNull()?.value?.toString()
-
-            else ->
-                null
-        }
-    }
+    private fun resolve(expression: KtExpression) = expression.constantValueOrNull()?.value?.toString()
 
     companion object {
         fun getInstance(element: PsiElement): ConstantResolver? =
