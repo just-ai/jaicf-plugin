@@ -2,7 +2,7 @@ package com.justai.jaicf.plugin.scenarios.transition
 
 import com.intellij.openapi.util.TextRange
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
 
@@ -44,7 +44,7 @@ sealed class Lexeme(open val identifier: String) {
             fun transitToOneOf(states: List<State>) =
                 states.firstOrNull { canTransitTo(it) }
 
-            fun canTransitTo(state: State) = identifier == state.name?.withoutLeadSlashes()
+            fun canTransitTo(state: State) = identifier == state.nameWithoutLeadSlashes
         }
     }
 
