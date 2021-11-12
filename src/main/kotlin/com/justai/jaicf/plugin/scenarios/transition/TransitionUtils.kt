@@ -1,7 +1,7 @@
 package com.justai.jaicf.plugin.scenarios.transition
 
-import com.justai.jaicf.plugin.scenarios.linter.appendingStates
-import com.justai.jaicf.plugin.scenarios.linter.framingState
+import com.justai.jaicf.plugin.scenarios.linker.appendingStates
+import com.justai.jaicf.plugin.scenarios.linker.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
@@ -16,8 +16,6 @@ import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.Suggestions
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
-
-fun transitToState(pathExpression: KtExpression) = transitToState(pathExpression, pathExpression)
 
 fun transitToState(usePointExpression: KtExpression, pathExpression: KtExpression): TransitionResult {
     val framingState = usePointExpression.framingState ?: return OutOfStateBoundUsage
