@@ -9,8 +9,8 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.justai.jaicf.plugin.providers.Icons.GO_TO_STATES
-import com.justai.jaicf.plugin.scenarios.linter.framingState
-import com.justai.jaicf.plugin.scenarios.linter.usages
+import com.justai.jaicf.plugin.scenarios.linker.framingState
+import com.justai.jaicf.plugin.scenarios.linker.usages
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.absolutePath

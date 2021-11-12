@@ -2,7 +2,7 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.scenarios.linter.framingState
+import com.justai.jaicf.plugin.scenarios.linker.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.StatePath

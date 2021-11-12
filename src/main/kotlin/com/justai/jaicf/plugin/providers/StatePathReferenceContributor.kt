@@ -12,7 +12,7 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.scenarios.linter.framingState
+import com.justai.jaicf.plugin.scenarios.linker.framingState
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme
 import com.justai.jaicf.plugin.scenarios.transition.StatePath
 import com.justai.jaicf.plugin.scenarios.transition.plus
