@@ -2,7 +2,7 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.scenarios.linter.allStates
+import com.justai.jaicf.plugin.scenarios.linker.allStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert

@@ -4,9 +4,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
 import com.justai.jaicf.plugin.scenarios.JaicfService
-import com.justai.jaicf.plugin.scenarios.linter.allStates
-import com.justai.jaicf.plugin.scenarios.linter.appendingStates
-import com.justai.jaicf.plugin.scenarios.linter.rootScenarios
+import com.justai.jaicf.plugin.scenarios.linker.allStates
+import com.justai.jaicf.plugin.scenarios.linker.appendingStates
+import com.justai.jaicf.plugin.scenarios.linker.rootScenarios
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
 import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState

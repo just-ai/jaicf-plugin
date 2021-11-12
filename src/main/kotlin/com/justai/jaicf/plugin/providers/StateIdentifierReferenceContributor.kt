@@ -12,8 +12,8 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.scenarios.linter.framingState
-import com.justai.jaicf.plugin.scenarios.linter.usages
+import com.justai.jaicf.plugin.scenarios.linker.framingState
+import com.justai.jaicf.plugin.scenarios.linker.usages
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
 import com.justai.jaicf.plugin.utils.StatePathExpression

@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin.scenarios.linter
+package com.justai.jaicf.plugin.scenarios.linker
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement

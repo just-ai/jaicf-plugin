@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin.scenarios.linter
+package com.justai.jaicf.plugin.scenarios.linker
 
 import com.intellij.openapi.project.Project
 import com.justai.jaicf.plugin.scenarios.psi.StatePathExpressionsService
@@ -14,7 +14,6 @@ import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transitToState
 import com.justai.jaicf.plugin.utils.StatePathExpression
 import com.justai.jaicf.plugin.utils.isExist
-import org.jetbrains.kotlin.psi.KtExpression
 
 val State.allStates
     get() = allStates()
