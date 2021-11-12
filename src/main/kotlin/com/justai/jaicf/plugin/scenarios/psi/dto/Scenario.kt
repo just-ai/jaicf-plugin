@@ -10,7 +10,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class Scenario(
@@ -50,10 +52,15 @@ val Scenario.name: String?
         val parent = scenarioDeclaration.parent ?: return null
         (parent as? KtNamedFunction)?.let { return it.name }
 
-        val property = scenarioDeclaration.parent as? KtProperty ?: return null
+        val field = when (parent) {
+            is KtProperty -> parent
+            is KtPropertyAccessor -> parent.property
+            is KtParameter -> parent
+            else -> return null
+        }
         return when {
-            scenarioDeclaration.isScenario -> property.name
-            scenarioDeclaration.isCreateModelFun -> property.getParentOfType<KtClassOrObject>(false)?.name
+            scenarioDeclaration.isScenario -> field.name
+            scenarioDeclaration.isCreateModelFun -> field.getParentOfType<KtClassOrObject>(false)?.name
             else -> null
         }
     }
