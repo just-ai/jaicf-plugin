@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
@@ -37,15 +38,14 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
 val KtBinaryExpression.innerPathExpressions: List<StatePathExpression>
     get() {
         return if (VersionService.getInstance(project).isSupportedJaicfInclude) {
-            val operation = getChildOfType<KtOperationReferenceExpression>() ?: return emptyList()
-            val function = operation.resolveToSource ?: return emptyList()
+            val function = operationReference.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
 
             if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                (children[0] as? KtExpression)?.let { expressions += it }
+                left?.let { expressions += it }
 
             if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME))
-                (children[2] as? KtExpression)?.let { expressions += it }
+                right?.let { expressions += it }
 
             expressions.map { StatePathExpression.create(this, it) }
         } else {
@@ -68,9 +68,11 @@ private fun KtCallableDeclaration.hasReceiverAnnotatedBy(annotationName: String)
 val PsiElement.boundedPathExpression: StatePathExpression?
     get() {
         val boundedElement = getFirstBoundedElement(
-            KtDotQualifiedExpression::class.java,
-            KtBinaryExpression::class.java,
-            KtValueArgument::class.java
+            listOf(
+                KtDotQualifiedExpression::class.java,
+                KtBinaryExpression::class.java,
+                KtValueArgument::class.java
+            )
         )
 
         when (boundedElement) {
@@ -108,26 +110,17 @@ val PsiElement.boundedPathExpression: StatePathExpression?
 val PsiElement.pathExpressionsOfBoundedBlock: List<StatePathExpression>
     get() {
         val boundedElement = getFirstBoundedElement(
-            KtDotQualifiedExpression::class.java,
-            KtBinaryExpression::class.java,
-            KtCallExpression::class.java,
-            KtValueArgument::class.java
+            targetTypes = listOf(KtBinaryExpression::class.java, KtCallExpression::class.java),
+            allowedTypes = listOf(KtNameReferenceExpression::class.java, KtOperationReferenceExpression::class.java)
         )
 
         return when (boundedElement) {
-            is KtDotQualifiedExpression -> boundedElement.getChildOfType<KtCallExpression>()?.let {
-                if (it.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) it.innerPathExpressions
-                else null
-            }
-
             is KtBinaryExpression -> boundedElement.innerPathExpressions
 
             is KtCallExpression -> boundedElement.innerPathExpressions
 
-            is KtValueArgument -> boundedElement.boundedCallExpressionOrNull?.innerPathExpressions
-
-            else -> null
-        } ?: emptyList()
+            else -> emptyList()
+        }
     }
 
 sealed class StatePathExpression(val usePoint: KtExpression, val declaration: KtExpression) {
