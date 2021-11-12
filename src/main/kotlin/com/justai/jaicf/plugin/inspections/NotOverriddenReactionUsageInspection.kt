@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.idea.actions.generate.findDeclaredFunction
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.isOverridable
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
-import org.jetbrains.kotlin.idea.refactoring.canRefactor
 import org.jetbrains.kotlin.idea.refactoring.isAbstract
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -103,7 +102,6 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
         private val KtCallExpression.isNotOverriddenReaction: Boolean
             get() {
                 val functionDeclaration = declaration ?: return false
-
                 val classOfFunctionDeclaration = functionDeclaration.fqName?.parent() ?: return false
 
                 return classOfFunctionDeclaration == reactionsClassFqName && functionDeclaration.isOpenOrAbstract
@@ -119,7 +117,7 @@ private val MemberDescriptor.isOpenOrAbstract: Boolean
 private val MemberDescriptor.isFinal: Boolean
     get() = modality == Modality.FINAL
 
-private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = supertypes()
+private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = (supertypes() + this)
     .mapNotNull { it.toClassDescriptor }
     .firstOrNull { supertype ->
         supertype.findDeclaredFunction(
@@ -132,7 +130,5 @@ private fun KtTypeReference.classForRefactor(): KtClass? {
     val bindingContext = analyze(BodyResolveMode.PARTIAL)
     val type = bindingContext[BindingContext.TYPE, this] ?: return null
     val classDescriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
-    val declaration = DescriptorToSourceUtils.descriptorToDeclaration(classDescriptor) as? KtClass ?: return null
-    if (!declaration.canRefactor()) return null
-    return declaration
+    return DescriptorToSourceUtils.descriptorToDeclaration(classDescriptor) as? KtClass
 }
