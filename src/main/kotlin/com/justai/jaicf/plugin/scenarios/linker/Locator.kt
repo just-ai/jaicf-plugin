@@ -20,7 +20,7 @@ val PsiElement.framingState: State?
     }
 
 fun List<Scenario>.findBoundingScenario(element: PsiElement) = filter { contains(it.innerState, element) }
-    .minByOrNull { it.declarationElement.text.length }
+    .minBy { it.declarationElement.text.length }
 
 private fun contains(state: State, element: PsiElement) =
     element.textRange.startOffset in state.stateExpression.textRange
