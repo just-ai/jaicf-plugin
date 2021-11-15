@@ -1,6 +1,8 @@
-name: JAICF Plugin Verify for Github
+name: JAICF Plugin Build for Github
 
-on: [push]
+on:
+  push:
+    branches: [ 211/dev ]
 
 jobs:
   gradleValidation:
@@ -13,35 +15,13 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1.0.4
 
-  verify:
-    name: Verify
+  build:
+    name: Build
     needs: gradleValidation
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Sources
         uses: actions/checkout@v2.3.4
-
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-         distribution: zulu
-         java-version: 11
-         cache: gradle
-
-      - name: Export Properties
-        id: properties
-        shell: bash
-        run: |
-          PROPERTIES="$(./gradlew properties --console=plain -q)"
-          IDE_VERSIONS="$(echo "$PROPERTIES" | grep "^pluginVerifierIdeVersions:" | base64)"
-          echo "::set-output name=ideVersions::$IDE_VERSIONS"
-          echo "::set-output name=pluginVerifierHomeDir::~/.pluginVerifier"
-
-      - name: Setup Plugin Verifier IDEs Cache
-        uses: actions/cache@v2.1.6
-        with:
-          path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
-          key: ${{ runner.os }}-plugin-verifier-${{ steps.properties.outputs.ideVersions }}
 
       - name: Cache Gradle
         uses: actions/cache@v2
@@ -53,6 +33,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: zulu
+          java-version: 11
+          cache: gradle
+
+      - name: Export Properties
+        id: properties
+        shell: bash
+        run: |
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          IDE_VERSIONS="$(echo "$PROPERTIES" | grep "^pluginVerifierIdeVersions:" | base64)"
+          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          NAME="$(echo "$PROPERTIES" | grep "^pluginName:" | cut -f2- -d ' ')"
+          echo "::set-output name=ideVersions::$IDE_VERSIONS"
+          echo "::set-output name=pluginVerifierHomeDir::~/.pluginVerifier"
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=name::$NAME"
+
+      - name: Setup Plugin Verifier IDEs Cache
+        uses: actions/cache@v2.1.6
+        with:
+          path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
+          key: ${{ runner.os }}-plugin-verifier-${{ steps.properties.outputs.ideVersions }}
+
       - name: Grant execute permission for gradle
         run: |
           chmod +x gradlew
@@ -63,3 +69,12 @@ jobs:
 
       - name: Run Plugin Verifier
         run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=${{ steps.properties.outputs.pluginVerifierHomeDir }}
+
+      - name: Build Plugin
+        run: ./gradlew buildPlugin
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: "${{ steps.properties.outputs.name }} - ${{ steps.properties.outputs.version }}"
+          path: ./build/distributions/*
