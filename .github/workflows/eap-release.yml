@@ -1,0 +1,60 @@
+name: eap-release
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches: [ 211/master ]
+
+jobs:
+  publish:
+    if: github.event.pull_request.merged == true
+    name: Publish Plugin
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Fetch Sources
+        uses: actions/checkout@v2.3.4
+
+      - name: Cache Gradle
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: zulu
+          java-version: 11
+          cache: gradle
+
+      - name: Export Properties
+        id: properties
+        shell: bash
+        run: |
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          NAME="$(echo "$PROPERTIES" | grep "^pluginName:" | cut -f2- -d ' ')"
+          echo "::set-output name=name::$NAME"
+          echo "::set-output name=version::$VERSION"
+
+      - name: Publish Plugin
+        env:
+          PUBLISH_TOKEN: ${{ secrets.JB_RELEASE_SECRET }}
+          CHANNEL: "EAP"
+        run: ./gradlew publishPlugin
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "${{ steps.properties.outputs.version }}"
+          release_name: "Release ${{ steps.properties.outputs.name }} ${{ steps.properties.outputs.version }}"
+          draft: true
+          prerelease: false

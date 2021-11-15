@@ -1,0 +1,39 @@
+name: Add artifact links to pull request and related issues
+
+on:
+  workflow_run:
+    workflows: [ Build JAICF Plugin on PR ]
+    types: [ completed ]
+
+jobs:
+  comment:
+    name: Create comment with artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get suite id
+        id: getsuiteid
+        shell: bash
+        run: |
+          GITHUB_CHECK_SUITE_ID=`curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} | jq -r '.check_suite_id'`
+          echo "::set-output name=suiteid::$GITHUB_CHECK_SUITE_ID"
+          echo "::set-output name=githubrepo::$GITHUB_REPOSITORY"
+
+      - name: Get artifacts id
+        id: getartid
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: |
+          URL=${{ github.event.workflow_run.artifacts_url }}
+          echo "$URL"
+
+          GITHUB_ARTIFACTS_ID=$(curl -s -u admin:${{ secrets.GITHUB_TOKEN }} $URL | jq '.artifacts[].id')
+          echo "$GITHUB_ARTIFACTS_ID"
+
+          echo "::set-output name=artid::$GITHUB_ARTIFACTS_ID"
+
+      - name: Comment pr
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.workflow_run.pull_requests[0].number }}
+          body: |
+            The artifacts url is https://github.com/${{ steps.getsuiteid.outputs.githubrepo }}/suites/${{ steps.getsuiteid.outputs.suiteid }}/artifacts/${{ steps.getartid.outputs.artid }}
