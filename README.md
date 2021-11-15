@@ -4,7 +4,7 @@
 JAICF IDEA Plugin enabled enhanced Scenario DSL support for Intellij IDEA. It provides intelligent state completions,
 inspections and templates to improve speed and quality of Scenario writing.
 
-<img src="https://raw.githubusercontent.com/Denire/static/master/plugin-at-work.png" alt="Plugin Demonstration" height="300" width="430">
+<img src="https://raw.githubusercontent.com/veptechno/static/main/jaicf-plugin-in-scenario.png" alt="Plugin Demonstration" height="382" width="625">
 
 ### Feature list:
 
