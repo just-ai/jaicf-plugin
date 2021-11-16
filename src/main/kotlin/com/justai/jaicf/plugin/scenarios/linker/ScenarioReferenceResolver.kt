@@ -64,10 +64,14 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
             }
 
             is KtParameter -> {
+                (resolvedElement.defaultValue as? KtReferenceExpression)?.let {
+                    return getScenarioBody(it)
+                }
+
                 val parameterName = resolvedElement.name ?: return null
-                // TODO Maybe make a better search for value of parameter
                 val argumentExpression =
                     boundedState?.stateExpression?.argumentExpressionOrDefaultValue(parameterName) as? KtReferenceExpression
+
                 return argumentExpression?.let { getScenarioBody(it) }
             }
 
@@ -76,23 +80,25 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
             }
 
             else -> {
-                if (scenarioReference !is KtCallExpression) return null
-
-                if (scenarioReference.isStateDeclaration) return scenarioReference
-
-                return when (val resolved = scenarioReference.referenceExpression()?.resolve()) {
-                    is KtNamedFunction -> (resolved.initializer as? KtCallExpression)?.let {
-                        if (it.isStateDeclaration) it else null
-                    }
-
-                    is KtClass -> resolved.body?.scenarioBody
-
-                    is KtPrimaryConstructor ->
-                        scenarioReference.argumentExpressionOrDefaultValue(SCENARIO_MODEL_FIELD_NAME)
-
-                    else -> null
-                }
+                return (scenarioReference as? KtCallExpression)?.let(::getScenarioBody)
             }
+        }
+    }
+
+    private fun getScenarioBody(callExpression: KtCallExpression): KtExpression? {
+        if (callExpression.isStateDeclaration) return callExpression
+
+        return when (val resolved = callExpression.referenceExpression()?.resolve()) {
+            is KtNamedFunction -> (resolved.initializer as? KtCallExpression)?.let {
+                if (it.isStateDeclaration) it else null
+            }
+
+            is KtClass -> resolved.body?.scenarioBody
+
+            is KtPrimaryConstructor ->
+                callExpression.argumentExpressionOrDefaultValue(SCENARIO_MODEL_FIELD_NAME)
+
+            else -> null
         }
     }
 
