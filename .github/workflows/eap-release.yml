@@ -1,9 +1,9 @@
-name: eap-release
+name: Publish plugin to EAP channel
 
 on:
   pull_request:
     types: [ closed ]
-    branches: [ 211/master ]
+    branches: [ 212/master ]
 
 jobs:
   publish:

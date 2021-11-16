@@ -1,4 +1,4 @@
-name: Stable release
+name: Publish release to Stable channel
 
 on:
   release:
