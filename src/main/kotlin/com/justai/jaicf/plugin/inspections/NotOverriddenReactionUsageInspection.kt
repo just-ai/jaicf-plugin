@@ -117,14 +117,17 @@ private val MemberDescriptor.isOpenOrAbstract: Boolean
 private val MemberDescriptor.isFinal: Boolean
     get() = modality == Modality.FINAL
 
-private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = (supertypes() + this)
+private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = (listOf(this) + supertypes())
     .mapNotNull { it.toClassDescriptor }
     .firstOrNull { supertype ->
         supertype.findDeclaredFunction(
             descriptor.name.asString(),
             false
-        ) { it.overriddenDescriptors.contains(descriptor) } != null
+        ) { it.allOverriddenDescriptors.contains(descriptor) } != null
     }
+
+private val FunctionDescriptor.allOverriddenDescriptors: Collection<FunctionDescriptor>
+    get() = overriddenDescriptors.flatMap { it.allOverriddenDescriptors + it }
 
 private fun KtTypeReference.classForRefactor(): KtClass? {
     val bindingContext = analyze(BodyResolveMode.PARTIAL)
