@@ -33,17 +33,17 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
     private val scenarioService = ScenarioDataService.getInstance(project)
 
     private val resolvedReferences by cached(PsiModificationTracker.MODIFICATION_COUNT) {
-        mutableMapOf<KtReferenceExpression, Scenario?>()
+        mutableMapOf<Pair<KtReferenceExpression, State?>, Scenario?>()
     }
 
     fun resolve(scenarioReference: KtReferenceExpression, boundedState: State? = null): Scenario? {
         if (scenarioReference.isRemoved || !enabled) return null
 
-        resolvedReferences?.get(scenarioReference)?.let { return it }
+        resolvedReferences?.get(scenarioReference to boundedState)?.let { return it }
 
         val body = getScenarioBody(scenarioReference, boundedState) ?: return null
         return resolveScenario(body)?.also {
-            resolvedReferences?.set(scenarioReference, it)
+            resolvedReferences?.set(scenarioReference to boundedState, it)
         }
     }
 
