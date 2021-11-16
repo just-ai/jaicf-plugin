@@ -3,83 +3,82 @@ package com.justai.jaicf.plugin.inspections
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
-import com.justai.jaicf.plugin.Lexeme.Slash
-import com.justai.jaicf.plugin.Lexeme.Transition
-import com.justai.jaicf.plugin.Lexeme.Transition.Current
-import com.justai.jaicf.plugin.Lexeme.Transition.Revert
-import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.StateIdentifier
-import com.justai.jaicf.plugin.services.managers.dto.identifierReference
-import com.justai.jaicf.plugin.services.managers.dto.isRootState
-import com.justai.jaicf.plugin.services.managers.dto.isTopState
-import com.justai.jaicf.plugin.services.managers.dto.name
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.NoIdentifier
+import com.justai.jaicf.plugin.scenarios.psi.dto.identifierReference
+import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
+import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
+import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Current
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
 
 class StateNameInspection : LocalInspectionTool() {
 
-    override fun getID() = "ForbiddenStateNameInspection"
+    override fun getID() = "StateNameInspection"
 
-    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor =
-        ForbiddenStateNameVisitor(holder)
+    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor = StateNameVisitor(holder)
 
-    private class ForbiddenStateNameVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
+    private class StateNameVisitor(holder: ProblemsHolder) : StateVisitor(holder) {
 
-        override fun visitState(visitedState: State) {
-            if (visitedState.identifier is StateIdentifier.NoIdentifier) {
-                registerGenericError(visitedState.stateExpression, visitedState.identifier.errorMessage)
+        override fun visitState(state: State) {
+            if (state.identifier is NoIdentifier) {
+                registerGenericError(state.stateExpression, state.identifier.errorCauseMessage)
                 return
             }
 
-            val stateName = visitedState.name
-            if (stateName == null) {
-                registerWarning(
-                    visitedState.identifierReference ?: visitedState.stateExpression,
+            state.name?.let { inspectStateName(state, it) }
+                ?: registerWarning(
+                    state.identifierReference ?: state.stateExpression,
                     "JAICF Plugin is not able to resolve state name"
                 )
-                return
-            }
-
-            inspectStateIdentifier(visitedState, stateName)
         }
 
-        private fun inspectStateIdentifier(state: State, stateName: String) {
-            val parsedStateName = StatePath.parse(stateName)
+        private fun inspectStateName(state: State, name: String) {
+            val parsedName = StatePath.parse(name)
             val identifierReference = state.identifierReference ?: return
 
-            if (!state.isRootState && hasBlankNames(parsedStateName)) {
+            if (!state.isRootState && hasNoName(parsedName)) {
                 registerGenericError(identifierReference, "State name must not be empty")
             }
 
-            if (state.isTopState && isContainsSlashesInMiddle(stateName)) {
+            if (!state.isRootState && hasBlankName(parsedName)) {
+                registerGenericError(identifierReference, "State name must not be blank")
+            }
+
+            if (state.isTopState && name.containsNonOpeningSlash) {
                 registerGenericError(
                     identifierReference,
-                    "Only single leading slash is allowed for top-level state. Resolved name \"$stateName\""
+                    "Only single leading slash is allowed for top-level state. Resolved name \"$name\""
                 )
             }
 
-            if (!state.isTopState && !state.isRootState && parsedStateName.lexemes.contains(Slash)) {
+            if (!state.isTopState && !state.isRootState && parsedName.lexemes.contains(Slash)) {
                 registerGenericError(
-                    identifierReference, "Slashes are not allowed in inner states. Resolved name \"$stateName\""
+                    identifierReference, "Slashes are not allowed in inner states. Resolved name \"$name\""
                 )
             }
 
-            if (parsedStateName.transitions.contains(Current)) {
+            if (parsedName.transitions.contains(Current)) {
                 registerGenericError(
-                    identifierReference, "Do not use . in state name. Resolved name \"$stateName\""
+                    identifierReference, "Do not use . as state name. Resolved name \"$name\""
                 )
             }
 
-            if (parsedStateName.transitions.contains(Revert)) {
+            if (parsedName.transitions.contains(Revert)) {
                 registerGenericError(
-                    identifierReference, "Do not use .. in state name. Resolved name \"$stateName\""
+                    identifierReference, "Do not use .. as state name. Resolved name \"$name\""
                 )
             }
         }
 
-        private fun isContainsSlashesInMiddle(stateName: String) =
-            stateName.lastIndexOf(Slash.identifier) > 0
+        private val String.containsNonOpeningSlash get() = lastIndexOf(Slash.identifier) > 0
 
-        private fun hasBlankNames(parsedStateName: StatePath) =
-            parsedStateName.transitions.none { it is Transition.GoState && it.identifier.isNotBlank() }
+        private fun hasNoName(parsedName: StatePath) = parsedName.transitions.all { it.identifier.isEmpty() }
+
+        private fun hasBlankName(parsedName: StatePath) =
+            parsedName.transitions.any { it is Transition.StateId && it.identifier.isBlank() }
     }
 }

@@ -5,26 +5,10 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
-import com.justai.jaicf.plugin.isRemoved
+import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.psi.KtFile
 
-class FileModificationTrackerProvider(private val project: Project) {
-
-    fun getTracker(file: KtFile): SimpleModificationTracker? {
-        if (file.isRemoved)
-            return null
-
-        val originalFile = file.originalFile as? KtFile ?: return null
-        return MyTracker(project, originalFile)
-    }
-
-    companion object {
-        operator fun get(project: Project): FileModificationTrackerProvider =
-            project.getService(FileModificationTrackerProvider::class.java)
-    }
-}
-
-private class MyTracker(project: Project, val originalFile: KtFile) : SimpleModificationTracker() {
+class FileModificationTracker(project: Project, val file: KtFile) : SimpleModificationTracker() {
 
     init {
         PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener()) { }
@@ -32,10 +16,17 @@ private class MyTracker(project: Project, val originalFile: KtFile) : SimpleModi
 
     private inner class PsiChangeListener : PsiTreeChangeAdapter() {
         override fun childrenChanged(event: PsiTreeChangeEvent) {
-            (event.file?.originalFile as? KtFile)?.let { file ->
-                if (file == originalFile)
-                    incModificationCount()
-            }
+            val changedFile = event.file?.originalFile as? KtFile ?: return
+            if (changedFile == file) incModificationCount()
+        }
+    }
+
+    companion object {
+        fun getInstance(file: KtFile): FileModificationTracker? {
+            if (file.isRemoved) return null
+
+            val originalFile = file.originalFile as? KtFile ?: return null
+            return FileModificationTracker(originalFile.project, originalFile)
         }
     }
 }

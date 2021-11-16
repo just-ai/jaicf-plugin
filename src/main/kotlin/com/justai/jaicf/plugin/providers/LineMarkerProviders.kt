@@ -8,25 +8,25 @@ import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment.LEFT
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.justai.jaicf.plugin.asLeaf
-import com.justai.jaicf.plugin.findChildOfType
-import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
-import com.justai.jaicf.plugin.holderExpression
-import com.justai.jaicf.plugin.pathExpressionsOfBoundedBlock
 import com.justai.jaicf.plugin.providers.Icons.GO_TO_STATES
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
-import com.justai.jaicf.plugin.services.managers.dto.name
-import com.justai.jaicf.plugin.services.navigation.absolutePath
-import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
-import com.justai.jaicf.plugin.services.navigation.transitToState
-import com.justai.jaicf.plugin.services.usages
+import com.justai.jaicf.plugin.scenarios.linker.framingState
+import com.justai.jaicf.plugin.scenarios.linker.usages
+import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
+import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.scenarios.transition.absolutePath
+import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
+import com.justai.jaicf.plugin.scenarios.transition.transitToState
+import com.justai.jaicf.plugin.utils.asLeaf
+import com.justai.jaicf.plugin.utils.findChildOfType
+import com.justai.jaicf.plugin.utils.getBoundedCallExpressionOrNull
+import com.justai.jaicf.plugin.utils.holderExpression
+import com.justai.jaicf.plugin.utils.isRemoved
+import com.justai.jaicf.plugin.utils.pathExpressionsOfBoundedBlock
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
-
 
 class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -34,37 +34,33 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
-        if (!isLeafIdentifier(element)) return
+        if (element.isRemoved || isNotLeafIdentifier(element)) return
 
         val pathExpressions = element.pathExpressionsOfBoundedBlock
 
-        pathExpressions.forEach {
+        pathExpressions.onEach {
             val expression = it.holderExpression
             val markerHolder =
                 expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf
-                ?: return@forEach
-            val transitionResult = transitToState(it.bound, it.pathExpression)
+                ?: return@onEach
 
-            if (transitionResult.statesOrSuggestions().isEmpty())
-                return@forEach
-
-            transitionResult.statesOrSuggestions().onEach { state ->
+            transitToState(it.usePoint, it.declaration).statesOrSuggestions().onEach { state ->
                 result.add(buildLineMarker(state.stateExpression, markerHolder))
-            }.ifEmpty {
-                result.add(buildLineMarker(null, markerHolder))
             }
         }
     }
 
-    private fun buildLineMarker(expression: PsiElement?, markerHolderLeaf: LeafPsiElement) =
+    private fun buildLineMarker(
+        expression: PsiElement,
+        markerHolderLeaf: LeafPsiElement
+    ): RelatedItemLineMarkerInfo<PsiElement> =
         NavigationGutterIconBuilder.create(GO_TO_STATES)
             .setAlignment(LEFT)
-            .setTargets(listOfNotNull(expression))
+            .setTargets(listOf(expression))
             .setTooltipText("Navigate to state declaration")
             .setEmptyPopupText("No state declaration found")
             .createLineMarkerInfo(markerHolderLeaf)
 }
-
 
 class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -72,14 +68,10 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
-        if (!isLeafIdentifier(element)) {
-            return
-        }
+        if (element.isRemoved || isNotLeafIdentifier(element)) return
 
         val callExpression = element.getBoundedCallExpressionOrNull(KtValueArgument::class.java) ?: return
-        if (!callExpression.isStateDeclaration) {
-            return
-        }
+        if (!callExpression.isStateDeclaration) return
 
         buildLineMarker(callExpression, element as LeafPsiElement)?.let { result.add(it) }
     }
@@ -93,7 +85,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             ?: return null
 
         val usages = framingState.usages
-            .mapNotNull { it.asLeaf }
+            .mapNotNull { it.holderExpression.asLeaf }
             .mapNotNull {
                 it.framingState ?: return@mapNotNull null
                 it
@@ -134,4 +126,4 @@ private object Icons {
     val STATE_USAGES: Icon = AllIcons.Hierarchy.Supertypes
 }
 
-private fun isLeafIdentifier(element: PsiElement) = element is LeafPsiElement && element.elementType == IDENTIFIER
+private fun isNotLeafIdentifier(element: PsiElement) = element !is LeafPsiElement || element.elementType != IDENTIFIER

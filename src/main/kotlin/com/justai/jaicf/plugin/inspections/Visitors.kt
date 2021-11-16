@@ -7,12 +7,12 @@ import com.intellij.psi.ElementManipulators
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
-import com.justai.jaicf.plugin.StatePathExpression
-import com.justai.jaicf.plugin.innerPathExpressions
-import com.justai.jaicf.plugin.services.VersionService
-import com.justai.jaicf.plugin.services.isJaicfInclude
-import com.justai.jaicf.plugin.services.managers.ScenarioDataManager
-import com.justai.jaicf.plugin.services.managers.dto.State
+import com.justai.jaicf.plugin.notifications.checkEnvironmentAndNotify
+import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.utils.StatePathExpression
+import com.justai.jaicf.plugin.utils.innerPathExpressions
+import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -20,16 +20,16 @@ import org.jetbrains.kotlin.psi.KtFile
 
 abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
 
-    abstract fun visitState(visitedState: State)
+    abstract fun visitState(state: State)
 
     override fun visitFile(file: PsiFile) {
-        if (VersionService[file]?.isJaicfInclude == false)
+        if (!checkEnvironmentAndNotify(file))
             return
 
         if (file !is KtFile)
             return
 
-        val service = ScenarioDataManager[file] ?: return
+        val service = ScenarioDataService.getInstance(file) ?: return
 
         service.getScenarios(file)?.forEach {
             recursiveEntryIntoState(it.innerState)
@@ -47,7 +47,7 @@ abstract class KtCallExpressionVisitor(holder: ProblemsHolder) : VisitorBase(hol
     abstract fun visitCallExpression(callExpression: KtCallExpression)
 
     override fun visitElement(element: PsiElement) {
-        if (VersionService[element]?.isJaicfInclude == false)
+        if (!checkEnvironmentAndNotify(element))
             return
 
         if (element is KtCallExpression)
@@ -60,7 +60,7 @@ abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holde
     abstract fun visitPathExpression(pathExpression: StatePathExpression)
 
     override fun visitElement(element: PsiElement) {
-        if (VersionService[element]?.isJaicfInclude == false)
+        if (!checkEnvironmentAndNotify(element))
             return
 
         if (element is KtCallExpression)
@@ -76,7 +76,7 @@ abstract class AnnotatedElementVisitor(holder: ProblemsHolder) : VisitorBase(hol
     abstract fun visitAnnotatedElement(annotatedElement: KtAnnotated)
 
     override fun visitElement(element: PsiElement) {
-        if (VersionService[element]?.isJaicfInclude == false)
+        if (!checkEnvironmentAndNotify(element))
             return
 
         (element as? KtAnnotated)?.let { visitAnnotatedElement(it) }
@@ -84,6 +84,11 @@ abstract class AnnotatedElementVisitor(holder: ProblemsHolder) : VisitorBase(hol
 }
 
 abstract class VisitorBase(private val holder: ProblemsHolder) : PsiElementVisitor() {
+
+    fun checkEnvironmentAndNotify(element: PsiElement): Boolean {
+        val project = if (element.isExist) element.project else return false
+        return checkEnvironmentAndNotify(project)
+    }
 
     protected fun registerGenericErrorOrWarning(
         element: PsiElement,

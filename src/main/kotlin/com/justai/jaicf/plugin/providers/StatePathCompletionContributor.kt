@@ -18,20 +18,19 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import com.justai.jaicf.plugin.Lexeme
-import com.justai.jaicf.plugin.StatePath
-import com.justai.jaicf.plugin.StatePathExpression.BoundedExpression
-import com.justai.jaicf.plugin.boundedPathExpression
-import com.justai.jaicf.plugin.isComplexStringTemplate
-import com.justai.jaicf.plugin.parent
-import com.justai.jaicf.plugin.services.linter.allStates
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.dto.State
-import com.justai.jaicf.plugin.services.managers.dto.name
-import com.justai.jaicf.plugin.services.navigation.statesOrSuggestions
-import com.justai.jaicf.plugin.services.navigation.transit
-import com.justai.jaicf.plugin.stringValueOrNull
-import com.justai.jaicf.plugin.withoutLeadSlashes
+import com.justai.jaicf.plugin.scenarios.linker.allStates
+import com.justai.jaicf.plugin.scenarios.linker.framingState
+import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme
+import com.justai.jaicf.plugin.scenarios.transition.StatePath
+import com.justai.jaicf.plugin.scenarios.transition.parent
+import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
+import com.justai.jaicf.plugin.scenarios.transition.transit
+import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
+import com.justai.jaicf.plugin.utils.boundedPathExpression
+import com.justai.jaicf.plugin.utils.isComplexStringTemplate
+import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -48,15 +47,15 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         context: ProcessingContext,
         resultSet: CompletionResultSet,
     ) {
-        val statePathExpression = parameters.position.boundedPathExpression as? BoundedExpression ?: return
-        val pathExpression = statePathExpression.pathExpression
+        val statePathExpression = parameters.position.boundedPathExpression as? Joined ?: return
+        val pathExpression = statePathExpression.declaration
         val pathBeforeCaret = pathExpression.stringValueOrNull?.substringBeforeCaret() ?: return
         val statePath = StatePath.parse(pathBeforeCaret)
         val statesSuggestions: List<State> = getStatesSuggestions(pathExpression, statePath) ?: return
 
         if (isLastTransitionFitIntoElement(statePath, parameters)) {
             statesSuggestions
-                .mapNotNull { it.name?.withoutLeadSlashes() }
+                .mapNotNull { it.nameWithoutLeadSlashes }
                 .onEach {
                     resultSet
                         .withPrefixMatcherIfComplexExpression(pathExpression, statePath)
@@ -68,7 +67,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
             statesSuggestions
                 .asSequence()
-                .mapNotNull { it.name?.withoutLeadSlashes() }
+                .mapNotNull { it.nameWithoutLeadSlashes }
                 .filter { it.startsWith(prefix) }
                 .map { it.substringAfter(prefix) }
                 .filter { it.isNotBlank() }
@@ -90,10 +89,10 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
         !(
-                path.lexemes.isNotEmpty() &&
-                        path.lexemes.last() is Lexeme.Transition &&
-                        path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
-                )
+            path.lexemes.isNotEmpty() &&
+                path.lexemes.last() is Lexeme.Transition &&
+                path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
+            )
 
     private fun String.substringBeforeCaret() = substringBefore("IntellijIdeaRulezzz")
 
