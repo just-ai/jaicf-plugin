@@ -12,15 +12,16 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.util.ProcessingContext
-import com.justai.jaicf.plugin.STATE_NAME_ARGUMENT_NAME
-import com.justai.jaicf.plugin.getBoundedCallExpressionOrNull
-import com.justai.jaicf.plugin.getBoundedValueArgumentOrNull
-import com.justai.jaicf.plugin.identifier
-import com.justai.jaicf.plugin.rangeToEndOf
-import com.justai.jaicf.plugin.services.AvailabilityService
-import com.justai.jaicf.plugin.services.locator.framingState
-import com.justai.jaicf.plugin.services.managers.builders.isStateDeclaration
-import com.justai.jaicf.plugin.services.usages
+import com.justai.jaicf.plugin.scenarios.linker.framingState
+import com.justai.jaicf.plugin.scenarios.linker.usages
+import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
+import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.StatePathExpression
+import com.justai.jaicf.plugin.utils.boundedCallExpressionOrNull
+import com.justai.jaicf.plugin.utils.getBoundedValueArgumentOrNull
+import com.justai.jaicf.plugin.utils.holderExpression
+import com.justai.jaicf.plugin.utils.identifier
+import com.justai.jaicf.plugin.utils.rangeToEndOf
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 
@@ -31,7 +32,6 @@ class StateIdentifierReferenceContributor : PsiReferenceContributor() {
             StateIdentifierReferenceProvider()
         )
     }
-
 }
 
 class StateIdentifierReferenceProvider : PsiReferenceProvider() {
@@ -41,9 +41,7 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
 
-        if (!argument.isNameOfStateDeclaration) {
-            return emptyArray()
-        }
+        if (!argument.isNameOfStateDeclaration) return emptyArray()
 
         return arrayOf(
             MultiPsiReference(element, element.rangeToEndOf(argument)) {
@@ -52,26 +50,24 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
             }
         )
     }
-
-
 }
 
 class MultiPsiReference(
     element: PsiElement,
     textRange: TextRange = element.textRange,
-    private val referencesProvider: () -> List<PsiElement>,
+    private val referencesProvider: () -> List<StatePathExpression>,
 ) : PsiReferenceBase<PsiElement?>(element, textRange), PsiPolyVariantReference {
 
-    private val service = AvailabilityService[element]
+    private val service = ReferenceContributorsAvailabilityService.getInstance(element)
 
     override fun resolve() =
-        if (service?.referenceContributorAvailable == true)
-            referencesProvider().singleOrNull()
+        if (service?.available == true)
+            referencesProvider().singleOrNull()?.holderExpression
         else null
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return if (service?.referenceContributorAvailable == true)
-            referencesProvider().map(::PsiElementResolveResult).toTypedArray()
+        return if (service?.available == true)
+            referencesProvider().map { it.holderExpression }.map(::PsiElementResolveResult).toTypedArray()
         else emptyArray()
     }
 
@@ -81,4 +77,4 @@ class MultiPsiReference(
 }
 
 val KtValueArgument.isNameOfStateDeclaration: Boolean
-    get() = getBoundedCallExpressionOrNull()?.isStateDeclaration == true && identifier == STATE_NAME_ARGUMENT_NAME
+    get() = boundedCallExpressionOrNull?.isStateDeclaration == true && identifier == STATE_NAME_ARGUMENT_NAME

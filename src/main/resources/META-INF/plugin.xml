@@ -7,23 +7,30 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.VersionService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.AvailabilityService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.trackers.FileModificationTrackerProvider"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.PathValueExpressionManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.PathValueMethodsManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.TopLevelAppendDataManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.managers.ScenarioDataManager"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.linter.ScenarioReferenceResolver"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.services.navigation.Navigator"/>
+        <postStartupActivity implementation="com.justai.jaicf.plugin.activities.DisableIdempotenceCheckerLoggerStartupActivity"/>
+
+        <projectService serviceImplementation="com.justai.jaicf.plugin.utils.VersionService"/>
+        <projectService
+                serviceImplementation="com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.StatePathExpressionsService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueMethodsService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.linker.ScenarioReferenceResolver"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.transition.TransitionService"/>
+
+        <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfSourcesMissedNotifier"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfUnsupportedNotifier"/>
+
+        <projectService serviceImplementation="com.justai.jaicf.plugin.utils.ConstantResolver"/>
+
+        <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
+                      order="first"/>
 
         <completion.contributor language="kotlin"
                                 id="StatePathCompletionContributor"
                                 implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionContributor"
                                 order="first, before KotlinCompletionContributor"/>
-
-        <typedHandler implementation="com.justai.jaicf.plugin.providers.StatePathAutoPopupHandler" id="pathAuto"
-                      order="first"/>
 
         <completion.confidence language="kotlin"
                                implementationClass="com.justai.jaicf.plugin.providers.StatePathCompletionConfidenceProvider"
@@ -86,5 +93,8 @@
         <defaultLiveTemplates file="/liveTemplates/state.xml"/>
 
         <liveTemplateContext implementation="com.justai.jaicf.plugin.contexts.StateContext"/>
+
+        <notificationGroup id="Incompatible Versions Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
+        <notificationGroup id="Missed Sources Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
     </extensions>
 </idea-plugin>

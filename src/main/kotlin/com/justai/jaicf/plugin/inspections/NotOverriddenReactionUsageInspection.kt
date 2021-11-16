@@ -2,13 +2,12 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.intellij.openapi.diagnostic.Logger
-import com.justai.jaicf.plugin.USES_REACTION_ANNOTATION_NAME
-import com.justai.jaicf.plugin.USES_REACTION_METHOD_ARGUMENT_NAME
-import com.justai.jaicf.plugin.argumentConstantValue
-import com.justai.jaicf.plugin.declaration
-import com.justai.jaicf.plugin.getMethodAnnotations
-import com.justai.jaicf.plugin.reactionsClassFqName
+import com.justai.jaicf.plugin.utils.USES_REACTION_ANNOTATION_NAME
+import com.justai.jaicf.plugin.utils.USES_REACTION_METHOD_ARGUMENT_NAME
+import com.justai.jaicf.plugin.utils.argumentConstantValue
+import com.justai.jaicf.plugin.utils.declaration
+import com.justai.jaicf.plugin.utils.getMethodAnnotations
+import com.justai.jaicf.plugin.utils.reactionsClassFqName
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
@@ -17,7 +16,6 @@ import org.jetbrains.kotlin.idea.actions.generate.findDeclaredFunction
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.isOverridable
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
-import org.jetbrains.kotlin.idea.refactoring.canRefactor
 import org.jetbrains.kotlin.idea.refactoring.isAbstract
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -41,19 +39,15 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
             val receiverClass = callExpression.receiverType().toClassDescriptor ?: return
-            if (!receiverClass.isFinal) return
+            if (receiverClass.isOpenOrAbstract) return
 
             val annotations = callExpression.getMethodAnnotations(USES_REACTION_ANNOTATION_NAME)
 
             annotations.forEach { annotation ->
-                val reactionName = annotation.argumentConstantValue(USES_REACTION_METHOD_ARGUMENT_NAME)
+                val reactionName =
+                    annotation.argumentConstantValue(USES_REACTION_METHOD_ARGUMENT_NAME) ?: return@forEach
 
-                if (reactionName == null) {
-                    logger.warn("UsesReaction annotation has no reaction name. ${annotation.text}")
-                    return@forEach
-                }
-
-                if (reactionIsNotOverridden(reactionName, callExpression)) {
+                if (callExpression.reactionIsNotOverridden(reactionName)) {
                     registerWarning(
                         callExpression,
                         "$reactionName reaction is not implemented by this channel"
@@ -62,11 +56,11 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
             }
         }
 
-        private fun reactionIsNotOverridden(reactionName: String, callExpression: KtCallExpression): Boolean {
-            val reactionDescriptor = getReactionDescriptor(reactionName, callExpression) ?: return false
+        private fun KtCallExpression.reactionIsNotOverridden(reactionName: String): Boolean {
+            val reactionDescriptor = getReactionDescriptor(reactionName, this) ?: return false
 
             return if (reactionDescriptor.isFinal) false
-            else callExpression.receiverType()?.findOverridingFunction(reactionDescriptor) == null
+            else receiverType()?.findOverridingFunction(reactionDescriptor) == null
         }
 
         private fun getReactionDescriptor(reactionName: String, callExpression: KtCallExpression): FunctionDescriptor? {
@@ -80,10 +74,6 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
             return receiverDescriptor?.findDeclaredFunction(reactionName, true) { true }
         }
     }
-
-    companion object {
-        private val logger = Logger.getInstance(UsesReactionUsageInspection::class.java)
-    }
 }
 
 class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
@@ -95,45 +85,39 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
     class NotOverriddenReactionUsageVisitor(holder: ProblemsHolder) : KtCallExpressionVisitor(holder) {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
-            if (!reactionIsNotOverridden(callExpression)) return
+            if (!callExpression.isNotOverriddenReaction) return
 
-            val functionReceiverClass = callExpression.receiverType().toClassDescriptor ?: return
+            val reactionReceiverClass = callExpression.receiverType().toClassDescriptor ?: return
 
-            if (!functionReceiverClass.isFinal) return
+            if (reactionReceiverClass.isOpenOrAbstract) return
 
-            val functionName = callExpression.declaration?.name
-
-            if (functionName == null) {
-                logger.warn("Function of reaction doesn't have a name. ${callExpression.text}")
-                return
-            }
+            val reactionName = callExpression.declaration?.name ?: return
 
             registerWarning(
                 callExpression,
-                "$functionName reaction is not implemented by this channel"
+                "$reactionName reaction is not implemented by this channel"
             )
         }
 
-        private fun reactionIsNotOverridden(callExpression: KtCallExpression): Boolean {
-            val functionDeclaration = callExpression.declaration ?: return false
+        private val KtCallExpression.isNotOverriddenReaction: Boolean
+            get() {
+                val functionDeclaration = declaration ?: return false
+                val classOfFunctionDeclaration = functionDeclaration.fqName?.parent() ?: return false
 
-            val classOfFunctionDeclaration = functionDeclaration.fqName?.parent() ?: return false
-
-            return classOfFunctionDeclaration == reactionsClassFqName && functionDeclaration.isOpenOrAbstract()
-        }
-    }
-
-    companion object {
-        private val logger = Logger.getInstance(NotOverriddenReactionUsageInspection::class.java)
+                return classOfFunctionDeclaration == reactionsClassFqName && functionDeclaration.isOpenOrAbstract
+            }
     }
 }
 
-private fun KtFunction.isOpenOrAbstract() = isAbstract() || isOverridable()
+private val KtFunction.isOpenOrAbstract get() = isAbstract() || isOverridable()
+
+private val MemberDescriptor.isOpenOrAbstract: Boolean
+    get() = !isFinal
 
 private val MemberDescriptor.isFinal: Boolean
     get() = modality == Modality.FINAL
 
-private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = supertypes()
+private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = (supertypes() + this)
     .mapNotNull { it.toClassDescriptor }
     .firstOrNull { supertype ->
         supertype.findDeclaredFunction(
@@ -146,7 +130,5 @@ private fun KtTypeReference.classForRefactor(): KtClass? {
     val bindingContext = analyze(BodyResolveMode.PARTIAL)
     val type = bindingContext[BindingContext.TYPE, this] ?: return null
     val classDescriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
-    val declaration = DescriptorToSourceUtils.descriptorToDeclaration(classDescriptor) as? KtClass ?: return null
-    if (!declaration.canRefactor()) return null
-    return declaration
+    return DescriptorToSourceUtils.descriptorToDeclaration(classDescriptor) as? KtClass
 }
