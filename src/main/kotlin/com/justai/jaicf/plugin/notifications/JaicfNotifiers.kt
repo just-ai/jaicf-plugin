@@ -12,9 +12,6 @@ import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
 
 class JaicfUnsupportedNotifier(private val project: Project) : ValidatingNotifier() {
 
-    private val notificationGroup =
-        NotificationGroup("Jaicf Plugin Group", NotificationDisplayType.STICKY_BALLOON, true)
-
     private val versionService = VersionService.getInstance(project)
 
     override fun isValid() = versionService.isSupportedJaicfInclude || !versionService.isJaicfInclude
@@ -31,15 +28,15 @@ class JaicfUnsupportedNotifier(private val project: Project) : ValidatingNotifie
     }
 
     companion object {
+        private val notificationGroup =
+            NotificationGroup("Incompatible Versions Jaicf Plugin Group", NotificationDisplayType.STICKY_BALLOON, true)
+
         fun getInstance(project: Project): JaicfUnsupportedNotifier =
             ServiceManager.getService(project, JaicfUnsupportedNotifier::class.java)
     }
 }
 
 class JaicfSourcesMissedNotifier(private val project: Project) : ValidatingNotifier() {
-
-    private val notificationGroup =
-        NotificationGroup("Jaicf Plugin Group", NotificationDisplayType.STICKY_BALLOON, true)
 
     private val versionService = VersionService.getInstance(project)
     private val valueMethodsService = PathValueMethodsService.getInstance(project)
@@ -58,6 +55,9 @@ class JaicfSourcesMissedNotifier(private val project: Project) : ValidatingNotif
     }
 
     companion object {
+        private val notificationGroup =
+            NotificationGroup("Missed Sources Jaicf Plugin Group", NotificationDisplayType.STICKY_BALLOON, true)
+
         fun getInstance(project: Project): JaicfSourcesMissedNotifier =
             ServiceManager.getService(project, JaicfSourcesMissedNotifier::class.java)
     }

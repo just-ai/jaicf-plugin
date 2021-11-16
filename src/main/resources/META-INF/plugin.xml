@@ -90,8 +90,7 @@
         <codeInsight.lineMarkerProvider language="kotlin"
                                         implementationClass="com.justai.jaicf.plugin.providers.StateIdentifierLineMarkerProvider"/>
 
-        <defaultLiveTemplates file="/liveTemplates/state.xml"/>
-
+        <defaultLiveTemplatesProvider implementation="com.justai.jaicf.plugin.contexts.StateMarkdownTemplateProvider"/>
         <liveTemplateContext implementation="com.justai.jaicf.plugin.contexts.StateContext"/>
     </extensions>
 </idea-plugin>
