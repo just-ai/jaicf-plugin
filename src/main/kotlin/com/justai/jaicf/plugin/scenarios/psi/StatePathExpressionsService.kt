@@ -30,7 +30,7 @@ class StatePathExpressionsService(project: Project) : JaicfService(project) {
             .flatMap { it.pathExpressionsOfBoundedBlock }
     }
 
-    fun getExpressions() = expressionsMap.getValues().flatten()
+    fun getExpressions() = expressionsMap.getNotNullValues().flatten()
 
     companion object {
         fun getInstance(element: PsiElement): StatePathExpressionsService? =
@@ -45,7 +45,7 @@ class StatePathExpressionsService(project: Project) : JaicfService(project) {
 class PathValueMethodsService(project: Project) : JaicfService(project) {
 
     val methods
-        get() = (jaicfMethods + projectMethods.getValues().flatten()).filter { it.isExist }
+        get() = (jaicfMethods + projectMethods.getNotNullValues().flatten()).filter { it.isExist }
 
     val jaicfMethods: List<KtFunction> by cached(LibraryModificationTracker.getInstance(project)) {
         if (enabled) findUsages(project.allScope() - project.projectScope())
