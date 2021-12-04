@@ -1,7 +1,7 @@
 package com.justai.jaicf.plugin.scenarios.linker
 
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.scenarios.psi.StatePathExpressionsService
+import com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
@@ -20,7 +20,7 @@ val State.allStates
 
 val State.usages: List<StatePathExpression>
     get() {
-        val expressionsService = StatePathExpressionsService.getInstance(project)
+        val expressionsService = PathValueExpressionsService.getInstance(project)
         return expressionsService.getExpressions()
             .filter { this in transitToState(it.usePoint, it.declaration).statesOrSuggestions() }
     }
