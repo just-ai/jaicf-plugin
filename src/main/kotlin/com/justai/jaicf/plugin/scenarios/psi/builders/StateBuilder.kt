@@ -55,16 +55,6 @@ private val KtCallExpression.annotatedLambdaArgument: KtLambdaExpression?
 val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
     get() = this.declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression
 
-fun KtCallExpression.getAnnotatedStringTemplatesInDeclaration(name: String): List<KtStringTemplateExpression> {
-    val bodyExpression = this.declaration?.bodyExpression ?: return emptyList()
-
-    val annotationsExpressions = bodyExpression.findChildrenOfType<KtAnnotatedExpression>().filter {
-        it.annotationEntries.any { entry -> entry.shortName?.asString() == name }
-    }
-
-    return annotationsExpressions.mapNotNull { it.baseExpression as? KtStringTemplateExpression }
-}
-
 val KtCallExpression.isStateDeclaration: Boolean
     get() = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty()
 
