@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.notifications
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.scenarios.psi.PathValueMethodsService
+import com.justai.jaicf.plugin.scenarios.psi.MethodsUsedPathValueService
 import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
@@ -34,7 +34,7 @@ class JaicfUnsupportedNotifier(private val project: Project) : ValidatingNotifie
 class JaicfSourcesMissedNotifier(private val project: Project) : ValidatingNotifier() {
 
     private val versionService = VersionService.getInstance(project)
-    private val valueMethodsService = PathValueMethodsService.getInstance(project)
+    private val valueMethodsService = MethodsUsedPathValueService.getInstance(project)
 
     override fun isValid() = valueMethodsService.jaicfMethods.isNotEmpty() || !versionService.isSupportedJaicfInclude
 
