@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.utils
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
 import com.justai.jaicf.plugin.utils.StatePathExpression.Separated
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
+import org.jetbrains.kotlin.idea.core.receiverValue
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -25,7 +25,7 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
                 argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                (this.receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
+                (receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
 
             expressions += getAnnotatedExpressionsInDeclaration(PATH_ARGUMENT_ANNOTATION_NAME)
 
