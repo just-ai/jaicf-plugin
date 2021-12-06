@@ -1,10 +1,10 @@
 package com.justai.jaicf.plugin.utils
 
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.scenarios.psi.builders.getAnnotatedStringTemplatesInDeclaration
 import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
 import com.justai.jaicf.plugin.utils.StatePathExpression.Separated
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
@@ -27,7 +27,7 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
                 (this.receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
 
-            expressions += getAnnotatedStringTemplatesInDeclaration(PATH_ARGUMENT_ANNOTATION_NAME)
+            expressions += getAnnotatedExpressionsInDeclaration(PATH_ARGUMENT_ANNOTATION_NAME)
 
             expressions.filterNot { it.isNull() }.map { StatePathExpression.create(this, it) }
         } else {
@@ -144,3 +144,13 @@ val StatePathExpression.holderExpression: KtExpression
         is Joined -> declaration
         is Separated -> (usePoint as? KtCallExpression)?.nameReferenceExpression() ?: usePoint
     }
+
+private fun KtCallExpression.getAnnotatedExpressionsInDeclaration(name: String): List<KtExpression> {
+    val bodyExpression = this.declaration?.bodyExpression ?: return emptyList()
+
+    val annotatedExpressions = bodyExpression.findChildrenOfType<KtAnnotatedExpression>().filter {
+        it.annotationEntries.any { entry -> entry.shortName?.asString() == name }
+    }
+
+    return annotatedExpressions.mapNotNull { it.baseExpression }
+}

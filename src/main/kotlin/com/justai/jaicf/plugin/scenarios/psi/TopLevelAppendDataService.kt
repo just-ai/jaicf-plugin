@@ -28,7 +28,7 @@ class TopLevelAppendDataService(project: Project) : JaicfService(project) {
     }
 
     fun getAppends() =
-        if (enabled) appendsMap.getValues().flatten()
+        if (enabled) appendsMap.getNotNullValues().flatten()
         else emptyList()
 
     private fun getTopLevelAppendsUsages(scope: GlobalSearchScope): List<KtCallExpression> =

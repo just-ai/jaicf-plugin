@@ -19,9 +19,9 @@ import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
-class StatePathExpressionsService(project: Project) : JaicfService(project) {
+class PathValueExpressionsService(project: Project) : JaicfService(project) {
 
-    private val pathValueService = PathValueMethodsService(project)
+    private val pathValueService = MethodsUsedPathValueService(project)
 
     private val expressionsMap = LiveMapByFiles(project) { file ->
         pathValueService.methods
@@ -30,22 +30,22 @@ class StatePathExpressionsService(project: Project) : JaicfService(project) {
             .flatMap { it.pathExpressionsOfBoundedBlock }
     }
 
-    fun getExpressions() = expressionsMap.getValues().flatten()
+    fun getExpressions() = expressionsMap.getNotNullValues().flatten()
 
     companion object {
-        fun getInstance(element: PsiElement): StatePathExpressionsService? =
+        fun getInstance(element: PsiElement): PathValueExpressionsService? =
             if (element.isExist) getInstance(element.project)
             else null
 
-        fun getInstance(project: Project): StatePathExpressionsService =
-            ServiceManager.getService(project, StatePathExpressionsService::class.java)
+        fun getInstance(project: Project): PathValueExpressionsService =
+            ServiceManager.getService(project, PathValueExpressionsService::class.java)
     }
 }
 
-class PathValueMethodsService(project: Project) : JaicfService(project) {
+class MethodsUsedPathValueService(project: Project) : JaicfService(project) {
 
     val methods
-        get() = (jaicfMethods + projectMethods.getValues().flatten()).filter { it.isExist }
+        get() = (jaicfMethods + projectMethods.getNotNullValues().flatten()).filter { it.isExist }
 
     val jaicfMethods: List<KtFunction> by cached(LibraryModificationTracker.getInstance(project)) {
         if (enabled) findUsages(project.allScope() - project.projectScope())
@@ -68,7 +68,7 @@ class PathValueMethodsService(project: Project) : JaicfService(project) {
     }
 
     companion object {
-        fun getInstance(project: Project): PathValueMethodsService =
-            ServiceManager.getService(project, PathValueMethodsService::class.java)
+        fun getInstance(project: Project): MethodsUsedPathValueService =
+            ServiceManager.getService(project, MethodsUsedPathValueService::class.java)
     }
 }
