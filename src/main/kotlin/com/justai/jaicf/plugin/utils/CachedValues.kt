@@ -51,7 +51,7 @@ class LiveMapByFiles<T>(val project: Project, private val valueProvider: (KtFile
 
     operator fun get(file: KtFile): T? = cachedMap[file]?.value
 
-    fun getValues() = cachedMap.values.map { it.value }
+    fun getNotNullValues() = cachedMap.values.mapNotNull { it.value }
 
     private fun createCachedValue(file: KtFile) =
         CachedValuesManager.getManager(project).createCachedValue {
