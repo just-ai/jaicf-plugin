@@ -36,7 +36,7 @@ class ScenarioDataService(project: Project) : JaicfService(project) {
         else null
 
     fun getScenarios() =
-        if (enabled) scenariosMap.getValues().flatten()
+        if (enabled) scenariosMap.getNotNullValues().flatten()
         else emptyList()
 
     companion object {
