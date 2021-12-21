@@ -20,7 +20,9 @@ import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.scenarios.transition.transitionsWithRanges
 import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
+import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.boundedPathExpression
+import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSimpleStringTemplate
 import com.justai.jaicf.plugin.utils.rangeToEndOf
 import com.justai.jaicf.plugin.utils.stringValueOrNull
@@ -38,6 +40,7 @@ class StatePathReferenceContributor : PsiReferenceContributor() {
 class StatePathReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return emptyArray()
 
         val statePathExpression = element.boundedPathExpression as? Joined ?: return emptyArray()
         val pathExpression = statePathExpression.declaration
