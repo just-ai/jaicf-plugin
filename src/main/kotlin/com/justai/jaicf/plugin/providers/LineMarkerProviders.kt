@@ -16,10 +16,12 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.absolutePath
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transitToState
+import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.asLeaf
 import com.justai.jaicf.plugin.utils.findChildOfType
 import com.justai.jaicf.plugin.utils.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.utils.holderExpression
+import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isRemoved
 import com.justai.jaicf.plugin.utils.pathExpressionsOfBoundedBlock
 import javax.swing.Icon
@@ -34,6 +36,8 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return
+
         if (element.isRemoved || isNotLeafIdentifier(element)) return
 
         val pathExpressions = element.pathExpressionsOfBoundedBlock
@@ -52,7 +56,7 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     private fun buildLineMarker(
         expression: PsiElement,
-        markerHolderLeaf: LeafPsiElement
+        markerHolderLeaf: LeafPsiElement,
     ): RelatedItemLineMarkerInfo<PsiElement> =
         NavigationGutterIconBuilder.create(GO_TO_STATES)
             .setAlignment(LEFT)
@@ -68,6 +72,8 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return
+
         if (element.isRemoved || isNotLeafIdentifier(element)) return
 
         val callExpression = element.getBoundedCallExpressionOrNull(KtValueArgument::class.java) ?: return
