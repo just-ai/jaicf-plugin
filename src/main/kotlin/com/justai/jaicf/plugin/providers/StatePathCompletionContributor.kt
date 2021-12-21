@@ -9,8 +9,9 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.SkipAutopopupInStrings
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
+import com.intellij.codeInsight.editorActions.TypedHandlerDelegate.Result.CONTINUE
+import com.intellij.codeInsight.editorActions.TypedHandlerDelegate.Result.STOP
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.patterns.PlatformPatterns
@@ -18,6 +19,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
+import com.intellij.util.ThreeState.NO
+import com.intellij.util.ThreeState.UNSURE
 import com.justai.jaicf.plugin.scenarios.linker.allStates
 import com.justai.jaicf.plugin.scenarios.linker.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
@@ -28,8 +31,10 @@ import com.justai.jaicf.plugin.scenarios.transition.parent
 import com.justai.jaicf.plugin.scenarios.transition.statesOrSuggestions
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
+import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.boundedPathExpression
 import com.justai.jaicf.plugin.utils.isComplexStringTemplate
+import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -47,6 +52,8 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         context: ProcessingContext,
         resultSet: CompletionResultSet,
     ) {
+        if (!VersionService.getInstance(parameters.originalFile.project).isJaicfInclude) return
+
         val statePathExpression = parameters.position.boundedPathExpression as? Joined ?: return
         val pathExpression = statePathExpression.declaration
         val pathBeforeCaret = pathExpression.stringValueOrNull?.substringBeforeCaret() ?: return
@@ -89,10 +96,10 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
         !(
-            path.lexemes.isNotEmpty() &&
-                path.lexemes.last() is Lexeme.Transition &&
-                path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
-            )
+                path.lexemes.isNotEmpty() &&
+                        path.lexemes.last() is Lexeme.Transition &&
+                        path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
+                )
 
     private fun String.substringBeforeCaret() = substringBefore("IntellijIdeaRulezzz")
 
@@ -108,10 +115,6 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         else
             this
     }
-
-    companion object {
-        private val logger = Logger.getInstance(StatePathCompletionProvider::class.java)
-    }
 }
 
 class StatePathAutoPopupHandler : TypedHandlerDelegate() {
@@ -121,17 +124,19 @@ class StatePathAutoPopupHandler : TypedHandlerDelegate() {
      * @return [TypedHandlerDelegate.Result.STOP] if we can try suggest state completions
      * */
     override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
+        if (!VersionService.getInstance(project).isJaicfInclude) return CONTINUE
+
         if (charTyped !in supportedCharsForPopup) {
-            return Result.CONTINUE
+            return CONTINUE
         }
 
-        val element = file.findElementAt(editor.caretModel.offset) ?: return Result.CONTINUE
+        val element = file.findElementAt(editor.caretModel.offset) ?: return CONTINUE
 
         if (element.boundedPathExpression != null) {
             AutoPopupController.getInstance(project).autoPopupMemberLookup(editor, null)
-            return Result.STOP
+            return STOP
         }
-        return Result.CONTINUE
+        return CONTINUE
     }
 }
 
@@ -141,18 +146,20 @@ class StatePathCompletionConfidenceProvider : CompletionConfidence() {
      * Skips completion if given [contextElement] is not valid state path
      * */
     override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
+        if (!VersionService.getInstance(psiFile.project).isJaicfInclude) return UNSURE
+
         return if (SkipAutopopupInStrings.isInStringLiteral(contextElement)) {
             val charTyped = psiFile.text[offset - 1]
             if (charTyped !in supportedCharsForPopup) {
-                return ThreeState.UNSURE
+                return UNSURE
             }
 
             return if (contextElement.boundedPathExpression != null)
-                ThreeState.NO
+                NO
             else
-                ThreeState.UNSURE
+                UNSURE
         } else
-            ThreeState.UNSURE
+            UNSURE
     }
 }
 
