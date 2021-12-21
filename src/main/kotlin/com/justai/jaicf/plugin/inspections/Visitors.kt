@@ -11,8 +11,10 @@ import com.justai.jaicf.plugin.notifications.checkEnvironmentAndNotify
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.utils.StatePathExpression
+import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.innerPathExpressions
 import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.isJaicfInclude
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -86,7 +88,9 @@ abstract class AnnotatedElementVisitor(holder: ProblemsHolder) : VisitorBase(hol
 abstract class VisitorBase(private val holder: ProblemsHolder) : PsiElementVisitor() {
 
     fun checkEnvironmentAndNotify(element: PsiElement): Boolean {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return false
         val project = if (element.isExist) element.project else return false
+
         return checkEnvironmentAndNotify(project)
     }
 

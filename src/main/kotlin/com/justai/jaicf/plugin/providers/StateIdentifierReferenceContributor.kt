@@ -17,10 +17,12 @@ import com.justai.jaicf.plugin.scenarios.linker.usages
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.utils.STATE_NAME_ARGUMENT_NAME
 import com.justai.jaicf.plugin.utils.StatePathExpression
+import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.boundedCallExpressionOrNull
 import com.justai.jaicf.plugin.utils.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.utils.holderExpression
 import com.justai.jaicf.plugin.utils.identifier
+import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.rangeToEndOf
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -38,6 +40,7 @@ class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
     @ExperimentalStdlibApi
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return emptyArray()
 
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
 
