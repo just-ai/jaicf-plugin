@@ -1,11 +1,11 @@
 package com.justai.jaicf.plugin.utils
 
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations.allowSlowOperations
-import java.lang.Integer.min
 import org.jetbrains.kotlin.idea.core.receiverType
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.name.FqName
@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.ifEmpty
+import java.lang.Integer.min
 
 fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
@@ -115,9 +116,16 @@ val KtCallElement.referenceExpression: KtReferenceExpression?
     get() = findChildOfType<KtNameReferenceExpression>()
 
 val KtReferenceExpression.resolveToSource: KtFunction?
-    get() = (resolve() as? KtFunction)?.let {
+    get() = (safeResolve() as? KtFunction)?.let {
         if (it.isBinary) it.source
         else it
+    }
+
+fun KtReferenceExpression.safeResolve() =
+    try {
+        resolve()
+    } catch (e: IndexNotReadyException) {
+        null
     }
 
 inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
@@ -131,8 +139,8 @@ inline fun <reified T : PsiElement> PsiElement.findChildrenOfType(): Collection<
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
     try {
         isExist && callName() == funName
-            && isReceiverInheritedOf(receiver)
-            && (parameters?.let { it == parametersTypes } ?: true)
+                && isReceiverInheritedOf(receiver)
+                && (parameters?.let { it == parametersTypes } ?: true)
     } catch (e: NullPointerException) {
         false
     }
@@ -173,7 +181,7 @@ fun PsiElement.getBoundedLambdaArgumentOrNull(vararg stopAt: Class<out PsiElemen
 
 fun PsiElement.getFirstBoundedElement(
     targetTypes: List<Class<out PsiElement>>,
-    allowedTypes: List<Class<out PsiElement>>? = null
+    allowedTypes: List<Class<out PsiElement>>? = null,
 ): PsiElement? {
     var currentParent = parent
     while (currentParent != null) {
@@ -250,8 +258,8 @@ fun PsiElement.rangeToEndOf(parent: PsiElement): TextRange {
 val KtBinaryExpression.operands get() = left?.let { l -> right?.let { r -> listOf(l, r) } }
 
 val KtBinaryExpression.isStringConcatenationExpression
-    get() = (operationReference.resolve() as? KtFunction)?.let { declaration ->
+    get() = (operationReference.safeResolve() as? KtFunction)?.let { declaration ->
         declaration.name == "plus" &&
-            declaration.receiverName == "kotlin.String" &&
-            declaration.parametersTypes.singleOrNull() == "kotlin.Any"
+                declaration.receiverName == "kotlin.String" &&
+                declaration.parametersTypes.singleOrNull() == "kotlin.Any"
     } ?: false
