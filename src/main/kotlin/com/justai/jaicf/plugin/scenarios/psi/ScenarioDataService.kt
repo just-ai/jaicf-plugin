@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
@@ -15,6 +16,10 @@ import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 
+/**
+ * Сервис хранящий все [Scenario] для каждого файла.
+ * Использование кешей позволяет сильно оптимизировать время доступа к сценариям.
+ */
 class ScenarioDataService(project: Project) : JaicfService(project) {
 
     private val scenariosBuildMethods by cachedIfEnabled(JaicfVersionTracker.getInstance(project)) {

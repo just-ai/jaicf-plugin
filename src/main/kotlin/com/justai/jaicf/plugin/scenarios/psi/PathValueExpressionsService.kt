@@ -18,6 +18,10 @@ import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
+/**
+ * Сервис хранящий все использования методов помеченных аннотацией `@PathValue`. Для доступа к декларации методов используется [MethodsUsedPathValueService].
+ * Использование кешей позволяет сильно оптимизировать время доступа к сценариям.
+ */
 class PathValueExpressionsService(project: Project) : JaicfService(project) {
 
     private val pathValueService = MethodsUsedPathValueService(project)
@@ -41,6 +45,15 @@ class PathValueExpressionsService(project: Project) : JaicfService(project) {
     }
 }
 
+/**
+ * Сервис хранящий все определения методов содержащие внутри себя аннотации `@PathValue` для каждого файла.
+ * Использование кешей позволяет сильно оптимизировать время доступа к объектам.
+ *
+ * @property methods это все методы которые могут быть использованы в проекте.
+ * @property jaicfMethods это методы находящиеся в подключаемой зависимости. Требуют пересчёта только при изменении версии JAICF
+ * @property projectMethods это методы созданные в проекте.
+ * @property annotationClass это instance класса PathValue
+ */
 class MethodsUsedPathValueService(project: Project) : JaicfService(project) {
 
     val methods

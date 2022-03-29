@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 
-fun buildAppend(expression: KtCallExpression, state: State? = null): Append? {
+fun buildAppend(expression: KtCallExpression, state: State): Append? {
     if (expression.isRemoved || expression.isAppendWithContext || !expression.isAppendWithoutContext)
         return null
 

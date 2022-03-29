@@ -12,6 +12,10 @@ import com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityServic
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 
+/**
+ * Этот метод находит все использования элемента. По функционалу аналогичен Ctrl+B.
+ * Отдельный метод написан, чтобы исправить рекурсивный поиск возникающий при определённых условиях.
+ */
 fun PsiElement.search(scope: SearchScope = project.projectScope()): Collection<PsiReference> {
     if (DumbService.getInstance(project).isDumb)
         return emptyList()

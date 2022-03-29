@@ -17,12 +17,22 @@ import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedP
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 
+/**
+ * Метод осуществляющий переход из стейта, содержащего [usePointExpression] по пути содержащемуся в [pathExpression].
+ * Потребность в таком методе возникла, так как бывают ситуации когда [usePointExpression] не совпадает с [pathExpression].
+ * Например если вызывается метод содержащий параметр `@PathValue` с значением по умолчанию. В этой ситуации [pathExpression]
+ * находится вне стейта, в котором применяется этот метод.
+ */
 fun transitToState(usePointExpression: KtExpression, pathExpression: KtExpression): TransitionResult {
     val framingState = usePointExpression.framingState ?: return OutOfStateBoundUsage
     val statePath = pathExpression.stringValueOrNull?.let { StatePath.parse(it) } ?: return UnresolvedPath
     return framingState.transit(statePath)
 }
 
+/**
+ * Метод позволяющий перейти из [State] во все возможные варианты по переданному [StatePath].
+ * [StatePath] содержит в себе [Transition] по которым и осуществляется переход используя [TransitionService].
+ */
 fun State.transit(path: StatePath) = path.transitions
     .fold<Transition, TransitionResult>(StateFound(this)) { transitionResult, transition ->
         when (transitionResult) {
@@ -59,14 +69,22 @@ fun State.transit(path: StatePath) = path.transitions
         }
     }
 
+/**
+ * Все возможные корневые стейты для текущего стейта, в отличие от [State.parent] использует все используемые appends.
+ * Корневой стейт это стейт совпадающий с телом сценария и в него можно перейти по [Transition.Root].
+ */
 val State.roots: List<State>
     get() {
         val appendingStates = scenario.appendingStates
 
-        return if (appendingStates.isNotEmpty()) appendingStates.flatMap { it.roots }
-        else listOf(root)
+        if (appendingStates.isNotEmpty())
+            return appendingStates.flatMap { it.roots }
+        return listOf(root)
     }
 
+/**
+ * Абсолютный путь стейта непосредственно в его сценарии. Здесь не используются appends.
+ */
 val State.absolutePath: StatePath?
     get() {
         if (parent == null) return StatePath(listOf(Root))
@@ -76,5 +94,8 @@ val State.absolutePath: StatePath?
         return parentPath + Transition.StateId(currentName)
     }
 
+/**
+ * Абсолютный путь стейта с указанием сценария, где он находится. Используется в инспекциях, для подсказок пользователю.
+ */
 val State.fullPath: String
     get() = scenario.name?.let { "$it:$absolutePath" } ?: "$absolutePath"

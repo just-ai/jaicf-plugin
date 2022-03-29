@@ -2,6 +2,8 @@ package com.justai.jaicf.plugin.scenarios.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
+import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
 import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
 import com.justai.jaicf.plugin.utils.ScenarioPackageFqName
@@ -15,6 +17,17 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
+/**
+ * Внутренне представление сценария.
+ *
+ * @property project проект в котором находится сценарий
+ * @property file файл в котором находится сценарий
+ * @property innerState корневой стейт сценария. В него можно попасть переходом "/".
+ * @property declarationElement элемент являющийся телом сценария
+ *
+ * @see buildScenario
+ * @see ScenarioDataService
+ */
 class Scenario(
     val project: Project,
     val file: KtFile,
@@ -43,9 +56,15 @@ class Scenario(
     }
 }
 
+/**
+ * Все стейты находящиеся непосредственно в теле сценария. Здесь НЕ используются appends
+ */
 val Scenario.nestedStates: List<State>
     get() = innerState.nestedStates + innerState
 
+/**
+ * Метод определяющий название сценария. Используется или имя класса/объекта, или название переменной куда присваивается объект сценария
+ */
 val Scenario.name: String?
     get() {
         val scenarioDeclaration = declarationElement as? KtCallExpression ?: return null

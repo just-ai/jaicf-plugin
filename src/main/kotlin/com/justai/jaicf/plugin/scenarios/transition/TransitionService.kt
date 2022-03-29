@@ -12,11 +12,18 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
 import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.OutOfStateBoundUsage
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.utils.isExist
 
+/**
+ * Сервис позволяющий найти все возможные переходы из стейта используя [Transition].
+ * Так как плагин не всегда может точно знать какой именно сценарий будет передан в BotEngine, то есть некоторое
+ * количество возможных вариантов перехода из одного стейта по одному transition.
+ */
 class TransitionService(project: Project) : JaicfService(project) {
 
     private val cache by cached(PsiModificationTracker.MODIFICATION_COUNT) {
@@ -84,6 +91,15 @@ class TransitionService(project: Project) : JaicfService(project) {
 
 fun State.transit(transition: Transition) = TransitionService.getInstance(project).transit(this, transition)
 
+/**
+ * Класс описывающий результат перехода из стейта.
+ * [OutOfStateBoundUsage] - переданное выражение находится вне стейта. Используется в extensials методах
+ * [UnresolvedPath] - переданный путь не может resolved. Используется в extensials методах
+ * [NoState] - не найдено ни одного стейта
+ * [StateFound] - найден только один подходящий стейт
+ * [StatesFound] - найдено несколько подходящих стейтов. Такое происходит когда существует несколько вариантов appending сценариев
+ * [SuggestionsFound] - не найден ни один стейт до которого можно добраться используя переданный Transition, но если добавить append то путь будет resolved
+ */
 sealed class TransitionResult {
     object OutOfStateBoundUsage : TransitionResult()
     object UnresolvedPath : TransitionResult()

@@ -8,6 +8,9 @@ import com.intellij.psi.PsiTreeChangeEvent
 import com.justai.jaicf.plugin.utils.isRemoved
 import org.jetbrains.kotlin.psi.KtFile
 
+/**
+ * Собственная реализация трекера отслеживающего изменения внутри файла. Стандартная библиотека не содержит подобного класса.
+ */
 class FileModificationTracker(project: Project, val file: KtFile) : SimpleModificationTracker() {
 
     init {

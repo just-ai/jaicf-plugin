@@ -5,6 +5,10 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.justai.jaicf.plugin.utils.Version
 import com.justai.jaicf.plugin.utils.VersionService
 
+/**
+ * Трекер обновления версии JAICF в зависимостях. Используется собственный сервис VersionService.
+ * Этот класс позволяет упростить использование встроенных кешей и оптимизировать работу плагина.
+ */
 class JaicfVersionTracker(project: Project) : SimpleModificationTracker() {
 
     private val versionService = VersionService.getInstance(project)

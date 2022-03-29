@@ -9,6 +9,9 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
+/**
+ * Трекер отслеживающий изменения в дереве kt файлов. Сильно оптимизирует кеши использующиеся в плагине.
+ */
 class KtFilesModificationTracker(project: Project) : SimpleModificationTracker() {
     init {
         project.messageBus.connect(project).subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {

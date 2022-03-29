@@ -32,6 +32,9 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.ifEmpty
 
+/**
+ *
+ */
 fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
 

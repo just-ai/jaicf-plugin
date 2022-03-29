@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildTopLevelAppend
+import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
@@ -14,6 +15,10 @@ import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 
+/**
+ * Сервис хранящий все [TopLevelAppend] для каждого файла.
+ * Использование кешей позволяет сильно оптимизировать время доступа к объектам.
+ */
 class TopLevelAppendDataService(project: Project) : JaicfService(project) {
 
     private val appendMethod by cachedIfEnabled(JaicfVersionTracker.getInstance(project)) {

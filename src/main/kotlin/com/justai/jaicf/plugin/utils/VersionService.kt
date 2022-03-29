@@ -5,6 +5,11 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 
+/**
+ * Сервис позволяющий получить версию JAICF (может быть легко переделан для доступа к версии любой зависимости).
+ * Версия JAICF достаётся из регистра используемых в проекте библиотек, что позволяет работать с любыми менеджерами зависимостей, а также и при ручном добавлении зависимостей.
+ * Сервис использует встроенные кеши, что позволяет сильно оптимизировать частые запросы к версиям.
+ */
 class VersionService(project: Project) {
 
     val jaicf by project.cached(LibraryModificationTracker.getInstance(project)) {
@@ -29,6 +34,9 @@ class VersionService(project: Project) {
     }
 }
 
+/**
+ * Класс предоставляющий удобный доступ к версии зависимостей. Используется стандартный формат записи версий.
+ */
 data class Version(val version: String) {
 
     private val components = version.split(".", "-")

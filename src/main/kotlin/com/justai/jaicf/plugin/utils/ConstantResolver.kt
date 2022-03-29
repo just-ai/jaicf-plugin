@@ -16,6 +16,20 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.isPlain
 import org.jetbrains.kotlin.psi.psiUtil.plainContent
 
+/**
+ * Класс позволяющий List определять значения выражений, которые могут быть resolved статическим анализатором.
+ * Данный класс реализован, так как встроенный resolver работает недостаточно хорошо.
+ * Например, следующие выражения будут resolved:
+ *
+ * ```kotlin
+ * "a" + "b"
+ * ```
+ * ```kotlin
+ * val a = "a"
+ * val b = "b"
+ * "$a$b"
+ *  ```
+ */
 class ConstantResolver(project: Project) {
 
     private val resolvedExpressions by project.cached(PsiModificationTracker.MODIFICATION_COUNT) {

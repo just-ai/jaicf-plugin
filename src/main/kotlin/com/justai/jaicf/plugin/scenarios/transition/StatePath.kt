@@ -6,6 +6,9 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
 
+/**
+ * Внутреннее представление путей в states trees.
+ */
 data class StatePath(
     val lexemes: List<Lexeme> = emptyList(),
 ) {
@@ -30,6 +33,11 @@ data class StatePath(
     }
 }
 
+/**
+ * Минимальные единицы StatePath.
+ * [Transition] это функциональные лексемы меняющие местоположение в states tree.
+ * [Slash] и [Empty] это лексемы позволяющие разделять некоторые функциональные лексемы.
+ */
 sealed class Lexeme(open val identifier: String) {
 
     sealed class Transition(identifier: String) : Lexeme(identifier) {
@@ -55,12 +63,17 @@ sealed class Lexeme(open val identifier: String) {
     companion object {
         fun getFirstLexeme(path: String, isBegin: Boolean) = when {
             path.isEmpty() -> Empty
+
             isBegin && path.startsWith(Slash.identifier) -> Root
+
             path.startsWith(Slash.identifier) -> Slash
+
             path.startsWith(Transition.Revert.identifier + Slash.identifier) ||
                 path == Transition.Revert.identifier -> Transition.Revert
+
             path.startsWith(Transition.Current.identifier + Slash.identifier) ||
                 path == Transition.Current.identifier -> Transition.Current
+
             else -> Transition.StateId(path.substringBefore(Slash.identifier))
         }
     }
