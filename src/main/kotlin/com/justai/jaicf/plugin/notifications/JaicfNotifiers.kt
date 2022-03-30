@@ -8,6 +8,9 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
 
+/**
+ *
+ */
 class JaicfUnsupportedNotifier(private val project: Project) : ValidatingNotifier() {
 
     private val versionService = VersionService.getInstance(project)

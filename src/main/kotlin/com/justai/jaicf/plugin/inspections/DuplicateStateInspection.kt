@@ -2,16 +2,19 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.scenarios.linker.allStates
+import com.justai.jaicf.plugin.scenarios.linker.childrenStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.StepUp
 import com.justai.jaicf.plugin.scenarios.transition.fullPath
 import com.justai.jaicf.plugin.scenarios.transition.states
 import com.justai.jaicf.plugin.scenarios.transition.transit
 import com.justai.jaicf.plugin.utils.nameReferenceExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
+/**
+ * This inspection finds states with the same name independent of their nesting complexity.
+ */
 class DuplicateStateInspection : LocalInspectionTool() {
 
     override fun getID() = "DuplicateStateInspection"
@@ -22,10 +25,10 @@ class DuplicateStateInspection : LocalInspectionTool() {
 
         override fun visitState(state: State) {
             val stateName = state.nameWithoutLeadSlashes ?: return
-            val parents = state.transit(Revert).states().filter { it !== state }
+            val parents = state.transit(StepUp).states().filter { it !== state }
 
             parents
-                .flatMap { it.allStates }
+                .flatMap { it.childrenStates }
                 .filter { it !== state && it.nameWithoutLeadSlashes == stateName }
                 .ifNotEmpty { registerGenericError(state, this) }
         }

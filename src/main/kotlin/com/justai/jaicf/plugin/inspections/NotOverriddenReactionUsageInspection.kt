@@ -29,6 +29,10 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 
+/**
+ * Inspection looks for usage of methods annotated with UsesReaction and checks if the used reaction is implemented.
+ * For example
+ */
 class UsesReactionUsageInspection : LocalInspectionTool() {
 
     override fun getID() = "UsesReactionUsageInspection"
@@ -59,8 +63,9 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
         private fun KtCallExpression.reactionIsNotOverridden(reactionName: String): Boolean {
             val reactionDescriptor = getReactionDescriptor(reactionName, this) ?: return false
 
-            return if (reactionDescriptor.isFinal) false
-            else receiverType()?.findOverridingFunction(reactionDescriptor) == null
+            if (reactionDescriptor.isFinal) return false
+
+            return receiverType()?.findOverridingFunction(reactionDescriptor) == null
         }
 
         private fun getReactionDescriptor(reactionName: String, callExpression: KtCallExpression): FunctionDescriptor? {
@@ -76,6 +81,10 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
     }
 }
 
+/**
+ * Not all reaction bodies are defined in the base class Reaction
+ * and this inspection checks if these reactions are overridden in the channel in use
+ */
 class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
 
     override fun getID() = "NotOverriddenReactionUsageInspection"
@@ -85,7 +94,7 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
     class NotOverriddenReactionUsageVisitor(holder: ProblemsHolder) : KtCallExpressionVisitor(holder) {
 
         override fun visitCallExpression(callExpression: KtCallExpression) {
-            if (!callExpression.isNotOverriddenReaction) return
+            if (!callExpression.isUnrealizedBaseReaction) return
 
             val reactionReceiverClass = callExpression.receiverType().toClassDescriptor ?: return
 
@@ -93,13 +102,10 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
 
             val reactionName = callExpression.declaration?.name ?: return
 
-            registerWarning(
-                callExpression,
-                "$reactionName reaction is not implemented by this channel"
-            )
+            registerWarning(callExpression, "$reactionName reaction is not implemented by this channel")
         }
 
-        private val KtCallExpression.isNotOverriddenReaction: Boolean
+        private val KtCallExpression.isUnrealizedBaseReaction: Boolean
             get() {
                 val functionDeclaration = declaration ?: return false
                 val classOfFunctionDeclaration = functionDeclaration.fqName?.parent() ?: return false

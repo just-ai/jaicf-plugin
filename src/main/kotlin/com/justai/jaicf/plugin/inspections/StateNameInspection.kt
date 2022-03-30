@@ -12,9 +12,21 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Current
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.StepUp
 import com.justai.jaicf.plugin.scenarios.transition.StatePath
 
+/**
+ * Инспекция проверяет имена стейтов на соответствие правилам JAICF и плагина. Сюда не входит проверки на ошибки в дереве стейтов.
+ * Список проверяемых JAICF правил:
+ * 1. У стейта должно быть указано имя с использованием `@StateName` или `@StateDeclaration`
+ * 2. Имя не корневого стейта должно быть не empty
+ * 3. Имя не корневого стейта должно быть не blank
+ * 4. Только top state может содержать лидирующие слеши
+ * 5. Имена стейтов не должны содержать . и ..
+ *
+ * Список проверяемых правил плагина:
+ * 1. Желательно чтобы имя стейта могло быть resolved to constant string value
+ */
 class StateNameInspection : LocalInspectionTool() {
 
     override fun getID() = "StateNameInspection"
@@ -67,7 +79,7 @@ class StateNameInspection : LocalInspectionTool() {
                 )
             }
 
-            if (parsedName.transitions.contains(Revert)) {
+            if (parsedName.transitions.contains(StepUp)) {
                 registerGenericError(
                     identifierReference, "Do not use .. as state name. Resolved name \"$name\""
                 )

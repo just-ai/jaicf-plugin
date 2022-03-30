@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
 import com.justai.jaicf.plugin.scenarios.JaicfService
-import com.justai.jaicf.plugin.scenarios.linker.allStates
+import com.justai.jaicf.plugin.scenarios.linker.childrenStates
 import com.justai.jaicf.plugin.scenarios.linker.appendingStates
 import com.justai.jaicf.plugin.scenarios.linker.rootScenarios
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
@@ -36,7 +36,7 @@ class TransitionService(project: Project) : JaicfService(project) {
         return when (transition) {
             Transition.Current -> StateFound(state)
 
-            Transition.Revert -> when {
+            Transition.StepUp -> when {
                 state.isRootState -> state.scenario.appendingStates
                     .let {
                         if (it.isEmpty()) StatesFound(it + state)
@@ -58,12 +58,12 @@ class TransitionService(project: Project) : JaicfService(project) {
             }
 
             is Transition.StateId -> {
-                transition.transitToOneOf(state.allStates)
+                transition.transitToOneOf(state.childrenStates)
                     ?.let { StateFound(it) }
                     ?: if (state.isRootState) {
                         val rootScenarios = state.project.rootScenarios
                         val suggestionsState = rootScenarios
-                            .flatMap { it.innerState.allStates }
+                            .flatMap { it.innerState.childrenStates }
                             .filter { transition.canTransitTo(it) }
 
                         if (suggestionsState.isNotEmpty())

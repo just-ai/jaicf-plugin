@@ -209,6 +209,10 @@ val KtDotQualifiedExpression.edgeSelectorExpression: KtNameReferenceExpression?
         else -> selector?.findChildOfType()
     }
 
+/**
+ * Это декларация параметра связанного с текущим аргументом.
+ * Позволяет получить доступ к имени аргумента и его дефолтному значению
+ */
 fun KtValueArgument.parameter(): KtParameter? {
     val callElement = getParentOfType<KtCallElement>(true) ?: return null
     val params = callElement.declaration?.valueParameters ?: return null
@@ -227,18 +231,33 @@ fun KtValueArgument.parameter(): KtParameter? {
     return params[min(indexOfArgument, params.lastIndex)]
 }
 
+/**
+ * Имя аргумента, если оно задано using kotlin named arguments
+ */
 val KtValueArgument.definedIdentifier: String?
     get() = getArgumentName()?.asName?.identifier
 
+/**
+ * Объект вызова метода которому принадлежит аргумент
+ */
 val KtValueArgument.boundedCallExpressionOrNull
     get() = getParentOfType<KtCallExpression>(true)
 
+/**
+ * Удалён ли текущий элемент из файла.
+ */
 val PsiElement.isRemoved: Boolean
     get() = !this.isValid || containingFile == null
 
+/**
+ * Существует ли текущий элемент.
+ */
 val PsiElement.isExist: Boolean
     get() = !isRemoved
 
+/**
+ *
+ */
 val KotlinType.fqName: FqName?
     get() = when (this) {
         is AbbreviatedType -> abbreviation.fqName

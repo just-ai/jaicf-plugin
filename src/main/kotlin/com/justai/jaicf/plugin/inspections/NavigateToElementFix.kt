@@ -8,11 +8,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 
-class NavigateToState(message: String, state: State) : NavigateToElementFix(
-    message,
-    state.stateExpression
-)
+/**
+ * This class allows to add a transition to a state when creating warnings or errors
+ */
+class NavigateToState(message: String, state: State) : NavigateToElementFix(message, state.stateExpression)
 
+/**
+ * This class allows to add a transition to an element when creating warnings or errors
+ */
 open class NavigateToElementFix(private val message: String, arg: PsiElement) : LocalQuickFix {
 
     private val pointer = SmartPointerManager.getInstance(arg.project).createSmartPsiElementPointer(arg)

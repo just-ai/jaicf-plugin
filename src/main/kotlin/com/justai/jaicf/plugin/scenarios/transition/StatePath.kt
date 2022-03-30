@@ -44,7 +44,7 @@ sealed class Lexeme(open val identifier: String) {
 
         object Root : Transition("")
 
-        object Revert : Transition("..")
+        object StepUp : Transition("..")
 
         object Current : Transition(".")
 
@@ -68,8 +68,8 @@ sealed class Lexeme(open val identifier: String) {
 
             path.startsWith(Slash.identifier) -> Slash
 
-            path.startsWith(Transition.Revert.identifier + Slash.identifier) ||
-                path == Transition.Revert.identifier -> Transition.Revert
+            path.startsWith(Transition.StepUp.identifier + Slash.identifier) ||
+                path == Transition.StepUp.identifier -> Transition.StepUp
 
             path.startsWith(Transition.Current.identifier + Slash.identifier) ||
                 path == Transition.Current.identifier -> Transition.Current

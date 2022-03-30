@@ -8,6 +8,9 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtParameter
 
+/**
+ *
+ */
 class PathValueAnnotationInspection : LocalInspectionTool() {
 
     override fun getID() = "PathValueAnnotationInspection"
@@ -38,8 +41,7 @@ class PathValueAnnotationInspection : LocalInspectionTool() {
             }
 
         companion object {
-            private const val message =
-                "JAICF Plugin is not able to resolve the path annotated with @PathValue"
+            private const val message = "JAICF Plugin is not able to resolve the path annotated with @PathValue"
         }
     }
 }

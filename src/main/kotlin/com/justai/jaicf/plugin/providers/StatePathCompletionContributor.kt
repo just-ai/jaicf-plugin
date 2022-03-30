@@ -18,7 +18,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import com.justai.jaicf.plugin.scenarios.linker.allStates
+import com.justai.jaicf.plugin.scenarios.linker.childrenStates
 import com.justai.jaicf.plugin.scenarios.linker.framingState
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
@@ -84,7 +84,7 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
     private fun getStatesSuggestions(pathExpression: KtExpression, path: StatePath): List<State>? {
         val framingState = pathExpression.framingState ?: return null
 
-        return framingState.transit(path.parent).statesOrSuggestions().flatMap { it.allStates }
+        return framingState.transit(path.parent).statesOrSuggestions().flatMap { it.childrenStates }
     }
 
     private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =

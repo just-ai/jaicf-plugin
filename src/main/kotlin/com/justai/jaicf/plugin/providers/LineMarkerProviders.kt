@@ -102,6 +102,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 }
 
+
 private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
     override fun getElementText(element: PsiElement?): String {

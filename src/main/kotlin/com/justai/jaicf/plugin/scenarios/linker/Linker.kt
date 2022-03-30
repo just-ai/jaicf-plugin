@@ -15,7 +15,7 @@ import com.justai.jaicf.plugin.scenarios.transition.transitToState
 import com.justai.jaicf.plugin.utils.StatePathExpression
 import com.justai.jaicf.plugin.utils.isExist
 
-val State.allStates
+val State.childrenStates
     get() = allStates()
 
 val State.usages: List<StatePathExpression>
