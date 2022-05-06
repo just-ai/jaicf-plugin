@@ -93,5 +93,7 @@
         <defaultLiveTemplates file="/liveTemplates/state.xml"/>
 
         <liveTemplateContext implementation="com.justai.jaicf.plugin.contexts.StateContext"/>
+
+        <dependencySupport coordinate="com.just-ai.jaicf:core" kind="java"/>
     </extensions>
 </idea-plugin>
