@@ -96,5 +96,7 @@
 
         <notificationGroup id="Incompatible Versions Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
         <notificationGroup id="Missed Sources Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
+        
+        <dependencySupport coordinate="com.just-ai.jaicf:core" kind="java"/>
     </extensions>
 </idea-plugin>
