@@ -1,9 +1,9 @@
 package com.justai.jaicf.plugin.activities
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.IdempotenceChecker
 import org.apache.log4j.Level
 

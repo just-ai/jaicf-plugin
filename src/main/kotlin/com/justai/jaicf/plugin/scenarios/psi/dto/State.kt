@@ -3,6 +3,7 @@ package com.justai.jaicf.plugin.scenarios.psi.dto
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.scenarios.transition.withoutLeadSlashes
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -46,7 +47,10 @@ sealed class StateIdentifier {
 
 val State.name get() = identifier.resolveText()
 
-val State.nameWithoutLeadSlashes get() = identifier.resolveText()?.withoutLeadSlashes()
+val State.nameWithoutLeadSlashes
+    get() = project.measure("State(${name}).nameWithoutLeadSlashes") {
+        identifier.resolveText()?.withoutLeadSlashes()
+    }
 
 val State.identifierReference: PsiElement?
     get() = when (this.identifier) {

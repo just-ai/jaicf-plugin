@@ -9,7 +9,7 @@ import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.psi.KtFile
 
 val PsiElement.framingState: State?
-    get() = measure("PsiElement.framingState") {
+    get() = measure({"${this.text}.framingState"}) {
         if (isRemoved)
             return@measure null
 

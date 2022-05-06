@@ -14,6 +14,7 @@ import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.utils.isRemoved
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.safeResolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -36,7 +37,10 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
         mutableMapOf<Pair<KtReferenceExpression, State?>, Scenario?>()
     }
 
-    fun resolve(scenarioReference: KtReferenceExpression, boundedState: State? = null): Scenario? {
+    fun resolve(scenarioReference: KtReferenceExpression, boundedState: State? = null) =
+        measure("resolve(${scenarioReference.text})") { tempResolve(scenarioReference, boundedState) }
+
+    private fun tempResolve(scenarioReference: KtReferenceExpression, boundedState: State? = null): Scenario? {
         if (scenarioReference.isRemoved || !enabled) return null
 
         resolvedReferences?.get(scenarioReference to boundedState)?.let { return it }

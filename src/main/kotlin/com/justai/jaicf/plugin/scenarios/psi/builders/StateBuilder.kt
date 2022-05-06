@@ -16,6 +16,7 @@ import com.justai.jaicf.plugin.utils.argumentExpressionsOrDefaultValuesByAnnotat
 import com.justai.jaicf.plugin.utils.declaration
 import com.justai.jaicf.plugin.utils.findChildOfType
 import com.justai.jaicf.plugin.utils.getMethodAnnotations
+import com.justai.jaicf.plugin.utils.getMethodAnnotationsExperimental
 import com.justai.jaicf.plugin.utils.isRemoved
 import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.stringValueOrNull
@@ -56,6 +57,9 @@ val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
 
 val KtCallExpression.isStateDeclaration: Boolean
     get() = measure("isStateDeclaration") { getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty() }
+
+val KtCallExpression.isStateDeclarationExperimental: Boolean
+    get() = measure("isStateDeclarationExperimental") { getMethodAnnotationsExperimental(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty() }
 
 private val KtCallExpression.identifierOfStateExpression: StateIdentifier
     get() {

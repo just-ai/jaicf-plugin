@@ -37,19 +37,21 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
 
 val KtBinaryExpression.innerPathExpressions: List<StatePathExpression>
     get() {
-        return if (VersionService.getInstance(project).isSupportedJaicfInclude) {
-            val function = operationReference.resolveToSource ?: return emptyList()
-            val expressions = mutableListOf<KtExpression>()
+        return measure("innerPathExpressions") {
+            if (VersionService.getInstance(project).isSupportedJaicfInclude) {
+                val function = operationReference.resolveToSource ?: return@measure emptyList()
+                val expressions = mutableListOf<KtExpression>()
 
-            if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                left?.let { expressions += it }
+                if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
+                    left?.let { expressions += it }
 
-            if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME))
-                right?.let { expressions += it }
+                if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME))
+                    right?.let { expressions += it }
 
-            expressions.map { StatePathExpression.create(this, it) }
-        } else {
-            emptyList()
+                expressions.map { StatePathExpression.create(this@innerPathExpressions, it) }
+            } else {
+                emptyList()
+            }
         }
     }
 

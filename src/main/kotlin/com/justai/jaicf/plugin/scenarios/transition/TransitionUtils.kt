@@ -14,6 +14,7 @@ import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
+import com.justai.jaicf.plugin.services.caching
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 
@@ -59,13 +60,12 @@ fun State.transit(path: StatePath) = path.transitions
         }
     }
 
-val State.roots: List<State>
-    get() {
-        val appendingStates = scenario.appendingStates
+val State.roots: List<State> by caching({ project }) {
+    val appendingStates = scenario.appendingStates
 
-        return if (appendingStates.isNotEmpty()) appendingStates.flatMap { it.roots }
-        else listOf(root)
-    }
+    if (appendingStates.isEmpty()) listOf(root)
+    else appendingStates.flatMap { it.roots }
+}
 
 val State.absolutePath: StatePath?
     get() {

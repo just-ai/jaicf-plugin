@@ -10,12 +10,14 @@ import com.justai.jaicf.plugin.scenarios.linker.rootScenarios
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
 import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
+import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
 import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.measure
 
 class TransitionService(project: Project) : JaicfService(project) {
 
@@ -82,7 +84,9 @@ class TransitionService(project: Project) : JaicfService(project) {
     }
 }
 
-fun State.transit(transition: Transition) = TransitionService.getInstance(project).transit(this, transition)
+fun State.transit(transition: Transition) = project.measure("State(${name}).transit(${transition.javaClass})") {
+    TransitionService.getInstance(project).transit(this@transit, transition)
+}
 
 sealed class TransitionResult {
     object OutOfStateBoundUsage : TransitionResult()

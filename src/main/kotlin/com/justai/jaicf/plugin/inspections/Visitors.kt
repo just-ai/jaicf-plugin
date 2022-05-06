@@ -68,11 +68,13 @@ abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holde
         if (!checkEnvironmentAndNotify(element))
             return
 
-        if (element is KtCallExpression)
-            element.innerPathExpressions.forEach(this::visitPathExpression)
+        element.measure("$javaClass.visitElement(${element.text})") {
+            if (element is KtCallExpression)
+                element.innerPathExpressions.forEach(this@PathExpressionVisitor::visitPathExpression)
 
-        if (element is KtBinaryExpression)
-            element.innerPathExpressions.forEach(this::visitPathExpression)
+            if (element is KtBinaryExpression)
+                element.innerPathExpressions.forEach(this@PathExpressionVisitor::visitPathExpression)
+        }
     }
 }
 

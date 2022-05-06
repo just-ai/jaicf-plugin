@@ -12,6 +12,7 @@
         <projectService serviceImplementation="com.justai.jaicf.plugin.utils.VersionService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.utils.LoadingService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.utils.MeasureService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.services.CachingService"/>
         <projectService
                 serviceImplementation="com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService"/>
