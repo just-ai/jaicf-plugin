@@ -4,7 +4,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtExpression
@@ -56,7 +55,7 @@ class ConstantResolver(project: Project) {
                 element.expression?.let { resolve(it) }
 
             element is KtNameReferenceExpression ->
-                (element.resolve() as? KtProperty)?.initializer?.let { resolve(it) }
+                (element.safeResolve() as? KtProperty)?.initializer?.let { resolve(it) }
                     ?: element.constantValueOrNull()?.value?.toString()
 
             element is KtExpression ->

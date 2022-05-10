@@ -14,7 +14,7 @@ import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.utils.isRemoved
-import org.jetbrains.kotlin.nj2k.postProcessing.resolve
+import com.justai.jaicf.plugin.utils.safeResolve
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclarationContainer
@@ -53,7 +53,7 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
     }
 
     private fun getScenarioBody(scenarioReference: KtReferenceExpression, boundedState: State? = null): KtExpression? {
-        when (val resolvedElement = scenarioReference.resolve()) {
+        when (val resolvedElement = scenarioReference.safeResolve()) {
             is KtObjectDeclaration -> {
                 return resolvedElement.scenarioBody
             }
@@ -87,7 +87,7 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
     private fun getScenarioBody(callExpression: KtCallExpression): KtExpression? {
         if (callExpression.isStateDeclaration) return callExpression
 
-        return when (val resolved = callExpression.referenceExpression()?.resolve()) {
+        return when (val resolved = callExpression.referenceExpression()?.safeResolve()) {
             is KtNamedFunction -> (resolved.initializer as? KtCallExpression)?.let {
                 if (it.isStateDeclaration) it else null
             }
