@@ -10,8 +10,9 @@ plugins {
     id("java")
 
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
-    id("org.jetbrains.intellij") version "1.1.2"
-    id("org.jetbrains.changelog") version "1.1.2"
+    id("org.jetbrains.changelog") version "1.3.1"
+    id("org.jetbrains.qodana") version "0.1.13"
+    id("org.jetbrains.intellij") version "1.5.3"
 }
 
 group = properties("pluginGroup")
@@ -36,17 +37,17 @@ intellij {
 }
 
 changelog {
-    version = properties("pluginVersion")
-    groups = emptyList()
+    version.set(properties("pluginVersion"))
+    groups.set(emptyList())
 }
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
 
     patchPluginXml {

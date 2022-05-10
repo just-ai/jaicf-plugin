@@ -38,7 +38,6 @@ class StateIdentifierReferenceContributor : PsiReferenceContributor() {
 
 class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
-    @ExperimentalStdlibApi
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
         if (VersionService.getInstance(element)?.isJaicfInclude == false) return emptyArray()
 

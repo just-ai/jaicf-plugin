@@ -103,7 +103,7 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setTargets(usages)
             .setTooltipText("Find references to this state")
             .setPopupTitle("Found References")
-            .setCellRenderer(JumpExprCellRenderer)
+            .setCellRenderer { JumpExprCellRenderer }
             .createLineMarkerInfo(markerHolderLeaf)
     }
 }
