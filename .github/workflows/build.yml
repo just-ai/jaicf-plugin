@@ -2,7 +2,7 @@ name: Build JAICF Plugin on push
 
 on:
   push:
-    branches: [ 213/dev ]
+    branches: [ 221/dev ]
 
 jobs:
   gradleValidation:

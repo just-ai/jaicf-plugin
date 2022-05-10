@@ -3,7 +3,7 @@ name: Publish plugin to EAP channel
 on:
   pull_request:
     types: [ closed ]
-    branches: [ 213/master ]
+    branches: [ 221/master ]
 
 jobs:
   publish:
