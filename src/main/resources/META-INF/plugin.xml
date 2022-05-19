@@ -10,6 +10,8 @@
         <postStartupActivity implementation="com.justai.jaicf.plugin.activities.DisableIdempotenceCheckerLoggerStartupActivity"/>
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.utils.VersionService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.utils.LoadingService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.utils.MeasureService"/>
         <projectService
                 serviceImplementation="com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService"/>
@@ -96,8 +98,6 @@
 
         <notificationGroup id="Incompatible Versions Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
         <notificationGroup id="Missed Sources Jaicf Plugin Group" displayType="STICKY_BALLOON"/>
-
-        <dependencySupport coordinate="com.just-ai.jaicf:core" kind="java"/>
 
         <statusBarWidgetFactory implementation="com.justai.jaicf.plugin.widgets.LoadingStatusBarWidgetFactory" />
     </extensions>

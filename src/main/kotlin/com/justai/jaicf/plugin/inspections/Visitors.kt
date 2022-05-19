@@ -15,6 +15,7 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.innerPathExpressions
 import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.utils.isJaicfInclude
+import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -25,16 +26,18 @@ abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
     abstract fun visitState(state: State)
 
     override fun visitFile(file: PsiFile) {
-        if (!checkEnvironmentAndNotify(file))
-            return
+        file.project.measure("${this.javaClass.simpleName}.visitFile(${file.name})") {
+            if (!checkEnvironmentAndNotify(file))
+                return@measure
 
-        if (file !is KtFile)
-            return
+            if (file !is KtFile)
+                return@measure
 
-        val service = ScenarioDataService.getInstance(file) ?: return
+            val service = ScenarioDataService.getInstance(file) ?: return@measure
 
-        service.getScenarios(file)?.forEach {
-            recursiveEntryIntoState(it.innerState)
+            service.getScenarios(file)?.forEach {
+                recursiveEntryIntoState(it.innerState)
+            }
         }
     }
 

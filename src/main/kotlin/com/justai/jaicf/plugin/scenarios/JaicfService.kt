@@ -6,7 +6,7 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.cached
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
 
-abstract class JaicfService(protected val project: Project) {
+abstract class JaicfService(/*TODO protected*/ val project: Project) {
 
     protected val enabled: Boolean by cached(JaicfVersionTracker.getInstance(project)) {
         VersionService.getInstance(project).isSupportedJaicfInclude

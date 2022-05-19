@@ -15,14 +15,13 @@ import com.justai.jaicf.plugin.utils.argumentExpressionsByAnnotation
 import com.justai.jaicf.plugin.utils.argumentExpressionsOrDefaultValuesByAnnotation
 import com.justai.jaicf.plugin.utils.declaration
 import com.justai.jaicf.plugin.utils.findChildOfType
-import com.justai.jaicf.plugin.utils.findChildrenOfType
 import com.justai.jaicf.plugin.utils.getMethodAnnotations
 import com.justai.jaicf.plugin.utils.isRemoved
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 fun buildState(
@@ -56,7 +55,7 @@ val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
     get() = this.declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression
 
 val KtCallExpression.isStateDeclaration: Boolean
-    get() = getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty()
+    get() = measure("isStateDeclaration") { getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty() }
 
 private val KtCallExpression.identifierOfStateExpression: StateIdentifier
     get() {

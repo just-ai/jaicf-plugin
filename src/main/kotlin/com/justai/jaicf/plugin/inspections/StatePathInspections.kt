@@ -48,6 +48,7 @@ class StatePathInspection : LocalInspectionTool() {
                         NavigateToState("Go to unrelated state declaration ${suggestion.fullPath}", suggestion)
                     )
                 }
+                is StateFound, is StatesFound, OutOfStateBoundUsage -> {}
             }
         }
     }

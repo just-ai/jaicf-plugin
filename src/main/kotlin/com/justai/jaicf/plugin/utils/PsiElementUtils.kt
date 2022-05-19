@@ -6,7 +6,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations.allowSlowOperations
-import java.lang.Integer.min
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
 import org.jetbrains.kotlin.name.FqName
@@ -79,8 +78,9 @@ fun KtCallExpression.parametersByAnnotation(name: String) =
 fun KtCallExpression.getMethodAnnotations(name: String) =
     declaration?.getMethodAnnotations(name) ?: emptyList()
 
-fun KtFunction.getMethodAnnotations(name: String) =
+fun KtFunction.getMethodAnnotations(name: String) = measure("KtFunction.getMethodAnnotations") {
     annotationEntries.filter { it.shortName?.asString() == name }
+}
 
 val KtFunction.isBinary get() = isExist && containingFile.name.endsWith(".class")
 
@@ -109,12 +109,14 @@ val KtParameter.annotationNames: List<String>
     get() = annotationEntries.mapNotNull { it.shortName?.asString() }
 
 val KtCallElement.declaration: KtFunction?
-    get() = allowSlowOperations<KtFunction?, Throwable> {
-        if (isExist) referenceExpression?.resolveToSource else null
+    get() = measure("KtCallElement.declaration") {
+        allowSlowOperations<KtFunction?, Throwable> {
+            if (isExist) referenceExpression?.resolveToSource else null
+        }
     }
 
 val KtCallElement.referenceExpression: KtReferenceExpression?
-    get() = findChildOfType<KtNameReferenceExpression>()
+    get() = measure("KtCallElement.referenceExpression") { findChildOfType<KtNameReferenceExpression>() }
 
 val KtReferenceExpression.resolveToSource: KtFunction?
     get() = (safeResolve() as? KtFunction)?.let {
@@ -124,7 +126,10 @@ val KtReferenceExpression.resolveToSource: KtFunction?
 
 fun KtReferenceExpression.safeResolve() =
     try {
-        resolve()
+        measure({
+            "KtReferenceExpression.safeResolve() ${this.presentation} " +
+                    "${this.hashCode()}"
+        }) { resolve() }
     } catch (e: IndexNotReadyException) {
         null
     }
@@ -237,7 +242,7 @@ val KtValueArgument.definedIdentifier: String?
     get() = getArgumentName()?.asName?.identifier
 
 val KtValueArgument.boundedCallExpressionOrNull
-    get() = getParentOfType<KtCallExpression>(true)
+    get() = measure("boundedCallExpressionOrNull") { getParentOfType<KtCallExpression>(true) }
 
 val PsiElement.isRemoved: Boolean
     get() = !this.isValid || containingFile == null

@@ -5,18 +5,19 @@ import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.utils.isRemoved
+import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.psi.KtFile
 
 val PsiElement.framingState: State?
-    get() {
+    get() = measure("PsiElement.framingState") {
         if (isRemoved)
-            return null
+            return@measure null
 
-        val file = this.containingFile as? KtFile ?: return null
-        val scenarios = ScenarioDataService.getInstance(this)?.getScenarios(file) ?: return null
+        val file = containingFile as? KtFile ?: return@measure null
+        val scenarios = ScenarioDataService.getInstance(this@framingState)?.getScenarios(file) ?: return@measure null
 
-        return scenarios.findBoundingScenario(this)
-            ?.let { recursiveFindState(it.innerState, this) }
+        return@measure scenarios.findBoundingScenario(this@framingState)
+            ?.let { recursiveFindState(it.innerState, this@framingState) }
     }
 
 fun List<Scenario>.findBoundingScenario(element: PsiElement) = filter { contains(it.innerState, element) }
