@@ -9,10 +9,15 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService
+import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 
 fun PsiElement.search(scope: SearchScope = project.projectScope()): Collection<PsiReference> {
+    return measure("${javaClass.simpleName}?.search(${scope.displayName})") { psiReferences(scope) }
+}
+
+private fun PsiElement.psiReferences(scope: SearchScope): Collection<PsiReference> {
     if (DumbService.getInstance(project).isDumb)
         return emptyList()
 

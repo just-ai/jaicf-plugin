@@ -24,6 +24,7 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.boundedPathExpression
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSimpleStringTemplate
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.rangeToEndOf
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -39,7 +40,12 @@ class StatePathReferenceContributor : PsiReferenceContributor() {
 
 class StatePathReferenceProvider : PsiReferenceProvider() {
 
-    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext) =
+        element.measure("StatePathReferenceProvider.getReferencesByElement(${element.text})") {
+            psiReferences(element)
+        }
+
+    private fun psiReferences(element: PsiElement): Array<PsiReference> {
         if (VersionService.getInstance(element)?.isJaicfInclude == false) return emptyArray()
 
         val statePathExpression = element.boundedPathExpression as? Joined ?: return emptyArray()
@@ -71,17 +77,20 @@ class StatePsiReference(
 
     private val service = ReferenceContributorsAvailabilityService.getInstance(element)
 
-    override fun resolve() =
+    override fun resolve() = element.measure("StatePsiReference.resolve(${element.text})") {
         if (service?.available == true)
             element.framingState?.transit(path)?.statesOrSuggestions()?.singleOrNull()?.stateExpression
         else null
+    }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> =
-        if (service?.available == true)
-            element.framingState?.transit(path)?.statesOrSuggestions()
-                ?.map { it.stateExpression }
-                ?.map(::PsiElementResolveResult)?.toTypedArray()
-                ?: emptyArray()
-        else
-            emptyArray()
+        element.measure("StatePsiReference.multiResolve(${element.text})") {
+            if (service?.available == true)
+                element.framingState?.transit(path)?.statesOrSuggestions()
+                    ?.map { it.stateExpression }
+                    ?.map(::PsiElementResolveResult)?.toTypedArray()
+                    ?: emptyArray()
+            else
+                emptyArray()
+        }
 }

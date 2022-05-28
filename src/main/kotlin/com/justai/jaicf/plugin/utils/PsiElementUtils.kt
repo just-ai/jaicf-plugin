@@ -88,7 +88,7 @@ fun KtCallExpression.getMethodAnnotations(name: String) =
 fun KtCallExpression.getMethodAnnotationsExperimental(name: String) =
     declarationExperimental?.getMethodAnnotations(name) ?: emptyList()
 
-fun KtFunction.getMethodAnnotations(name: String) = measure("KtFunction.getMethodAnnotations") {
+fun KtFunction.getMethodAnnotations(name: String) = measure("KtFunction.getMethodAnnotations(${this.name})") {
     annotationEntries.filter { it.shortName?.asString() == name }
 }
 

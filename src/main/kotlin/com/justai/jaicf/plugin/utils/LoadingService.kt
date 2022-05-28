@@ -2,11 +2,11 @@ package com.justai.jaicf.plugin.utils
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.jetbrains.rd.util.currentThreadName
 import com.justai.jaicf.plugin.scenarios.JaicfService
-import java.time.LocalTime
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.system.measureTimeMillis
+import java.lang.System.currentTimeMillis
+import org.jetbrains.kotlin.backend.common.peek
+import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.backend.common.push
 
 class LoadingService {
 
@@ -31,43 +31,49 @@ class LoadingService {
 
 class MeasureService(val project: Project) {
 
-    private val threads = ConcurrentHashMap<String, Int>()
-    private val results = ConcurrentHashMap<String, MutableList<String>>()
+    private val indent = ThreadLocal.withInitial { "" }
+    private val strings = ThreadLocal.withInitial { mutableListOf<String>() }
+    private val overTimesStack = ThreadLocal.withInitial { ArrayDeque<Long>() }
 
-    private val allowedRoots = listOf<String>("StatePathVisitor")
+    private val roots = listOf<String>("JaicfSourcesMissedNotifier.isValid()")
 
     fun <T> measure(method: () -> String, block: Project.() -> T): T {
-        val result: Result<T>
-        val indent: String
+        val methodStart = currentTimeMillis()
 
-        if (allowedRoots.isNotEmpty() &&
-            threads.getOrDefault(currentThreadName(), 0) == 0 &&
-            allowedRoots.none { method().contains(it) }
-        )
+        if (indent.get().isEmpty() && roots.isNotEmpty() && roots.none { method().startsWith(it) })
             return project.block()
 
-        synchronized(this) {
-            threads.getOrDefault(currentThreadName(), 0).also {
-                threads[currentThreadName()] = it + 1
-                indent = (1..it * 4).joinToString("") { " " }
+        indent.set("${indent.get()}    ")
+        overTimesStack.get().push(0)
+
+        var beforeStart: Long = -1
+        var afterStart: Long = -1
+
+        val result: Result<T> = runCatching {
+            beforeStart = currentTimeMillis()
+            project.block().also {
+                afterStart = currentTimeMillis()
             }
         }
-        val start = LocalTime.now()
-        measureTimeMillis { result = runCatching { project.block() } }.also {
-            if (it > 10)
-            results.getOrPut(
-                currentThreadName(),
-                { mutableListOf() }) += "$indent|${method()}: $it : $start - ${LocalTime.now()}  return $result"
+
+        val blockTime = afterStart - beforeStart
+        val clearTime = blockTime - (overTimesStack.get().peek() ?: 0L)
+
+        indent.set(indent.get().substring(4))
+
+        strings.get() += "${indent.get()}|${method()}: $clearTime : return $result"
+
+
+        if (indent.get().isEmpty()) {
+            if (clearTime > 2)
+                strings.get().asReversed().forEach(::println)
+            strings.get().clear()
         }
-        synchronized(this) {
-            threads[currentThreadName()]?.also {
-                threads[currentThreadName()] = it - 1
-                if (it == 1) {
-//                    results[currentThreadName()]?.asReversed()?.forEach { println(it) }
-                    results[currentThreadName()] = mutableListOf()
-                }
-            }
-        }
+
+        overTimesStack.get().pop()
+        val overTime = currentTimeMillis() - methodStart - blockTime
+        if (overTime != 0L)
+            overTimesStack.get().indices.forEach { overTimesStack.get()[it] += overTime }
         return result.getOrThrow()
     }
 

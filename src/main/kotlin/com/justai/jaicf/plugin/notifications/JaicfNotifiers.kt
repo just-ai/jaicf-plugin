@@ -7,12 +7,15 @@ import com.justai.jaicf.plugin.scenarios.psi.MethodsUsedPathValueService
 import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude
+import com.justai.jaicf.plugin.utils.measure
 
 class JaicfUnsupportedNotifier(private val project: Project) : ValidatingNotifier() {
 
     private val versionService = VersionService.getInstance(project)
 
-    override fun isValid() = versionService.isSupportedJaicfInclude || !versionService.isJaicfInclude
+    override fun isValid() = project.measure("JaicfUnsupportedNotifier.isValid()") {
+        !versionService.isJaicfInclude || versionService.isSupportedJaicfInclude
+    }
 
     override fun showNotification() {
         NotificationGroupManager.getInstance()
@@ -36,7 +39,9 @@ class JaicfSourcesMissedNotifier(private val project: Project) : ValidatingNotif
     private val versionService = VersionService.getInstance(project)
     private val valueMethodsService = MethodsUsedPathValueService.getInstance(project)
 
-    override fun isValid() = valueMethodsService.jaicfMethods.isNotEmpty() || !versionService.isSupportedJaicfInclude
+    override fun isValid() = project.measure("JaicfSourcesMissedNotifier.isValid()") {
+        measure("isSupportedJaicfInclude") { !versionService.isSupportedJaicfInclude } || measure("jaicfCoreMethods") { valueMethodsService.jaicfCoreMethods.isNotEmpty() }
+    }
 
     override fun showNotification() {
         NotificationGroupManager.getInstance()

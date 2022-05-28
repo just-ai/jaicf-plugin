@@ -23,6 +23,7 @@ import com.justai.jaicf.plugin.utils.getBoundedCallExpressionOrNull
 import com.justai.jaicf.plugin.utils.holderExpression
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isRemoved
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.pathExpressionsOfBoundedBlock
 import javax.swing.Icon
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
@@ -36,9 +37,18 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
-        if (VersionService.getInstance(element)?.isJaicfInclude == false) return
+        element.measure("StatePathLineMarkerProvider.collectNavigationMarkers(${element.text})") {
+            markers(element, result)
+        }
+    }
 
-        if (element.isRemoved || isNotLeafIdentifier(element)) return
+    private fun markers(
+        element: PsiElement,
+        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+    ): Boolean {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return true
+
+        if (element.isRemoved || isNotLeafIdentifier(element)) return true
 
         val pathExpressions = element.pathExpressionsOfBoundedBlock
 
@@ -52,6 +62,7 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 result.add(buildLineMarker(state.stateExpression, markerHolder))
             }
         }
+        return false
     }
 
     private fun buildLineMarker(
@@ -72,14 +83,24 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
-        if (VersionService.getInstance(element)?.isJaicfInclude == false) return
+        element.measure("StateIdentifierLineMarkerProvider.collectNavigationMarkers(${element.text})") {
+            markers(element, result)
+        }
+    }
 
-        if (element.isRemoved || isNotLeafIdentifier(element)) return
+    private fun markers(
+        element: PsiElement,
+        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
+    ): Boolean {
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return true
 
-        val callExpression = element.getBoundedCallExpressionOrNull(KtValueArgument::class.java) ?: return
-        if (!callExpression.isStateDeclaration) return
+        if (element.isRemoved || isNotLeafIdentifier(element)) return true
+
+        val callExpression = element.getBoundedCallExpressionOrNull(KtValueArgument::class.java) ?: return true
+        if (!callExpression.isStateDeclaration) return true
 
         buildLineMarker(callExpression, element as LeafPsiElement)?.let { result.add(it) }
+        return false
     }
 
     private fun buildLineMarker(
@@ -111,11 +132,19 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
     override fun getElementText(element: PsiElement?): String {
+        return element?.measure("JumpExprCellRenderer.getElementText(${element.text})") { s1(element) } ?: super.getElementText(element)
+    }
+
+    private fun s1(element: PsiElement?): String? {
         val framingState = element?.framingState ?: return super.getElementText(element)
         return "${framingState.absolutePath}"
     }
 
     override fun getContainerText(element: PsiElement?, name: String?): String? {
+        return element?.measure("JumpExprCellRenderer.getContainerText(${element.text})") { s(element, name) }
+    }
+
+    private fun s(element: PsiElement?, name: String?): String? {
         if (element == null)
             return null
 

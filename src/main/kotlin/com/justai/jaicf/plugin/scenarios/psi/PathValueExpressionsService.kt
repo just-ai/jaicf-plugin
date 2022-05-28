@@ -9,6 +9,7 @@ import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.PLUGIN_PACKAGE
 import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.pathExpressionsOfBoundedBlock
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.search.allScope
@@ -23,7 +24,7 @@ class PathValueExpressionsService(project: Project) : JaicfService(project) {
     private val pathValueService = MethodsUsedPathValueService(project)
 
     private val expressionsMap = LiveMapByFiles(project) { file ->
-        pathValueService.methods
+        pathValueService.jaicfMethods
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }
             .flatMap { it.pathExpressionsOfBoundedBlock }
@@ -43,15 +44,17 @@ class PathValueExpressionsService(project: Project) : JaicfService(project) {
 
 class MethodsUsedPathValueService(project: Project) : JaicfService(project) {
 
-    val methods
-        get() = (jaicfMethods + projectMethods.getNotNullValues().flatten()).filter { it.isExist }
+    val jaicfMethods
+        get() = (jaicfCoreMethods + jaicfProjectMethods.getNotNullValues().flatten()).filter { it.isExist }
 
-    val jaicfMethods: List<KtFunction> by cached(LibraryModificationTracker.getInstance(project)) {
-        if (enabled) findUsages(project.allScope() - project.projectScope())
-        else emptyList()
+    val jaicfCoreMethods: List<KtFunction> by cached(LibraryModificationTracker.getInstance(project)) {
+        measure("jaicfCoreMethods") {
+            if (enabled) findUsages(project.allScope() - project.projectScope())
+            else emptyList()
+        }
     }
 
-    private val projectMethods = LiveMapByFiles(project) {
+    private val jaicfProjectMethods = LiveMapByFiles(project) {
         if (enabled) findUsages(it.fileScope())
         else emptyList()
     }
@@ -61,9 +64,11 @@ class MethodsUsedPathValueService(project: Project) : JaicfService(project) {
     }
 
     private fun findUsages(scope: SearchScope): List<KtFunction> {
-        return annotationClass?.search(scope)
-            ?.mapNotNull { it.element.getParentOfType<KtFunction>(true) }
-            ?.distinct() ?: emptyList()
+        return measure("findUsages($scope)") {
+            annotationClass?.search(scope)
+                ?.mapNotNull { it.element.getParentOfType<KtFunction>(true) }
+                ?.distinct() ?: emptyList()
+        }
     }
 
     companion object {

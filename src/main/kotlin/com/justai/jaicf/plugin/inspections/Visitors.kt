@@ -56,7 +56,9 @@ abstract class KtCallExpressionVisitor(holder: ProblemsHolder) : VisitorBase(hol
             return
 
         if (element is KtCallExpression)
-            visitCallExpression(element)
+            element.measure("${this.javaClass.simpleName}.visitCallExpression(${element.text})") {
+                visitCallExpression(element)
+            }
     }
 }
 
@@ -68,7 +70,7 @@ abstract class PathExpressionVisitor(holder: ProblemsHolder) : VisitorBase(holde
         if (!checkEnvironmentAndNotify(element))
             return
 
-        element.measure("$javaClass.visitElement(${element.text})") {
+        element.measure("${this.javaClass.simpleName}.visitPathExpression(${element.text})") {
             if (element is KtCallExpression)
                 element.innerPathExpressions.forEach(this@PathExpressionVisitor::visitPathExpression)
 
@@ -86,7 +88,11 @@ abstract class AnnotatedElementVisitor(holder: ProblemsHolder) : VisitorBase(hol
         if (!checkEnvironmentAndNotify(element))
             return
 
-        (element as? KtAnnotated)?.let { visitAnnotatedElement(it) }
+        (element as? KtAnnotated)?.let {
+            element.measure("${this.javaClass.simpleName}.visitAnnotatedElement(${element.text})") {
+                visitAnnotatedElement(it)
+            }
+        }
     }
 }
 

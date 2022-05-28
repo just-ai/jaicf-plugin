@@ -5,18 +5,22 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 
-class VersionService(project: Project) {
+class VersionService(val project: Project) {
 
     val jaicf by project.cached(LibraryModificationTracker.getInstance(project)) {
-        libraries
-            .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
-            .mapNotNull { it.name?.split(":")?.last() }
-            .firstOrNull()
-            ?.let(::Version)
+        project.measure("VersionService.jaicf") {
+            libraries
+                .filter { it.name?.contains("$JAICF_GROUP_ID:$JAICF_CORE_ARTIFACT_ID") == true }
+                .mapNotNull { it.name?.split(":")?.last() }
+                .firstOrNull()
+                ?.let(::Version)
+        }
     }
 
     private val libraries by project.cached(LibraryModificationTracker.getInstance(project)) {
-        LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
+        project.measure("VersionService.libraries") {
+            LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.toList()
+        }
     }
 
     companion object {
@@ -46,7 +50,7 @@ data class Version(val version: String) {
 }
 
 val VersionService.isSupportedJaicfInclude: Boolean
-    get() = jaicf?.let { it >= Version("1.1.3") } == true
+    get() = project.measure("VersionService.isSupportedJaicfInclude") { jaicf?.let { it >= Version("1.1.3") } == true }
 
 val VersionService.isJaicfInclude: Boolean
-    get() = jaicf != null
+    get() = project.measure("VersionService.isJaicfInclude") { jaicf != null }

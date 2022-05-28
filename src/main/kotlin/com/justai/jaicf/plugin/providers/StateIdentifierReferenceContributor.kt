@@ -23,6 +23,7 @@ import com.justai.jaicf.plugin.utils.getBoundedValueArgumentOrNull
 import com.justai.jaicf.plugin.utils.holderExpression
 import com.justai.jaicf.plugin.utils.identifier
 import com.justai.jaicf.plugin.utils.isJaicfInclude
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.rangeToEndOf
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -39,7 +40,12 @@ class StateIdentifierReferenceContributor : PsiReferenceContributor() {
 class StateIdentifierReferenceProvider : PsiReferenceProvider() {
 
     @ExperimentalStdlibApi
-    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext) =
+        element.measure("StateIdentifierReferenceProvider.getReferencesByElement(${element.text})") {
+            psiReferences(element)
+        }
+
+    private fun psiReferences(element: PsiElement): Array<PsiReference> {
         if (VersionService.getInstance(element)?.isJaicfInclude == false) return emptyArray()
 
         val argument = element.getBoundedValueArgumentOrNull() ?: return emptyArray()
@@ -63,16 +69,18 @@ class MultiPsiReference(
 
     private val service = ReferenceContributorsAvailabilityService.getInstance(element)
 
-    override fun resolve() =
+    override fun resolve() = element.measure("MultiPsiReference.resolve(${element.text})") {
         if (service?.available == true)
             referencesProvider().singleOrNull()?.holderExpression
         else null
-
-    override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return if (service?.available == true)
-            referencesProvider().map { it.holderExpression }.map(::PsiElementResolveResult).toTypedArray()
-        else emptyArray()
     }
+
+    override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> =
+        element.measure("MultiPsiReference.multiResolve(${element.text})") {
+            if (service?.available == true)
+                referencesProvider().map { it.holderExpression }.map(::PsiElementResolveResult).toTypedArray()
+            else emptyArray()
+        }
 
     override fun handleElementRename(newElementName: String): PsiElement {
         return super.handleElementRename(newElementName)

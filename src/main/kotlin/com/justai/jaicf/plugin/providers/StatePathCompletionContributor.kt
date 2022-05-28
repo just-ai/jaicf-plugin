@@ -35,6 +35,7 @@ import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.boundedPathExpression
 import com.justai.jaicf.plugin.utils.isComplexStringTemplate
 import com.justai.jaicf.plugin.utils.isJaicfInclude
+import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -51,6 +52,15 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
         parameters: CompletionParameters,
         context: ProcessingContext,
         resultSet: CompletionResultSet,
+    ) {
+        parameters.position.project.measure("StatePathCompletionProvider.addCompletions") {
+            completions(parameters, resultSet)
+        }
+    }
+
+    private fun completions(
+        parameters: CompletionParameters,
+        resultSet: CompletionResultSet
     ) {
         if (!VersionService.getInstance(parameters.originalFile.project).isJaicfInclude) return
 
@@ -96,10 +106,10 @@ class StatePathCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     private fun isLastTransitionFitIntoElement(path: StatePath, parameters: CompletionParameters) =
         !(
-                path.lexemes.isNotEmpty() &&
-                        path.lexemes.last() is Lexeme.Transition &&
-                        path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
-                )
+            path.lexemes.isNotEmpty() &&
+                path.lexemes.last() is Lexeme.Transition &&
+                path.lexemes.last().identifier.length > parameters.position.text.substringBeforeCaret().length
+            )
 
     private fun String.substringBeforeCaret() = substringBefore("IntellijIdeaRulezzz")
 
@@ -123,7 +133,15 @@ class StatePathAutoPopupHandler : TypedHandlerDelegate() {
      * Checks if editor caret is in context to suggest state completions
      * @return [TypedHandlerDelegate.Result.STOP] if we can try suggest state completions
      * */
-    override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
+    override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile) =
+        project.measure("StatePathAutoPopupHandler.checkAutoPopup") { result(project, charTyped, file, editor) }
+
+    private fun result(
+        project: Project,
+        charTyped: Char,
+        file: PsiFile,
+        editor: Editor
+    ): Result {
         if (!VersionService.getInstance(project).isJaicfInclude) return CONTINUE
 
         if (charTyped !in supportedCharsForPopup) {
@@ -145,7 +163,16 @@ class StatePathCompletionConfidenceProvider : CompletionConfidence() {
     /**
      * Skips completion if given [contextElement] is not valid state path
      * */
-    override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
+    override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int) =
+        contextElement.measure("StatePathCompletionConfidenceProvider.shouldSkipAutopopup(${contextElement.text})") {
+            threeState(psiFile, contextElement, offset)
+        }
+
+    private fun threeState(
+        psiFile: PsiFile,
+        contextElement: PsiElement,
+        offset: Int
+    ): ThreeState {
         if (!VersionService.getInstance(psiFile.project).isJaicfInclude) return UNSURE
 
         return if (SkipAutopopupInStrings.isInStringLiteral(contextElement)) {
