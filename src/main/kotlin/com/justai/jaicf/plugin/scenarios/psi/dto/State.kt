@@ -15,7 +15,7 @@ class State(
     val scenario: Scenario,
     val stateExpression: KtCallExpression,
 ) {
-    lateinit var appends: List<Append>
+    lateinit var nestedAppends: List<NestedAppend>
     lateinit var states: List<State>
 }
 

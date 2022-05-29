@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 
 fun PsiElement.search(scope: SearchScope = project.projectScope()): Collection<PsiReference> {
-    return measure("${javaClass.simpleName}?.search(${scope.displayName})") { psiReferences(scope) }
+    return measure("${text.replace("\n", "\\/")}?.search(${scope.javaClass.simpleName})") { psiReferences(scope) }
 }
 
 private fun PsiElement.psiReferences(scope: SearchScope): Collection<PsiReference> {

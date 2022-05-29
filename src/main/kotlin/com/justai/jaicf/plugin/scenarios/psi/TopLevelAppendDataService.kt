@@ -11,6 +11,7 @@ import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import com.justai.jaicf.plugin.utils.SCENARIO_EXTENSIONS_CLASS_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_PACKAGE
 import com.justai.jaicf.plugin.utils.isExist
+import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.psi.KtCallExpression
 
@@ -23,7 +24,9 @@ class TopLevelAppendDataService(project: Project) : JaicfService(project) {
     }
 
     private val appendsMap = LiveMapByFiles(project) { file ->
-        getTopLevelAppendsUsages(file.fileScope()).mapNotNull { buildTopLevelAppend(it) }
+        measure("TopLevelAppendDataService.getTopLevelAppendsUsages(${file.name}") {
+            getTopLevelAppendsUsages(file.fileScope()).mapNotNull { buildTopLevelAppend(it) }
+        }
     }
 
     fun getAppends() =
@@ -45,3 +48,5 @@ class TopLevelAppendDataService(project: Project) : JaicfService(project) {
             project.getService(TopLevelAppendDataService::class.java)
     }
 }
+
+val Project.topLevelAppends get() = TopLevelAppendDataService.getInstance(this).getAppends()

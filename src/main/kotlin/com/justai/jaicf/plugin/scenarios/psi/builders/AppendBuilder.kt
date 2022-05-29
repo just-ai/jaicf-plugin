@@ -1,6 +1,6 @@
 package com.justai.jaicf.plugin.scenarios.psi.builders
 
-import com.justai.jaicf.plugin.scenarios.psi.dto.Append
+import com.justai.jaicf.plugin.scenarios.psi.dto.NestedAppend
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.utils.APPEND_CONTEXT_ARGUMENT_NAME
 import com.justai.jaicf.plugin.utils.APPEND_METHOD_NAME
@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 
-fun buildAppend(expression: KtCallExpression, state: State? = null): Append? {
+fun buildAppend(expression: KtCallExpression, state: State? = null): NestedAppend? {
     if (expression.isRemoved || expression.isAppendWithContext || !expression.isAppendWithoutContext)
         return null
 
@@ -29,7 +29,7 @@ fun buildAppend(expression: KtCallExpression, state: State? = null): Append? {
         else -> null
     }
 
-    return referenceExpression?.let { Append(project, it, expression, state) }
+    return referenceExpression?.let { NestedAppend(project, it, expression, state) }
 }
 
 private val KtCallExpression.isAppendWithoutContext: Boolean

@@ -7,6 +7,7 @@ import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.linker.allStates
 import com.justai.jaicf.plugin.scenarios.linker.appendingStates
 import com.justai.jaicf.plugin.scenarios.linker.rootScenarios
+import com.justai.jaicf.plugin.scenarios.linker.sequenceAllStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
 import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
@@ -31,16 +32,16 @@ class TransitionService(project: Project) : JaicfService(project) {
         return when (transition) {
             Transition.Current -> StateFound(state)
 
-            Transition.Revert -> when {
+            Transition.StepUp -> when {
                 state.isRootState -> state.scenario.appendingStates
                     .let {
-                        if (it.isEmpty()) StatesFound(it + state)
+                        if (it.isNotEmpty()) StatesFound(it + state)
                         else StateFound(state)
                     }
 
                 state.isTopState -> state.scenario.appendingStates
                     .let {
-                        if (it.isEmpty()) StatesFound(it + state.parent!!)
+                        if (it.isNotEmpty()) StatesFound(it + state.parent!!)
                         else StateFound(state.parent!!)
                     }
 
@@ -53,7 +54,7 @@ class TransitionService(project: Project) : JaicfService(project) {
             }
 
             is Transition.StateId -> {
-                transition.transitToOneOf(state.allStates)
+                transition.transitToOneOf(state.sequenceAllStates)
                     ?.let { StateFound(it) }
                     ?: if (state.isRootState) {
                         val rootScenarios = state.project.rootScenarios
@@ -84,7 +85,7 @@ class TransitionService(project: Project) : JaicfService(project) {
     }
 }
 
-fun State.transit(transition: Transition) = project.measure("State(${name}).transit(${transition.javaClass})") {
+fun State.transit(transition: Transition) = project.measure("State(${name}).transit(${transition.javaClass.simpleName})") {
     TransitionService.getInstance(project).transit(this@transit, transition)
 }
 

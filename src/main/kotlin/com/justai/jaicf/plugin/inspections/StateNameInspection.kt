@@ -12,7 +12,7 @@ import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
 import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Current
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.StepUp
 import com.justai.jaicf.plugin.scenarios.transition.StatePath
 
 class StateNameInspection : LocalInspectionTool() {
@@ -67,7 +67,7 @@ class StateNameInspection : LocalInspectionTool() {
                 )
             }
 
-            if (parsedName.transitions.contains(Revert)) {
+            if (parsedName.transitions.contains(StepUp)) {
                 registerGenericError(
                     identifierReference, "Do not use .. as state name. Resolved name \"$name\""
                 )

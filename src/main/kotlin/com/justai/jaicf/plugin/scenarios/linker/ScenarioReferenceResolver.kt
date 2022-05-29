@@ -7,6 +7,7 @@ import com.justai.jaicf.plugin.scenarios.JaicfService
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
 import com.justai.jaicf.plugin.scenarios.psi.dto.Append
+import com.justai.jaicf.plugin.scenarios.psi.dto.NestedAppend
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
@@ -122,8 +123,8 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
     }
 }
 
-val Append.scenario
+val NestedAppend.scenario
     get() = ScenarioReferenceResolver.getInstance(project).resolve(this.referenceToScenario, parentState)
 
-val TopLevelAppend.scenario
+val Append.scenario
     get() = this.referenceToScenario?.let { ScenarioReferenceResolver.getInstance(project).resolve(it) }

@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.scenarios.JaicfService
 import java.lang.System.currentTimeMillis
+import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
@@ -34,13 +35,24 @@ class MeasureService(val project: Project) {
     private val indent = ThreadLocal.withInitial { "" }
     private val strings = ThreadLocal.withInitial { mutableListOf<String>() }
     private val overTimesStack = ThreadLocal.withInitial { ArrayDeque<Long>() }
+    private val inner = ThreadLocal.withInitial { AtomicBoolean() }
 
-    private val roots = listOf<String>("JaicfSourcesMissedNotifier.isValid()")
+    private val roots = listOf<String>("StateIdentifierLineMarkerProvider.collectNavigationMarkers")
 
     fun <T> measure(method: () -> String, block: Project.() -> T): T {
         val methodStart = currentTimeMillis()
 
-        if (indent.get().isEmpty() && roots.isNotEmpty() && roots.none { method().startsWith(it) })
+//        if (indent.get().isNotEmpty())
+//            return project.block()
+
+        if (!inner.get().compareAndSet(false, true))
+            return project.block()
+
+        val name = method()
+
+        inner.get().set(false)
+
+        if (indent.get().isEmpty() && roots.isNotEmpty() && roots.none { name.startsWith(it) })
             return project.block()
 
         indent.set("${indent.get()}    ")
@@ -61,12 +73,12 @@ class MeasureService(val project: Project) {
 
         indent.set(indent.get().substring(4))
 
-        strings.get() += "${indent.get()}|${method()}: $clearTime : return $result"
-
+        if (clearTime > 10)
+            strings.get() += "${indent.get()}|$name: $clearTime : return $result"
 
         if (indent.get().isEmpty()) {
-            if (clearTime > 2)
-                strings.get().asReversed().forEach(::println)
+            if (clearTime > 50)
+                strings.get().forEach(::println)
             strings.get().clear()
         }
 

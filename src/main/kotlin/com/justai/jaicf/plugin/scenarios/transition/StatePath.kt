@@ -36,12 +36,12 @@ sealed class Lexeme(open val identifier: String) {
 
         object Root : Transition("")
 
-        object Revert : Transition("..")
+        object StepUp : Transition("..")
 
         object Current : Transition(".")
 
         data class StateId(override val identifier: String) : Transition(identifier) {
-            fun transitToOneOf(states: List<State>) =
+            fun transitToOneOf(states: Sequence<State>) =
                 states.firstOrNull { canTransitTo(it) }
 
             fun canTransitTo(state: State) = identifier == state.nameWithoutLeadSlashes
@@ -57,8 +57,8 @@ sealed class Lexeme(open val identifier: String) {
             path.isEmpty() -> Empty
             isBegin && path.startsWith(Slash.identifier) -> Root
             path.startsWith(Slash.identifier) -> Slash
-            path.startsWith(Transition.Revert.identifier + Slash.identifier) ||
-                path == Transition.Revert.identifier -> Transition.Revert
+            path.startsWith(Transition.StepUp.identifier + Slash.identifier) ||
+                path == Transition.StepUp.identifier -> Transition.StepUp
             path.startsWith(Transition.Current.identifier + Slash.identifier) ||
                 path == Transition.Current.identifier -> Transition.Current
             else -> Transition.StateId(path.substringBefore(Slash.identifier))

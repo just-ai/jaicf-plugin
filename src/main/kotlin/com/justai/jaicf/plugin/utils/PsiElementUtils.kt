@@ -10,6 +10,8 @@ import com.intellij.util.SlowOperations.allowSlowOperations
 import com.justai.jaicf.plugin.services.caching
 import com.justai.jaicf.plugin.services.cachingField
 import com.justai.jaicf.plugin.services.cachingFieldOne
+import com.justai.jaicf.plugin.services.updatingCache
+import com.justai.jaicf.plugin.trackers.FileModificationTracker
 //import com.justai.jaicf.plugin.services.cachingOne
 import com.justai.jaicf.plugin.trackers.HashCodeModificationTracker.Companion.hashed
 import com.justai.jaicf.plugin.trackers.TimeModificationTracker.Companion.timed
@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -147,15 +150,35 @@ val KtReferenceExpression.resolveToSourceExperimental by cachingField({
 
 val KtReferenceExpression.resolveToSourceMinorExperimental by cachingFieldOne({ getInstance(project) }) { resolveToSource }
 
-fun KtReferenceExpression.safeResolve() =
-    try {
+fun KtReferenceExpression.safeResolve(): PsiElement? =
         measure({
             "KtReferenceExpression.safeResolve() ${this.presentation} " +
                 "${this.hashCode()}"
-        }) { resolve() }
+        }) { cachingSafeResolve?.second }
+
+private val KtReferenceExpression.cachingSafeResolve: Pair<Long, PsiElement>? by updatingCache<KtReferenceExpression, Pair<Long, PsiElement>?>({ getInstance(this.project) }) { previousElement ->
+    try {
+        if (previousElement != null && previousElement.first != -1L) {
+            val thisCount: Long = FileModificationTracker.getInstance(this.containingKtFile)?.modificationCount ?: return@updatingCache resolve()?.let { -1L to it }
+            val toCount: Long = (previousElement.second.containingFile as? KtFile)?.let {
+                FileModificationTracker.getInstance(
+                    it
+                )?.modificationCount
+            }
+                ?: return@updatingCache resolve()?.let { -1L to it }
+            if (thisCount + toCount == previousElement.first)
+                return@updatingCache previousElement
+        }
+        val resolved: PsiElement =  resolve() ?: return@updatingCache null
+        val thisCount: Long = FileModificationTracker.getInstance(this.containingKtFile)?.modificationCount ?: return@updatingCache resolve()?.let { -1L to it }
+        val toCount: Long = (resolved.containingFile as? KtFile)?.let { FileModificationTracker.getInstance(it)?.modificationCount }
+            ?: return@updatingCache resolve()?.let { -1L to it }
+        (thisCount + toCount) to resolved
     } catch (e: IndexNotReadyException) {
         null
     }
+}
+
 
 inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
     return PsiTreeUtil.findChildOfType(this, T::class.java)

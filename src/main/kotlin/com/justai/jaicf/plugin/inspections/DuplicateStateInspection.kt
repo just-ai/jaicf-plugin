@@ -5,7 +5,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.justai.jaicf.plugin.scenarios.linker.allStates
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
 import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Revert
+import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.StepUp
 import com.justai.jaicf.plugin.scenarios.transition.fullPath
 import com.justai.jaicf.plugin.scenarios.transition.states
 import com.justai.jaicf.plugin.scenarios.transition.transit
@@ -22,7 +22,7 @@ class DuplicateStateInspection : LocalInspectionTool() {
 
         override fun visitState(state: State) {
             val stateName = state.nameWithoutLeadSlashes ?: return
-            val parents = state.transit(Revert).states().filter { it !== state }
+            val parents = state.transit(StepUp).states().filter { it !== state }
 
             parents
                 .flatMap { it.allStates }

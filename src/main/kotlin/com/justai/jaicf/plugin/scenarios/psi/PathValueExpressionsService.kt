@@ -8,29 +8,47 @@ import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
 import com.justai.jaicf.plugin.utils.PATH_ARGUMENT_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.PLUGIN_PACKAGE
+import com.justai.jaicf.plugin.utils.findChildrenOfType
 import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.pathExpressionsOfBoundedBlock
+import java.util.concurrent.ConcurrentHashMap
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.search.allScope
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.minus
 import org.jetbrains.kotlin.idea.search.projectScope
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class PathValueExpressionsService(project: Project) : JaicfService(project) {
 
     private val pathValueService = MethodsUsedPathValueService(project)
 
+    private val map = ConcurrentHashMap<KtFile, Set<PsiElement>>()
     private val expressionsMap = LiveMapByFiles(project) { file ->
+        val children: Set<PsiElement> =
+            measure("children") { (file.findChildrenOfType<KtOperationReferenceExpression>() + file.findChildrenOfType<KtNameReferenceExpression>()).toSet() }
+        val ktElements = map[file]
+        if (ktElements == children)
+            return@LiveMapByFiles ktElements.flatMap { it.pathExpressionsOfBoundedBlock }
+        else
+            println("${children.map { it.text }}\n${ktElements?.map { it.text }}")
+
+        map[file] = children.toSet()
+
         pathValueService.jaicfMethods
             .flatMap { it.search(file.fileScope()) }
             .map { it.element }
             .flatMap { it.pathExpressionsOfBoundedBlock }
     }
 
-    fun getExpressions() = expressionsMap.getNotNullValues().flatten()
+    fun getExpressions() =
+        measure("PathValueExpressionsService.getExpressions") { expressionsMap.getNotNullValues().flatten() }
 
     companion object {
         fun getInstance(element: PsiElement): PathValueExpressionsService? =
@@ -76,3 +94,5 @@ class MethodsUsedPathValueService(project: Project) : JaicfService(project) {
             project.getService(MethodsUsedPathValueService::class.java)
     }
 }
+
+val Project.pathValueExpressions get() = PathValueExpressionsService.getInstance(this).getExpressions()

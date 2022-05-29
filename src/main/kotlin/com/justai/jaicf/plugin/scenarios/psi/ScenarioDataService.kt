@@ -3,6 +3,7 @@ package com.justai.jaicf.plugin.scenarios.psi
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.scenarios.JaicfService
+import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService.Companion.getInstance
 import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
 import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
@@ -25,12 +26,14 @@ class ScenarioDataService(project: Project) : JaicfService(project) {
     }
 
     private val scenariosMap = LiveMapByFiles(project) { file ->
-        scenariosBuildMethods
-            ?.flatMap { it.search(file.fileScope()) }
-            ?.map { it.element.parent }
-            ?.filterIsInstance<KtCallExpression>()
-            ?.mapNotNull { buildScenario(it) }
-            ?: emptyList()
+        measure("Update scenario in ${file.name}") {
+            scenariosBuildMethods
+                ?.flatMap { it.search(file.fileScope()) }
+                ?.map { it.element.parent }
+                ?.filterIsInstance<KtCallExpression>()
+                ?.mapNotNull { buildScenario(it) }
+                ?: emptyList()
+        }
     }
 
     fun getScenarios(file: KtFile): List<Scenario>? = measure("ScenarioDataService.getScenarios(${file.name})") {
@@ -52,3 +55,5 @@ class ScenarioDataService(project: Project) : JaicfService(project) {
             project.getService(ScenarioDataService::class.java)
     }
 }
+
+val Project.scenarios get() = getInstance(this).getScenarios()

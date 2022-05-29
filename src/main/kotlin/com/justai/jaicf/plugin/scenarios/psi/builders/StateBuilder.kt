@@ -37,7 +37,7 @@ fun buildState(
     return State(stateExpression.project, identifier, parentState, scenario, stateExpression)
         .apply {
             val statements = stateExpression.statements
-            appends = statements.mapNotNull { buildAppend(it, this) }
+            nestedAppends = statements.mapNotNull { buildAppend(it, this) }
             states = statements.mapNotNull { buildState(it, scenario, this) }
         }
 }

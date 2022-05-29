@@ -10,6 +10,7 @@ import com.intellij.psi.PsiFile
 import com.justai.jaicf.plugin.notifications.checkEnvironmentAndNotify
 import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
 import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.scenarios.psi.dto.name
 import com.justai.jaicf.plugin.utils.StatePathExpression
 import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.innerPathExpressions
@@ -42,7 +43,9 @@ abstract class StateVisitor(holder: ProblemsHolder) : VisitorBase(holder) {
     }
 
     private fun recursiveEntryIntoState(state: State) {
-        visitState(state)
+        state.project.measure({ "visitState(${state.name})" }) {
+            visitState(state)
+        }
         state.states.forEach { recursiveEntryIntoState(it) }
     }
 }

@@ -5,6 +5,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker.SERVICE.getInstance
+import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.trackers.TimeModificationTracker
 import com.justai.jaicf.plugin.utils.measure
 import kotlin.reflect.KProperty
 
@@ -22,9 +24,9 @@ import kotlin.reflect.KProperty
 //    }
 //}
 
-//fun <R : PsiElement, T> updatingCache(lambda: R.(T?) -> T) =
-//    CachingValueDelegate({ arrayOf(TimeModificationTracker(10000)) }, lambda)
-//
+fun <R : PsiElement, T> updatingCache(tracker: R.() -> ModificationTracker, lambda: R.(T?) -> T) =
+    CachingValueDelegateForPsi({ arrayOf(tracker()) }, lambda)
+
 //fun <R : PsiElement, T> caching(lambda: R.() -> T) =
 //    CachingValueDelegate<R, T>({ arrayOf(getInstance(project)) }) { lambda() }
 
@@ -43,8 +45,14 @@ fun <R : PsiElement, T> cachingField(trackers: R.() -> Array<ModificationTracker
 fun <R : PsiElement, T> cachingFieldOne(tracker: R.() -> ModificationTracker, lambda: R.() -> T) =
     CachingValueDelegateForPsi<R, T>({ arrayOf(tracker()) }) { lambda() }
 
+fun <T> caching(tracker: ModificationTracker, lambda: Scenario.() -> T) =
+    CachingValueDelegate<Scenario, T>({ project }, { arrayOf(tracker) }) { lambda() }
+
 fun <R : Any, T> caching(project: R.() -> Project, trackers: R.() -> Array<ModificationTracker>, lambda: R.() -> T) =
     CachingValueDelegate<R, T>(project, trackers) { lambda() }
+
+fun <T> cachingForScenario(trackers: Scenario.() -> Array<ModificationTracker>, lambda: Scenario.() -> T) =
+    CachingValueDelegate<Scenario, T>({ project }, trackers) { lambda() }
 
 fun <R : Any, T> caching(project: R.() -> Project, lambda: R.() -> T) =
     CachingValueDelegate<R, T>(project, { arrayOf(getInstance(project())) }) { lambda() }

@@ -37,32 +37,24 @@ class StatePathLineMarkerProvider : RelatedItemLineMarkerProvider() {
         element: PsiElement,
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
     ) {
-        element.measure("StatePathLineMarkerProvider.collectNavigationMarkers(${element.text})") {
-            markers(element, result)
-        }
-    }
+        if (VersionService.getInstance(element)?.isJaicfInclude == false) return
 
-    private fun markers(
-        element: PsiElement,
-        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
-    ): Boolean {
-        if (VersionService.getInstance(element)?.isJaicfInclude == false) return true
-
-        if (element.isRemoved || isNotLeafIdentifier(element)) return true
+        if (element.isRemoved || isNotLeafIdentifier(element)) return
 
         val pathExpressions = element.pathExpressionsOfBoundedBlock
 
-        pathExpressions.onEach {
-            val expression = it.holderExpression
-            val markerHolder =
-                expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf
-                ?: return@onEach
+        element.measure({ "StatePathLineMarkerProvider.collectNavigationMarkers(${pathExpressions.map { it.usePoint.text }})" }) {
+            pathExpressions.onEach {
+                val expression = it.holderExpression
+                val markerHolder =
+                    expression.findChildOfType<KtLiteralStringTemplateEntry>()?.asLeaf ?: expression.asLeaf
+                    ?: return@onEach
 
-            transitToState(it.usePoint, it.declaration).statesOrSuggestions().onEach { state ->
-                result.add(buildLineMarker(state.stateExpression, markerHolder))
+                transitToState(it.usePoint, it.declaration).statesOrSuggestions().onEach { state ->
+                    result.add(buildLineMarker(state.stateExpression, markerHolder))
+                }
             }
         }
-        return false
     }
 
     private fun buildLineMarker(
@@ -132,7 +124,8 @@ class StateIdentifierLineMarkerProvider : RelatedItemLineMarkerProvider() {
 private object JumpExprCellRenderer : DefaultPsiElementCellRenderer() {
 
     override fun getElementText(element: PsiElement?): String {
-        return element?.measure("JumpExprCellRenderer.getElementText(${element.text})") { s1(element) } ?: super.getElementText(element)
+        return element?.measure("JumpExprCellRenderer.getElementText(${element.text})") { s1(element) }
+            ?: super.getElementText(element)
     }
 
     private fun s1(element: PsiElement?): String? {

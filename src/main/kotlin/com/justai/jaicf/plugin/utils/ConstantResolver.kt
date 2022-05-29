@@ -4,7 +4,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.kotlin.idea.inspections.AbstractPrimitiveRangeToInspection.Companion.constantValueOrNull
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.psiUtil.isPlain
+import org.jetbrains.kotlin.psi.psiUtil.plainContent
 
 class ConstantResolver(project: Project) {
 
@@ -20,7 +29,44 @@ class ConstantResolver(project: Project) {
             }
         }
 
-    private fun resolve(expression: KtExpression) = expression.constantValueOrNull()?.value?.toString()
+    private fun resolve(element: PsiElement): String? {
+        return when {
+            element.isRemoved ->
+                null
+
+            element is KtBinaryExpression && element.isStringConcatenationExpression ->
+                element.operands?.fold("" as String?) { acc, operand ->
+                    resolve(operand)?.let { acc?.plus(it) }
+                } ?: element.constantValueOrNull()?.value?.toString()
+
+            element is KtStringTemplateExpression && element.isPlain() ->
+                element.plainContent
+
+            element is KtStringTemplateExpression && element.hasInterpolation() ->
+                element.children.fold("" as String?) { acc, operand ->
+                    resolve(operand)?.let { acc?.plus(it) }
+                } ?: element.constantValueOrNull()?.value?.toString()
+
+            element is KtLiteralStringTemplateEntry ->
+                element.text
+
+            element is KtSimpleNameStringTemplateEntry ->
+                element.expression?.let { resolve(it) }
+
+            element is KtBlockStringTemplateEntry ->
+                element.expression?.let { resolve(it) }
+
+            element is KtNameReferenceExpression ->
+                (element.safeResolve() as? KtProperty)?.initializer?.let { resolve(it) }
+                    ?: element.constantValueOrNull()?.value?.toString()
+
+            element is KtExpression ->
+                element.constantValueOrNull()?.value?.toString()
+
+            else ->
+                null
+        }
+    }
 
     companion object {
         fun getInstance(element: PsiElement): ConstantResolver? =
