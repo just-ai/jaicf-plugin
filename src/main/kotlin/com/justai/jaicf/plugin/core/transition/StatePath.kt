@@ -1,10 +1,10 @@
-package com.justai.jaicf.plugin.scenarios.transition
+package com.justai.jaicf.plugin.core.transition
 
 import com.intellij.openapi.util.TextRange
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Slash
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
+import com.justai.jaicf.plugin.core.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.nameWithoutLeadSlashes
+import com.justai.jaicf.plugin.core.transition.Lexeme.Slash
+import com.justai.jaicf.plugin.core.transition.Lexeme.Transition.Root
 
 data class StatePath(
     val lexemes: List<Lexeme> = emptyList(),

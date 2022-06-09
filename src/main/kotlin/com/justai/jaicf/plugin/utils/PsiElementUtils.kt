@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.utils
 
+//import com.justai.jaicf.plugin.services.cachingOne
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -7,15 +8,12 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiModificationTracker.SERVICE.getInstance
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations.allowSlowOperations
-import com.justai.jaicf.plugin.services.caching
 import com.justai.jaicf.plugin.services.cachingField
 import com.justai.jaicf.plugin.services.cachingFieldOne
 import com.justai.jaicf.plugin.services.updatingCache
 import com.justai.jaicf.plugin.trackers.FileModificationTracker
-//import com.justai.jaicf.plugin.services.cachingOne
 import com.justai.jaicf.plugin.trackers.HashCodeModificationTracker.Companion.hashed
 import com.justai.jaicf.plugin.trackers.TimeModificationTracker.Companion.timed
-import java.lang.Integer.min
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
 import org.jetbrains.kotlin.name.FqName
@@ -42,6 +40,7 @@ import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.ifEmpty
+import java.lang.Integer.min
 
 fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
@@ -151,15 +150,18 @@ val KtReferenceExpression.resolveToSourceExperimental by cachingField({
 val KtReferenceExpression.resolveToSourceMinorExperimental by cachingFieldOne({ getInstance(project) }) { resolveToSource }
 
 fun KtReferenceExpression.safeResolve(): PsiElement? =
-        measure({
-            "KtReferenceExpression.safeResolve() ${this.presentation} " +
+    measure({
+        "KtReferenceExpression.safeResolve() ${this.presentation} " +
                 "${this.hashCode()}"
-        }) { cachingSafeResolve?.second }
+    }) { cachingSafeResolve?.second }
 
-private val KtReferenceExpression.cachingSafeResolve: Pair<Long, PsiElement>? by updatingCache<KtReferenceExpression, Pair<Long, PsiElement>?>({ getInstance(this.project) }) { previousElement ->
+// TODO optimize move to service
+private val KtReferenceExpression.cachingSafeResolve: Pair<Long, PsiElement>? by updatingCache<KtReferenceExpression, Pair<Long, PsiElement>?>(
+    { getInstance(this.project) }) { previousElement ->
     try {
         if (previousElement != null && previousElement.first != -1L) {
-            val thisCount: Long = FileModificationTracker.getInstance(this.containingKtFile)?.modificationCount ?: return@updatingCache resolve()?.let { -1L to it }
+            val thisCount: Long = FileModificationTracker.getInstance(this.containingKtFile)?.modificationCount
+                ?: return@updatingCache resolve()?.let { -1L to it }
             val toCount: Long = (previousElement.second.containingFile as? KtFile)?.let {
                 FileModificationTracker.getInstance(
                     it
@@ -169,10 +171,12 @@ private val KtReferenceExpression.cachingSafeResolve: Pair<Long, PsiElement>? by
             if (thisCount + toCount == previousElement.first)
                 return@updatingCache previousElement
         }
-        val resolved: PsiElement =  resolve() ?: return@updatingCache null
-        val thisCount: Long = FileModificationTracker.getInstance(this.containingKtFile)?.modificationCount ?: return@updatingCache resolve()?.let { -1L to it }
-        val toCount: Long = (resolved.containingFile as? KtFile)?.let { FileModificationTracker.getInstance(it)?.modificationCount }
+        val resolved: PsiElement = resolve() ?: return@updatingCache null
+        val thisCount: Long = FileModificationTracker.getInstance(this.containingKtFile)?.modificationCount
             ?: return@updatingCache resolve()?.let { -1L to it }
+        val toCount: Long =
+            (resolved.containingFile as? KtFile)?.let { FileModificationTracker.getInstance(it)?.modificationCount }
+                ?: return@updatingCache resolve()?.let { -1L to it }
         (thisCount + toCount) to resolved
     } catch (e: IndexNotReadyException) {
         null
@@ -191,8 +195,8 @@ inline fun <reified T : PsiElement> PsiElement.findChildrenOfType(): Collection<
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
     try {
         isExist && callName() == funName
-            && isReceiverInheritedOf(receiver)
-            && (parameters?.let { it == parametersTypes } ?: true)
+                && isReceiverInheritedOf(receiver)
+                && (parameters?.let { it == parametersTypes } ?: true)
     } catch (e: NullPointerException) {
         false
     }
@@ -312,6 +316,6 @@ val KtBinaryExpression.operands get() = left?.let { l -> right?.let { r -> listO
 val KtBinaryExpression.isStringConcatenationExpression
     get() = (operationReference.safeResolve() as? KtFunction)?.let { declaration ->
         declaration.name == "plus" &&
-            declaration.receiverName == "kotlin.String" &&
-            declaration.parametersTypes.singleOrNull() == "kotlin.Any"
+                declaration.receiverName == "kotlin.String" &&
+                declaration.parametersTypes.singleOrNull() == "kotlin.Any"
     } ?: false

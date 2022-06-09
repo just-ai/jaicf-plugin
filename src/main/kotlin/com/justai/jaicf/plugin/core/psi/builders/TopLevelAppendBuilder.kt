@@ -1,6 +1,6 @@
-package com.justai.jaicf.plugin.scenarios.psi.builders
+package com.justai.jaicf.plugin.core.psi.builders
 
-import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
+import com.justai.jaicf.plugin.core.psi.dto.TopLevelAppend
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 

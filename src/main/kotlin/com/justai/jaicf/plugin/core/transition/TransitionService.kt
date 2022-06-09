@@ -1,22 +1,22 @@
-package com.justai.jaicf.plugin.scenarios.transition
+package com.justai.jaicf.plugin.core.transition
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.scenarios.JaicfService
-import com.justai.jaicf.plugin.scenarios.linker.allStates
-import com.justai.jaicf.plugin.scenarios.linker.appendingStates
-import com.justai.jaicf.plugin.scenarios.linker.rootScenarios
-import com.justai.jaicf.plugin.scenarios.linker.sequenceAllStates
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.isRootState
-import com.justai.jaicf.plugin.scenarios.psi.dto.isTopState
-import com.justai.jaicf.plugin.scenarios.psi.dto.name
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.core.JaicfService
+import com.justai.jaicf.plugin.core.linker.allStates
+import com.justai.jaicf.plugin.core.linker.appendingStates
+import com.justai.jaicf.plugin.core.linker.rootScenarios
+import com.justai.jaicf.plugin.core.linker.sequenceAllStates
+import com.justai.jaicf.plugin.core.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.isRootState
+import com.justai.jaicf.plugin.core.psi.dto.isTopState
+import com.justai.jaicf.plugin.core.psi.dto.name
+import com.justai.jaicf.plugin.core.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.core.transition.TransitionResult.NoState
+import com.justai.jaicf.plugin.core.transition.TransitionResult.StateFound
+import com.justai.jaicf.plugin.core.transition.TransitionResult.StatesFound
+import com.justai.jaicf.plugin.core.transition.TransitionResult.SuggestionsFound
 import com.justai.jaicf.plugin.utils.isExist
 import com.justai.jaicf.plugin.utils.measure
 

@@ -1,7 +1,7 @@
-package com.justai.jaicf.plugin.scenarios.psi.builders
+package com.justai.jaicf.plugin.core.psi.builders
 
-import com.justai.jaicf.plugin.scenarios.psi.dto.NestedAppend
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.NestedAppend
+import com.justai.jaicf.plugin.core.psi.dto.State
 import com.justai.jaicf.plugin.utils.APPEND_CONTEXT_ARGUMENT_NAME
 import com.justai.jaicf.plugin.utils.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.utils.APPEND_OTHER_ARGUMENT_NAME

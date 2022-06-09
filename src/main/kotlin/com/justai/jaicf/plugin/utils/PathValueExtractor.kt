@@ -19,56 +19,58 @@ import org.jetbrains.kotlin.psi.psiUtil.isNull
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
 val KtCallExpression.innerPathExpressions: List<StatePathExpression>
-    get() =
+    get() = measure("KtCallExpression.innerPathExpressions") {
         if (VersionService.getInstance(project).isSupportedJaicfInclude) {
             val expressions =
                 argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
             if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                (this.receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
+                (receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
 
             expressions += getAnnotatedExpressionsInDeclaration(PATH_ARGUMENT_ANNOTATION_NAME)
 
-            expressions.filterNot { it.isNull() }.map { StatePathExpression.create(this, it) }
+            expressions.filterNot { it.isNull() }.map { StatePathExpression.create(this@innerPathExpressions, it) }
         } else {
             emptyList()
         }
+    }
 
 
 val KtBinaryExpression.innerPathExpressions: List<StatePathExpression>
-    get() {
-        return measure("innerPathExpressions") {
-            if (VersionService.getInstance(project).isSupportedJaicfInclude) {
-                val function = operationReference.resolveToSource ?: return@measure emptyList()
-                val expressions = mutableListOf<KtExpression>()
+    get() = measure("KtBinaryExpression.innerPathExpressions") {
+        if (VersionService.getInstance(project).isSupportedJaicfInclude) {
+            val function = operationReference.resolveToSource ?: return@measure emptyList()
+            val expressions = mutableListOf<KtExpression>()
 
-                if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                    left?.let { expressions += it }
+            if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
+                left?.let { expressions += it }
 
-                if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME))
-                    right?.let { expressions += it }
+            if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME))
+                right?.let { expressions += it }
 
-                expressions.map { StatePathExpression.create(this@innerPathExpressions, it) }
-            } else {
-                emptyList()
-            }
+            expressions.map { StatePathExpression.create(this@innerPathExpressions, it) }
+        } else {
+            emptyList()
         }
     }
 
 private fun KtCallExpression.hasReceiverAnnotatedBy(annotationName: String) =
-    declaration?.hasReceiverAnnotatedBy(annotationName) ?: false
+    measure("KtCallExpression.hasReceiverAnnotatedBy") {
+        declaration?.hasReceiverAnnotatedBy(annotationName) ?: false
+    }
 
 private fun KtCallableDeclaration.hasReceiverAnnotatedBy(annotationName: String) =
-    receiverTypeReference?.annotationEntries
-        ?.any { it.shortName?.identifier == annotationName } == true
-
+    measure("KtCallExpression.hasReceiverAnnotatedBy") {
+        receiverTypeReference?.annotationEntries
+            ?.any { it.shortName?.identifier == annotationName } == true
+    }
 
 /**
  * @returns [KtExpression] if this PsiElement contains path expression (reactions.go, reactions.buttons(vararg buttonsToState), etc)
  *  or null if no path expression found.
  * */
 val PsiElement.boundedPathExpression: StatePathExpression?
-    get() {
+    get() = measure("PsiElement.boundedPathExpression") {
         val boundedElement = getFirstBoundedElement(
             listOf(
                 KtDotQualifiedExpression::class.java,
@@ -79,24 +81,24 @@ val PsiElement.boundedPathExpression: StatePathExpression?
 
         when (boundedElement) {
             is KtDotQualifiedExpression -> {
-                val callExpression = boundedElement.getChildOfType<KtCallExpression>() ?: return null
+                val callExpression = boundedElement.getChildOfType<KtCallExpression>() ?: return@measure null
                 if (!callExpression.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                    return null
+                    return@measure null
 
-                return (callExpression.receiverValue() as? ExpressionReceiver)?.expression?.let {
+                return@measure (callExpression.receiverValue() as? ExpressionReceiver)?.expression?.let {
                     StatePathExpression.create(boundedElement, it)
                 }
             }
 
             is KtBinaryExpression -> {
-                return boundedElement.innerPathExpressions.firstOrNull { this.isInsideOf(listOf(it.declaration)) }
+                return@measure boundedElement.innerPathExpressions.firstOrNull { isInsideOf(listOf(it.declaration)) }
                     ?: boundedElement.boundedPathExpression
             }
 
             is KtValueArgument -> {
-                return if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true) {
-                    val bound = boundedElement.boundedCallExpressionOrNull ?: return null
-                    val argumentExpression = boundedElement.getArgumentExpression() ?: return null
+                return@measure if (boundedElement.parameter()?.annotationNames?.contains(PATH_ARGUMENT_ANNOTATION_NAME) == true) {
+                    val bound = boundedElement.boundedCallExpressionOrNull ?: return@measure null
+                    val argumentExpression = boundedElement.getArgumentExpression() ?: return@measure null
                     StatePathExpression.create(bound, argumentExpression)
                 } else {
                     null
@@ -104,19 +106,19 @@ val PsiElement.boundedPathExpression: StatePathExpression?
             }
 
             else -> {
-                return null
+                return@measure null
             }
         }
     }
 
 val PsiElement.pathExpressionsOfBoundedBlock: List<StatePathExpression>
-    get() {
+    get() = measure("PsiElement.pathExpressionsOfBoundedBlock") {
         val boundedElement = getFirstBoundedElement(
             targetTypes = listOf(KtBinaryExpression::class.java, KtCallExpression::class.java),
             allowedTypes = listOf(KtNameReferenceExpression::class.java, KtOperationReferenceExpression::class.java)
         )
 
-        return when (boundedElement) {
+        when (boundedElement) {
             is KtBinaryExpression -> boundedElement.innerPathExpressions
 
             is KtCallExpression -> boundedElement.innerPathExpressions

@@ -1,10 +1,7 @@
-package com.justai.jaicf.plugin.scenarios.psi.dto
+package com.justai.jaicf.plugin.core.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.psi.util.PsiModificationTracker.NEVER_CHANGED
-import com.justai.jaicf.plugin.services.caching
 import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.utils.SCENARIO_METHOD_NAME
 import com.justai.jaicf.plugin.utils.ScenarioPackageFqName
@@ -46,9 +43,9 @@ class Scenario(
     }
 }
 
-val Scenario.nestedStates: List<State> by caching(NEVER_CHANGED) {
-    innerState.nestedStates + innerState
-}
+val Scenario.nestedStates: List<State>
+    get() = innerState.nestedStates + innerState
+
 
 val Scenario.name: String?
     get() {

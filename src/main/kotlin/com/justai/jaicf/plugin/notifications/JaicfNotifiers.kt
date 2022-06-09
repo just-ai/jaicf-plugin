@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.notifications
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.scenarios.psi.MethodsUsedPathValueService
+import com.justai.jaicf.plugin.core.psi.MethodsUsedPathValueService
 import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.isJaicfInclude
 import com.justai.jaicf.plugin.utils.isSupportedJaicfInclude

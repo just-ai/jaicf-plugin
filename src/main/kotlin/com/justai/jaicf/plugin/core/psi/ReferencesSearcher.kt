@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin.scenarios.psi
+package com.justai.jaicf.plugin.core.psi
 
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -13,9 +13,11 @@ import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 
-fun PsiElement.search(scope: SearchScope = project.projectScope()): Collection<PsiReference> {
-    return measure("${text.replace("\n", "\\/")}?.search(${scope.javaClass.simpleName})") { psiReferences(scope) }
-}
+// TODO optimize maybe
+fun PsiElement.search(scope: SearchScope = project.projectScope()): Collection<PsiReference> =
+    measure("${text.replace("\n", "\\/")}?.search(${scope.javaClass.simpleName})") {
+        psiReferences(scope)
+    }
 
 private fun PsiElement.psiReferences(scope: SearchScope): Collection<PsiReference> {
     if (DumbService.getInstance(project).isDumb)
@@ -39,5 +41,6 @@ fun findClass(packageFq: String, className: String, project: Project): PsiClass?
     return kotlinPsiFacade.findPackage(packageFq, projectScope)?.classes?.firstOrNull { it.name == className }
 }
 
-fun PsiClass.getMethods(vararg methods: String) =
+fun PsiClass.getMethods(vararg methods: String) = measure("PsiClass.getMethods") {
     allMethods.filter { it.name in methods }
+}

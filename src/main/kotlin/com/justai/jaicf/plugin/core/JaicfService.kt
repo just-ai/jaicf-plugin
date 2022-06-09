@@ -1,4 +1,4 @@
-package com.justai.jaicf.plugin.scenarios
+package com.justai.jaicf.plugin.core
 
 import com.intellij.openapi.project.Project
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker

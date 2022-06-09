@@ -1,7 +1,7 @@
-package com.justai.jaicf.plugin.scenarios.psi.dto
+package com.justai.jaicf.plugin.core.psi.dto
 
 import com.intellij.openapi.project.Project
-import com.justai.jaicf.plugin.scenarios.linker.ScenarioReferenceResolver
+import com.justai.jaicf.plugin.core.linker.ScenarioReferenceResolver
 import com.justai.jaicf.plugin.utils.APPEND_OTHER_ARGUMENT_NAME
 import com.justai.jaicf.plugin.utils.argumentExpression
 import com.justai.jaicf.plugin.utils.measure

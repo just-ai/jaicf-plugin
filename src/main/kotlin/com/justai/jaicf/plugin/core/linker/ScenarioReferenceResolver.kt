@@ -1,16 +1,15 @@
-package com.justai.jaicf.plugin.scenarios.linker
+package com.justai.jaicf.plugin.core.linker
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker
-import com.justai.jaicf.plugin.scenarios.JaicfService
-import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
-import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
-import com.justai.jaicf.plugin.scenarios.psi.dto.Append
-import com.justai.jaicf.plugin.scenarios.psi.dto.NestedAppend
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.TopLevelAppend
+import com.justai.jaicf.plugin.core.JaicfService
+import com.justai.jaicf.plugin.core.psi.ScenarioDataService
+import com.justai.jaicf.plugin.core.psi.builders.isStateDeclaration
+import com.justai.jaicf.plugin.core.psi.dto.Append
+import com.justai.jaicf.plugin.core.psi.dto.NestedAppend
+import com.justai.jaicf.plugin.core.psi.dto.Scenario
+import com.justai.jaicf.plugin.core.psi.dto.State
 import com.justai.jaicf.plugin.utils.SCENARIO_MODEL_FIELD_NAME
 import com.justai.jaicf.plugin.utils.argumentExpressionOrDefaultValue
 import com.justai.jaicf.plugin.utils.isExist
@@ -34,12 +33,15 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
 
     private val scenarioService = ScenarioDataService.getInstance(project)
 
+    // TODO optimize
     private val resolvedReferences by cached(PsiModificationTracker.MODIFICATION_COUNT) {
         mutableMapOf<Pair<KtReferenceExpression, State?>, Scenario?>()
     }
 
     fun resolve(scenarioReference: KtReferenceExpression, boundedState: State? = null) =
-        measure("resolve(${scenarioReference.text})") { tempResolve(scenarioReference, boundedState) }
+        measure("ScenarioReferenceResolver.resolve(${scenarioReference.text})") {
+            tempResolve(scenarioReference, boundedState)
+        }
 
     private fun tempResolve(scenarioReference: KtReferenceExpression, boundedState: State? = null): Scenario? {
         if (scenarioReference.isRemoved || !enabled) return null
@@ -52,10 +54,11 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
         }
     }
 
-    private fun resolveScenario(scenarioBody: KtExpression): Scenario? {
-        val file = scenarioBody.containingFile as? KtFile ?: return null
-        return scenarioService.getScenarios(file)?.findBoundingScenario(scenarioBody)
-    }
+    private fun resolveScenario(scenarioBody: KtExpression): Scenario? =
+        measure("ScenarioReferenceResolver.resolveScenario(...)") {
+            val file = scenarioBody.containingFile as? KtFile ?: return@measure null
+            scenarioService.getScenarios(file)?.findBoundingScenario(scenarioBody)
+        }
 
     private fun getScenarioBody(scenarioReference: KtReferenceExpression, boundedState: State? = null): KtExpression? {
         when (val resolvedElement = scenarioReference.safeResolve()) {
@@ -107,11 +110,13 @@ class ScenarioReferenceResolver(project: Project) : JaicfService(project) {
     }
 
     private val KtDeclarationContainer.scenarioBody: KtExpression?
-        get() = declarations
-            .filter { it.name == SCENARIO_MODEL_FIELD_NAME && it is KtProperty }
-            .map { it as KtProperty }
-            .mapNotNull { it.delegateExpressionOrInitializer ?: it.getter?.initializer }
-            .firstOrNull()
+        get() = measure("KtDeclarationContainer.scenarioBody") {
+            declarations
+                .filter { it.name == SCENARIO_MODEL_FIELD_NAME && it is KtProperty }
+                .map { it as KtProperty }
+                .mapNotNull { it.delegateExpressionOrInitializer ?: it.getter?.initializer }
+                .firstOrNull()
+        }
 
     companion object {
         fun getInstance(element: PsiElement): ScenarioReferenceResolver? =

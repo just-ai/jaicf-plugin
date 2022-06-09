@@ -1,6 +1,6 @@
-package com.justai.jaicf.plugin.scenarios.psi.builders
+package com.justai.jaicf.plugin.core.psi.builders
 
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.core.psi.dto.Scenario
 import com.justai.jaicf.plugin.utils.isExist
 import org.jetbrains.kotlin.psi.KtCallExpression
 

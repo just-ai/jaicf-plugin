@@ -2,8 +2,7 @@ package com.justai.jaicf.plugin.contexts
 
 import com.intellij.codeInsight.template.TemplateActionContext
 import com.intellij.codeInsight.template.TemplateContextType
-import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclaration
-import com.justai.jaicf.plugin.scenarios.psi.builders.isStateDeclarationExperimental
+import com.justai.jaicf.plugin.core.psi.builders.isStateDeclarationExperimental
 import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.boundedCallExpressionOrNull
 import com.justai.jaicf.plugin.utils.getBoundedLambdaArgumentOrNull

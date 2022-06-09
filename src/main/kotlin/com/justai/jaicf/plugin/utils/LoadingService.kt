@@ -2,7 +2,7 @@ package com.justai.jaicf.plugin.utils
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.scenarios.JaicfService
+import com.justai.jaicf.plugin.core.JaicfService
 import java.lang.System.currentTimeMillis
 import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.kotlin.backend.common.peek

@@ -15,12 +15,12 @@
         <projectService serviceImplementation="com.justai.jaicf.plugin.services.CachingService"/>
         <projectService
                 serviceImplementation="com.justai.jaicf.plugin.providers.ReferenceContributorsAvailabilityService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.PathValueExpressionsService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.MethodsUsedPathValueService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.TopLevelAppendDataService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.linker.ScenarioReferenceResolver"/>
-        <projectService serviceImplementation="com.justai.jaicf.plugin.scenarios.transition.TransitionService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.core.psi.PathValueExpressionsService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.core.psi.MethodsUsedPathValueService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.core.psi.TopLevelAppendDataService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.core.psi.ScenarioDataService"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.core.linker.ScenarioReferenceResolver"/>
+        <projectService serviceImplementation="com.justai.jaicf.plugin.core.transition.TransitionService"/>
 
         <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfSourcesMissedNotifier"/>
         <projectService serviceImplementation="com.justai.jaicf.plugin.notifications.JaicfUnsupportedNotifier"/>

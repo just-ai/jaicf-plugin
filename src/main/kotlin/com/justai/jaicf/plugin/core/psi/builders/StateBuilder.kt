@@ -1,11 +1,11 @@
-package com.justai.jaicf.plugin.scenarios.psi.builders
+package com.justai.jaicf.plugin.core.psi.builders
 
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.ExpressionIdentifier
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.NoIdentifier
-import com.justai.jaicf.plugin.scenarios.psi.dto.StateIdentifier.PredefinedIdentifier
+import com.justai.jaicf.plugin.core.psi.dto.Scenario
+import com.justai.jaicf.plugin.core.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.StateIdentifier
+import com.justai.jaicf.plugin.core.psi.dto.StateIdentifier.ExpressionIdentifier
+import com.justai.jaicf.plugin.core.psi.dto.StateIdentifier.NoIdentifier
+import com.justai.jaicf.plugin.core.psi.dto.StateIdentifier.PredefinedIdentifier
 import com.justai.jaicf.plugin.utils.STATE_BODY_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.STATE_DECLARATION_ANNOTATION_NAME
 import com.justai.jaicf.plugin.utils.STATE_NAME_ANNOTATION_ARGUMENT_NAME
@@ -44,22 +44,30 @@ fun buildState(
 
 private val KtCallExpression.statements: List<KtCallExpression>
     get() {
-        val body = this.annotatedLambdaArgument ?: this.annotatedLambdaBlockInDeclaration
+        val body = annotatedLambdaArgument ?: annotatedLambdaBlockInDeclaration
 
         return body?.bodyExpression?.statements?.filterIsInstance<KtCallExpression>() ?: emptyList()
     }
 
 private val KtCallExpression.annotatedLambdaArgument: KtLambdaExpression?
-    get() = this.argumentExpressionsOrDefaultValuesByAnnotation(STATE_BODY_ANNOTATION_NAME).firstIsInstanceOrNull()
+    get() = measure("KtCallExpression.annotatedLambdaArgument") {
+        argumentExpressionsOrDefaultValuesByAnnotation(STATE_BODY_ANNOTATION_NAME).firstIsInstanceOrNull()
+    }
 
-val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
-    get() = this.declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression
+private val KtCallExpression.annotatedLambdaBlockInDeclaration: KtLambdaExpression?
+    get() = measure("KtCallExpression.annotatedLambdaBlockInDeclaration") {
+        declaration?.bodyExpression?.findChildOfType<KtAnnotatedExpression>()?.baseExpression as? KtLambdaExpression
+    }
 
 val KtCallExpression.isStateDeclaration: Boolean
-    get() = measure("isStateDeclaration") { getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty() }
+    get() = measure("KtCallExpression.isStateDeclaration") {
+        getMethodAnnotations(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty()
+    }
 
 val KtCallExpression.isStateDeclarationExperimental: Boolean
-    get() = measure("isStateDeclarationExperimental") { getMethodAnnotationsExperimental(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty() }
+    get() = measure("KtCallExpression.isStateDeclarationExperimental") {
+        getMethodAnnotationsExperimental(STATE_DECLARATION_ANNOTATION_NAME).isNotEmpty()
+    }
 
 private val KtCallExpression.identifierOfStateExpression: StateIdentifier
     get() {

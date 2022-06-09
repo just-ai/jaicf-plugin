@@ -1,8 +1,8 @@
-package com.justai.jaicf.plugin.scenarios.psi.dto
+package com.justai.jaicf.plugin.core.psi.dto
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.scenarios.transition.withoutLeadSlashes
+import com.justai.jaicf.plugin.core.transition.withoutLeadSlashes
 import com.justai.jaicf.plugin.utils.measure
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtCallExpression

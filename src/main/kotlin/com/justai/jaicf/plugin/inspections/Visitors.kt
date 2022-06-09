@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.justai.jaicf.plugin.notifications.checkEnvironmentAndNotify
-import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.name
+import com.justai.jaicf.plugin.core.psi.ScenarioDataService
+import com.justai.jaicf.plugin.core.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.name
 import com.justai.jaicf.plugin.utils.StatePathExpression
 import com.justai.jaicf.plugin.utils.VersionService
 import com.justai.jaicf.plugin.utils.innerPathExpressions

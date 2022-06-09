@@ -1,15 +1,15 @@
-package com.justai.jaicf.plugin.scenarios.linker
+package com.justai.jaicf.plugin.core.linker
 
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.ScenarioDataService
+import com.justai.jaicf.plugin.core.psi.dto.Scenario
+import com.justai.jaicf.plugin.core.psi.dto.State
 import com.justai.jaicf.plugin.utils.isRemoved
 import com.justai.jaicf.plugin.utils.measure
 import org.jetbrains.kotlin.psi.KtFile
 
 val PsiElement.framingState: State?
-    get() = measure({"${this.text.substringBefore('\n')}.framingState"}) {
+    get() = measure({ "PsiElement(${text.substringBefore('\n')}).framingState" }) {
         if (isRemoved)
             return@measure null
 
@@ -20,8 +20,10 @@ val PsiElement.framingState: State?
             ?.let { recursiveFindState(it.innerState, this@framingState) }
     }
 
-fun List<Scenario>.findBoundingScenario(element: PsiElement) = filter { contains(it.innerState, element) }
-    .minByOrNull { it.declarationElement.text.length }
+fun List<Scenario>.findBoundingScenario(element: PsiElement) = element.measure("List<Scenario>.findBoundingScenario") {
+    filter { contains(it.innerState, element) }
+        .minByOrNull { it.declarationElement.text.length }
+}
 
 private fun contains(state: State, element: PsiElement) =
     element.textRange.startOffset in state.stateExpression.textRange

@@ -1,11 +1,11 @@
-package com.justai.jaicf.plugin.scenarios.psi
+package com.justai.jaicf.plugin.core.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.justai.jaicf.plugin.scenarios.JaicfService
-import com.justai.jaicf.plugin.scenarios.psi.ScenarioDataService.Companion.getInstance
-import com.justai.jaicf.plugin.scenarios.psi.builders.buildScenario
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
+import com.justai.jaicf.plugin.core.JaicfService
+import com.justai.jaicf.plugin.core.psi.ScenarioDataService.Companion.getInstance
+import com.justai.jaicf.plugin.core.psi.builders.buildScenario
+import com.justai.jaicf.plugin.core.psi.dto.Scenario
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.CREATE_MODEL_METHOD_NAME
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
@@ -25,6 +25,7 @@ class ScenarioDataService(project: Project) : JaicfService(project) {
             ?.getMethods(SCENARIO_METHOD_NAME, CREATE_MODEL_METHOD_NAME)
     }
 
+    // TODO Optimize Использовать трекер psiReference в каждом файле
     private val scenariosMap = LiveMapByFiles(project) { file ->
         measure("Update scenario in ${file.name}") {
             scenariosBuildMethods

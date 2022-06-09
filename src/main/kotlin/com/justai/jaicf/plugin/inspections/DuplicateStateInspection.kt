@@ -2,13 +2,13 @@ package com.justai.jaicf.plugin.inspections
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
-import com.justai.jaicf.plugin.scenarios.linker.allStates
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.StepUp
-import com.justai.jaicf.plugin.scenarios.transition.fullPath
-import com.justai.jaicf.plugin.scenarios.transition.states
-import com.justai.jaicf.plugin.scenarios.transition.transit
+import com.justai.jaicf.plugin.core.linker.allStates
+import com.justai.jaicf.plugin.core.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.nameWithoutLeadSlashes
+import com.justai.jaicf.plugin.core.transition.Lexeme.Transition.StepUp
+import com.justai.jaicf.plugin.core.transition.fullPath
+import com.justai.jaicf.plugin.core.transition.states
+import com.justai.jaicf.plugin.core.transition.transit
 import com.justai.jaicf.plugin.utils.nameReferenceExpression
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 

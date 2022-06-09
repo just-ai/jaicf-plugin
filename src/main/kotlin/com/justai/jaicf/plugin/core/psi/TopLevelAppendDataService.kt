@@ -1,10 +1,10 @@
-package com.justai.jaicf.plugin.scenarios.psi
+package com.justai.jaicf.plugin.core.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import com.justai.jaicf.plugin.scenarios.JaicfService
-import com.justai.jaicf.plugin.scenarios.psi.builders.buildTopLevelAppend
+import com.justai.jaicf.plugin.core.JaicfService
+import com.justai.jaicf.plugin.core.psi.builders.buildTopLevelAppend
 import com.justai.jaicf.plugin.trackers.JaicfVersionTracker
 import com.justai.jaicf.plugin.utils.APPEND_METHOD_NAME
 import com.justai.jaicf.plugin.utils.LiveMapByFiles
@@ -23,6 +23,7 @@ class TopLevelAppendDataService(project: Project) : JaicfService(project) {
             ?.first { it.name == APPEND_METHOD_NAME }
     }
 
+    // TODO Optimize Использовать трекер psiReference в каждом файле
     private val appendsMap = LiveMapByFiles(project) { file ->
         measure("TopLevelAppendDataService.getTopLevelAppendsUsages(${file.name}") {
             getTopLevelAppendsUsages(file.fileScope()).mapNotNull { buildTopLevelAppend(it) }

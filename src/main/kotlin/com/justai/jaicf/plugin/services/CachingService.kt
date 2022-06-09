@@ -5,8 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiModificationTracker.SERVICE.getInstance
-import com.justai.jaicf.plugin.scenarios.psi.dto.Scenario
-import com.justai.jaicf.plugin.trackers.TimeModificationTracker
+import com.justai.jaicf.plugin.core.psi.dto.Scenario
 import com.justai.jaicf.plugin.utils.measure
 import kotlin.reflect.KProperty
 

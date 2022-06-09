@@ -1,20 +1,19 @@
-package com.justai.jaicf.plugin.scenarios.transition
+package com.justai.jaicf.plugin.core.transition
 
-import com.justai.jaicf.plugin.scenarios.linker.appendingStates
-import com.justai.jaicf.plugin.scenarios.linker.framingState
-import com.justai.jaicf.plugin.scenarios.psi.dto.State
-import com.justai.jaicf.plugin.scenarios.psi.dto.name
-import com.justai.jaicf.plugin.scenarios.psi.dto.nameWithoutLeadSlashes
-import com.justai.jaicf.plugin.scenarios.psi.dto.root
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition
-import com.justai.jaicf.plugin.scenarios.transition.Lexeme.Transition.Root
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.NoState
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.OutOfStateBoundUsage
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StateFound
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.StatesFound
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.SuggestionsFound
-import com.justai.jaicf.plugin.scenarios.transition.TransitionResult.UnresolvedPath
-import com.justai.jaicf.plugin.services.caching
+import com.justai.jaicf.plugin.core.linker.appendingStates
+import com.justai.jaicf.plugin.core.linker.framingState
+import com.justai.jaicf.plugin.core.psi.dto.State
+import com.justai.jaicf.plugin.core.psi.dto.name
+import com.justai.jaicf.plugin.core.psi.dto.nameWithoutLeadSlashes
+import com.justai.jaicf.plugin.core.psi.dto.root
+import com.justai.jaicf.plugin.core.transition.Lexeme.Transition
+import com.justai.jaicf.plugin.core.transition.Lexeme.Transition.Root
+import com.justai.jaicf.plugin.core.transition.TransitionResult.NoState
+import com.justai.jaicf.plugin.core.transition.TransitionResult.OutOfStateBoundUsage
+import com.justai.jaicf.plugin.core.transition.TransitionResult.StateFound
+import com.justai.jaicf.plugin.core.transition.TransitionResult.StatesFound
+import com.justai.jaicf.plugin.core.transition.TransitionResult.SuggestionsFound
+import com.justai.jaicf.plugin.core.transition.TransitionResult.UnresolvedPath
 import com.justai.jaicf.plugin.utils.stringValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 
@@ -60,12 +59,13 @@ fun State.transit(path: StatePath) = path.transitions
         }
     }
 
-val State.roots: List<State> by caching({ project }) {
-    val appendingStates = scenario.appendingStates
+val State.roots: List<State>
+    get() {
+        val appendingStates = scenario.appendingStates
 
-    if (appendingStates.isEmpty()) listOf(root)
-    else appendingStates.flatMap { it.roots }
-}
+        return if (appendingStates.isEmpty()) listOf(root)
+        else appendingStates.flatMap { it.roots }
+    }
 
 val State.absolutePath: StatePath?
     get() {
