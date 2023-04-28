@@ -5,9 +5,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations.allowSlowOperations
-import java.lang.Integer.min
+import org.jetbrains.kotlin.idea.core.receiverValue
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.nj2k.postProcessing.type
@@ -31,6 +30,7 @@ import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.ifEmpty
+import java.lang.Integer.min
 
 fun KtCallElement.argumentConstantValue(identifier: String) =
     argumentExpression(identifier)?.stringValueOrNull
@@ -116,8 +116,11 @@ val KtCallElement.referenceExpression: KtReferenceExpression?
 
 val KtReferenceExpression.resolveToSource: KtFunction?
     get() = (resolve() as? KtFunction)?.let {
-        if (it.isBinary) it.source
-        else it
+        if (it.isBinary) {
+            it.source
+        } else {
+            it
+        }
     }
 
 inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
@@ -130,19 +133,19 @@ inline fun <reified T : PsiElement> PsiElement.findChildrenOfType(): Collection<
 
 fun KtCallExpression.isOverride(receiver: FqName, funName: String, parameters: List<String>? = null) =
     try {
-        isExist && callName() == funName
-            && isReceiverInheritedOf(receiver)
-            && (parameters?.let { it == parametersTypes } ?: true)
+        isExist && callName() == funName &&
+            isReceiverInheritedOf(receiver) &&
+            (parameters?.let { it == parametersTypes } ?: true)
     } catch (e: NullPointerException) {
         false
     }
 
 fun KtCallExpression.isReceiverInheritedOf(baseClass: FqName): Boolean = allowSlowOperations<Boolean, Throwable> {
-    receiverFqName == baseClass || receiverType()?.supertypes()?.any { it.fqName == baseClass } ?: false
+    receiverFqName == baseClass || receiverValue()?.type?.supertypes()?.any { it.fqName == baseClass } ?: false
 }
 
 val KtCallExpression.receiverFqName: FqName?
-    get() = receiverType()?.fqName ?: declaration?.fqName?.parent()
+    get() = receiverValue()?.type?.fqName ?: declaration?.fqName?.parent()
 
 fun KtCallExpression.nameReferenceExpression() = getChildOfType<KtNameReferenceExpression>()
 
@@ -173,7 +176,7 @@ fun PsiElement.getBoundedLambdaArgumentOrNull(vararg stopAt: Class<out PsiElemen
 
 fun PsiElement.getFirstBoundedElement(
     targetTypes: List<Class<out PsiElement>>,
-    allowedTypes: List<Class<out PsiElement>>? = null
+    allowedTypes: List<Class<out PsiElement>>? = null,
 ): PsiElement? {
     var currentParent = parent
     while (currentParent != null) {
@@ -210,15 +213,18 @@ fun KtValueArgument.parameter(): KtParameter? {
     val callElement = getParentOfType<KtCallElement>(true) ?: return null
     val params = callElement.declaration?.valueParameters ?: return null
 
-    if (params.isEmpty())
+    if (params.isEmpty()) {
         return null
+    }
 
-    if (this is KtLambdaArgument)
+    if (this is KtLambdaArgument) {
         return params.last()
+    }
 
     val identifier = definedIdentifier
-    if (identifier != null)
+    if (identifier != null) {
         return params.firstOrNull { it.name == identifier }
+    }
 
     val indexOfArgument = callElement.valueArguments.indexOf(this)
     return params[min(indexOfArgument, params.lastIndex)]

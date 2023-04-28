@@ -9,8 +9,8 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
     id("java")
 
-    id("org.jetbrains.kotlin.jvm") version "1.4.21"
-    id("org.jetbrains.intellij") version "1.1.2"
+    id("org.jetbrains.kotlin.jvm") version "1.7.0"
+    id("org.jetbrains.intellij") version "1.13.3"
     id("org.jetbrains.changelog") version "1.1.2"
 }
 
@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-project:1.4.32")
+    implementation("org.jetbrains.kotlin:kotlin-project:1.7.0")
 }
 
 intellij {
@@ -42,11 +42,11 @@ changelog {
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
 
     patchPluginXml {
