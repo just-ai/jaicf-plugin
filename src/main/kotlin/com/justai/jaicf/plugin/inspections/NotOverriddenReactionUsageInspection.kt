@@ -15,7 +15,8 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.idea.actions.generate.findDeclaredFunction
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.isOverridable
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverType
+import org.jetbrains.kotlin.idea.core.receiverType
+import org.jetbrains.kotlin.idea.core.receiverValue
 import org.jetbrains.kotlin.idea.refactoring.isAbstract
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -50,7 +51,7 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
                 if (callExpression.reactionIsNotOverridden(reactionName)) {
                     registerWarning(
                         callExpression,
-                        "$reactionName reaction is not implemented by this channel"
+                        "$reactionName reaction is not implemented by this channel",
                     )
                 }
             }
@@ -59,8 +60,11 @@ class UsesReactionUsageInspection : LocalInspectionTool() {
         private fun KtCallExpression.reactionIsNotOverridden(reactionName: String): Boolean {
             val reactionDescriptor = getReactionDescriptor(reactionName, this) ?: return false
 
-            return if (reactionDescriptor.isFinal) false
-            else receiverType()?.findOverridingFunction(reactionDescriptor) == null
+            return if (reactionDescriptor.isFinal) {
+                false
+            } else {
+                receiverValue()?.type?.findOverridingFunction(reactionDescriptor) == null
+            }
         }
 
         private fun getReactionDescriptor(reactionName: String, callExpression: KtCallExpression): FunctionDescriptor? {
@@ -95,7 +99,7 @@ class NotOverriddenReactionUsageInspection : LocalInspectionTool() {
 
             registerWarning(
                 callExpression,
-                "$reactionName reaction is not implemented by this channel"
+                "$reactionName reaction is not implemented by this channel",
             )
         }
 
@@ -122,7 +126,7 @@ private fun KotlinType.findOverridingFunction(descriptor: FunctionDescriptor) = 
     .firstOrNull { supertype ->
         supertype.findDeclaredFunction(
             descriptor.name.asString(),
-            false
+            false,
         ) { it.allOverriddenDescriptors.contains(descriptor) } != null
     }
 

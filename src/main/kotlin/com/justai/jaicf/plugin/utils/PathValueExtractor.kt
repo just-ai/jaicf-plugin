@@ -3,7 +3,7 @@ package com.justai.jaicf.plugin.utils
 import com.intellij.psi.PsiElement
 import com.justai.jaicf.plugin.utils.StatePathExpression.Joined
 import com.justai.jaicf.plugin.utils.StatePathExpression.Separated
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.receiverValue
+import org.jetbrains.kotlin.idea.core.receiverValue
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -24,9 +24,9 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
             val expressions =
                 argumentExpressionsOrDefaultValuesByAnnotation(PATH_ARGUMENT_ANNOTATION_NAME).toMutableList()
 
-            if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
-                (this.receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
-
+            if (hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) {
+                (receiverValue() as? ExpressionReceiver)?.expression?.let { expressions += it }
+            }
             expressions += getAnnotatedExpressionsInDeclaration(PATH_ARGUMENT_ANNOTATION_NAME)
 
             expressions.filterNot { it.isNull() }.map { StatePathExpression.create(this, it) }
@@ -34,18 +34,19 @@ val KtCallExpression.innerPathExpressions: List<StatePathExpression>
             emptyList()
         }
 
-
 val KtBinaryExpression.innerPathExpressions: List<StatePathExpression>
     get() {
         return if (VersionService.getInstance(project).isSupportedJaicfInclude) {
             val function = operationReference.resolveToSource ?: return emptyList()
             val expressions = mutableListOf<KtExpression>()
 
-            if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
+            if (function.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) {
                 left?.let { expressions += it }
+            }
 
-            if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME))
+            if (function.valueParameters[0].annotationNames.contains(PATH_ARGUMENT_ANNOTATION_NAME)) {
                 right?.let { expressions += it }
+            }
 
             expressions.map { StatePathExpression.create(this, it) }
         } else {
@@ -60,7 +61,6 @@ private fun KtCallableDeclaration.hasReceiverAnnotatedBy(annotationName: String)
     receiverTypeReference?.annotationEntries
         ?.any { it.shortName?.identifier == annotationName } == true
 
-
 /**
  * @returns [KtExpression] if this PsiElement contains path expression (reactions.go, reactions.buttons(vararg buttonsToState), etc)
  *  or null if no path expression found.
@@ -71,15 +71,16 @@ val PsiElement.boundedPathExpression: StatePathExpression?
             listOf(
                 KtDotQualifiedExpression::class.java,
                 KtBinaryExpression::class.java,
-                KtValueArgument::class.java
-            )
+                KtValueArgument::class.java,
+            ),
         )
 
         when (boundedElement) {
             is KtDotQualifiedExpression -> {
                 val callExpression = boundedElement.getChildOfType<KtCallExpression>() ?: return null
-                if (!callExpression.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME))
+                if (!callExpression.hasReceiverAnnotatedBy(PATH_ARGUMENT_ANNOTATION_NAME)) {
                     return null
+                }
 
                 return (callExpression.receiverValue() as? ExpressionReceiver)?.expression?.let {
                     StatePathExpression.create(boundedElement, it)
@@ -111,7 +112,7 @@ val PsiElement.pathExpressionsOfBoundedBlock: List<StatePathExpression>
     get() {
         val boundedElement = getFirstBoundedElement(
             targetTypes = listOf(KtBinaryExpression::class.java, KtCallExpression::class.java),
-            allowedTypes = listOf(KtNameReferenceExpression::class.java, KtOperationReferenceExpression::class.java)
+            allowedTypes = listOf(KtNameReferenceExpression::class.java, KtOperationReferenceExpression::class.java),
         )
 
         return when (boundedElement) {
