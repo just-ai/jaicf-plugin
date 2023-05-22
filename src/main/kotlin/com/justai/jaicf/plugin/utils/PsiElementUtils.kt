@@ -1,5 +1,6 @@
 package com.justai.jaicf.plugin.utils
 
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -115,12 +116,19 @@ val KtCallElement.referenceExpression: KtReferenceExpression?
     get() = findChildOfType<KtNameReferenceExpression>()
 
 val KtReferenceExpression.resolveToSource: KtFunction?
-    get() = (resolve() as? KtFunction)?.let {
+    get() = (safeResolve() as? KtFunction)?.let {
         if (it.isBinary) {
             it.source
         } else {
             it
         }
+    }
+
+fun KtReferenceExpression.safeResolve() =
+    try {
+        resolve()
+    } catch (e: IndexNotReadyException) {
+        null
     }
 
 inline fun <reified T : PsiElement> PsiElement.findChildOfType(): T? {
@@ -256,8 +264,8 @@ fun PsiElement.rangeToEndOf(parent: PsiElement): TextRange {
 val KtBinaryExpression.operands get() = left?.let { l -> right?.let { r -> listOf(l, r) } }
 
 val KtBinaryExpression.isStringConcatenationExpression
-    get() = (operationReference.resolve() as? KtFunction)?.let { declaration ->
+    get() = (operationReference.safeResolve() as? KtFunction)?.let { declaration ->
         declaration.name == "plus" &&
-            declaration.receiverName == "kotlin.String" &&
-            declaration.parametersTypes.singleOrNull() == "kotlin.Any"
+                declaration.receiverName == "kotlin.String" &&
+                declaration.parametersTypes.singleOrNull() == "kotlin.Any"
     } ?: false
