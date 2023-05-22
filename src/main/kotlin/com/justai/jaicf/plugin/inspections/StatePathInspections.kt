@@ -48,6 +48,8 @@ class StatePathInspection : LocalInspectionTool() {
                         NavigateToState("Go to unrelated state declaration ${suggestion.fullPath}", suggestion)
                     )
                 }
+                //TODO fill all transition result or create correct else result
+                else -> {}
             }
         }
     }
