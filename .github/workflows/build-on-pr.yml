@@ -3,7 +3,7 @@ name: Build JAICF Plugin on PR
 on:
   pull_request:
     types: [ opened ]
-    branches: [ 212/master ]
+    branches: [ 222/master ]
 
 jobs:
   gradleValidation:
